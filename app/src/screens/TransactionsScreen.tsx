@@ -3,6 +3,7 @@ import { Pressable, ScrollView, SectionList, StyleSheet, Text, TextInput, View }
 import { BillDetail, BillListRow, dayKey, getBillDetail, getBillList, PAYMENT_MODES } from '../db/database';
 import { GST_PERCENT } from '../data/sampleMenu';
 import { useSettings } from '../data/settingsStore';
+import { can, useCurrentUser } from '../data/staffStore';
 import { formatRupees } from '../utils/money';
 import { colors, fonts } from '../theme';
 
@@ -53,6 +54,8 @@ function typeLabel(b: { order_type: string; table_no: number | null }): string {
 
 // Every saved bill, newest first, grouped by day. Tap a bill to see its items.
 export default function TransactionsScreen({ visible }: { visible: boolean }) {
+  const user = useCurrentUser();
+  const allDays = can(user, 'billsAllDays');
   const [range, setRange] = useState<Range>('today');
   const [query, setQuery] = useState('');
   const [bills, setBills] = useState<BillListRow[]>([]);
@@ -100,6 +103,8 @@ export default function TransactionsScreen({ visible }: { visible: boolean }) {
           {filtered.length} bill{filtered.length === 1 ? '' : 's'}, {formatRupees(total)}
         </Text>
 
+        {!allDays && <Text style={styles.onlyToday}>Showing today's bills.</Text>}
+        {allDays && (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.ranges}>
           {RANGES.map((r) => (
             <Pressable
@@ -113,6 +118,7 @@ export default function TransactionsScreen({ visible }: { visible: boolean }) {
             </Pressable>
           ))}
         </ScrollView>
+        )}
 
         <View style={styles.searchBox}>
           <TextInput
@@ -210,6 +216,12 @@ function BillSheet({ bill, onClose }: { bill: BillDetail; onClose: () => void })
               <Text style={styles.rLabel}>Paid by</Text>
               <Text style={styles.rValue}>{modeLabel(bill.payment_mode)}</Text>
             </View>
+            {!!bill.staff_name && (
+              <View style={styles.rRow}>
+                <Text style={styles.rLabel}>Billed by</Text>
+                <Text style={styles.rValue}>{bill.staff_name}</Text>
+              </View>
+            )}
 
             <View style={styles.rDivider} />
 
@@ -261,6 +273,7 @@ const styles = StyleSheet.create({
   rangeBtnActive: { backgroundColor: colors.brand, borderColor: colors.brand },
   rangeText: { fontFamily: fonts.semibold, fontSize: 14, color: colors.muted },
   rangeTextActive: { color: colors.paper },
+  onlyToday: { fontFamily: fonts.regular, fontSize: 13, color: colors.muted, marginTop: 8, marginBottom: 12 },
   searchBox: { flexDirection: 'row', alignItems: 'center', gap: 8, height: 46, borderRadius: 12, borderWidth: 1.5, borderColor: colors.line, backgroundColor: colors.paper, paddingHorizontal: 14, marginBottom: 4 },
   searchInput: { flex: 1, fontFamily: fonts.regular, fontSize: 16, color: colors.ink, paddingVertical: 0 },
   clear: { fontSize: 16, color: colors.muted },

@@ -12,6 +12,7 @@ import {
 import { GST_PERCENT } from '../data/sampleMenu';
 import { reloadMenu, useMenu } from '../data/menuStore';
 import { useSettings } from '../data/settingsStore';
+import { can, getCurrentUser } from '../data/staffStore';
 import {
   Cart,
   getNextToken,
@@ -94,6 +95,7 @@ export default function BillingScreen({ tableNo, onBackToTables, onTableSettled 
 
   // Long-press shortcut so staff can mark a dish out of stock without leaving billing.
   function toggleStock(item: DbMenuItem) {
+    if (!can(getCurrentUser(), 'toggleStock')) return;
     const goingOut = item.available;
     Alert.alert(
       item.name,
@@ -118,6 +120,8 @@ export default function BillingScreen({ tableNo, onBackToTables, onTableSettled 
       const saved = saveBillToDb({
         orderType: isTable ? 'dine_in' : 'takeaway',
         tableNo: tableNo ?? undefined,
+        staffId: getCurrentUser()?.id,
+        staffName: getCurrentUser()?.name,
         paymentMode,
         subtotal,
         gst,

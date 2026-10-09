@@ -3,6 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Bar, buildInsights, Insights, Period, PERIODS } from '../data/insights';
 import { PAYMENT_MODES } from '../db/database';
 import { useSettings } from '../data/settingsStore';
+import { can, useCurrentUser } from '../data/staffStore';
 import { formatRupees } from '../utils/money';
 import { colors, fonts } from '../theme';
 
@@ -15,6 +16,8 @@ function formatTime(iso: string): string {
 // Owner dashboard: a plain-language summary, key numbers, a sales chart and breakdowns.
 export default function DashboardScreen({ visible }: { visible: boolean }) {
   const settings = useSettings();
+  const user = useCurrentUser();
+  const allPeriods = can(user, 'insightsAllPeriods');
   const [period, setPeriod] = useState<Period>('today');
   const [data, setData] = useState<Insights>(() => buildInsights('today'));
 
@@ -35,7 +38,7 @@ export default function DashboardScreen({ visible }: { visible: boolean }) {
       </View>
 
       <View style={styles.periods} accessibilityRole="tablist">
-        {PERIODS.map((p) => (
+        {PERIODS.filter((p) => allPeriods || p.key === 'today').map((p) => (
           <Pressable
             key={p.key}
             onPress={() => setPeriod(p.key)}

@@ -2,10 +2,12 @@ import type { ReactNode } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSettings } from '../data/settingsStore';
 import { useMenu } from '../data/menuStore';
+import { can, ROLE_INFO, ROLE_LABEL, useCurrentUser, useStaffList } from '../data/staffStore';
 import { colors, fonts } from '../theme';
 
 type Props = {
   onOpenMenu: () => void;
+  onOpenStaff: () => void;
   onOpenRestaurant: () => void;
   onLock: () => void;
 };
@@ -22,9 +24,12 @@ const PLAN_LABEL: Record<string, string> = {
 
 // The restaurant's profile, plus everything used less often than billing,
 // so the bottom bar never grows past four tabs.
-export default function ProfileScreen({ onOpenMenu, onOpenRestaurant, onLock }: Props) {
+export default function ProfileScreen({ onOpenMenu, onOpenStaff, onOpenRestaurant, onLock }: Props) {
   const settings = useSettings();
   const menu = useMenu();
+  const user = useCurrentUser();
+  const staff = useStaffList();
+  const isOwner = can(user, 'manageStaff');
   const itemCount = menu.items.filter((i) => !i.archived).length;
   const outOfStock = menu.items.filter((i) => !i.archived && !i.available).length;
 
@@ -43,30 +48,52 @@ export default function ProfileScreen({ onOpenMenu, onOpenRestaurant, onLock }: 
         </View>
       </View>
 
-      <Group title="Restaurant">
+      <Group title="You">
         <Row
-          title="Menu"
-          detail={`${itemCount} items${outOfStock ? `, ${outOfStock} out of stock` : ''}`}
-          onPress={onOpenMenu}
+          title={user?.name ?? ''}
+          detail={user ? `${ROLE_LABEL[user.role]}. ${ROLE_INFO[user.role]}` : ''}
         />
-        <Row
-          title="Restaurant details"
-          detail="Name, GSTIN, how customers order, tables"
-          onPress={onOpenRestaurant}
-        />
+        <Row title="Switch user" detail="Lock the app for the next person" onPress={onLock} danger />
       </Group>
 
-      <Group title="Coming soon">
-        <Row title="Staff and PINs" detail="Separate logins for cashiers and waiters" soon />
-        <Row title="Printers" detail="Bill and kitchen slips" soon />
-        <Row title="Backup" detail="Keep a copy of your bills online" soon />
-        <Row title="Import menu" detail="Load your menu from a photo" soon />
-      </Group>
+      {isOwner && (
+        <>
+          <Group title="Restaurant">
+            <Row
+              title="Menu"
+              detail={`${itemCount} items${outOfStock ? `, ${outOfStock} out of stock` : ''}`}
+              onPress={onOpenMenu}
+            />
+            <Row
+              title="Staff and PINs"
+              detail={`${staff.length} ${staff.length === 1 ? 'person' : 'people'}`}
+              onPress={onOpenStaff}
+            />
+            <Row
+              title="Restaurant details"
+              detail="Name, GSTIN, how customers order, tables"
+              onPress={onOpenRestaurant}
+            />
+          </Group>
 
-      <Group title="Account">
-        <Row title="Plan" detail={PLAN_LABEL[settings.plan] ?? settings.plan} />
-        <Row title="Lock app" detail="Back to the PIN screen" onPress={onLock} danger />
-      </Group>
+          <Group title="Coming soon">
+            <Row title="Printers" detail="Bill and kitchen slips" soon />
+            <Row title="Backup" detail="Keep a copy of your bills online" soon />
+            <Row title="Import menu" detail="Load your menu from a photo" soon />
+          </Group>
+
+          <Group title="Account">
+            <Row title="Plan" detail={PLAN_LABEL[settings.plan] ?? settings.plan} />
+          </Group>
+        </>
+      )}
+
+      {!isOwner && (
+        <Text style={styles.note}>
+          Menu, staff and restaurant settings are managed by the owner. To mark a dish out of stock, long-press it while
+          billing.
+        </Text>
+      )}
     </ScrollView>
   );
 }
@@ -97,7 +124,7 @@ function Row({
     <>
       <View style={{ flex: 1 }}>
         <Text style={[styles.rowTitle, soon && styles.soonText, danger && styles.dangerText]}>{title}</Text>
-        <Text style={styles.rowDetail} numberOfLines={1}>
+        <Text style={styles.rowDetail} numberOfLines={2}>
           {detail}
         </Text>
       </View>
@@ -139,6 +166,7 @@ const styles = StyleSheet.create({
   chevron: { fontFamily: fonts.regular, fontSize: 26, color: colors.muted, marginTop: -2 },
   soonText: { color: colors.muted },
   dangerText: { color: colors.danger },
+  note: { fontFamily: fonts.regular, fontSize: 14, lineHeight: 20, color: colors.muted, marginTop: 20, marginHorizontal: 4 },
   soonPill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, backgroundColor: '#FBF0D2' },
   soonPillText: { fontFamily: fonts.semibold, fontSize: 12, color: colors.turmericDeep },
 });

@@ -12,7 +12,8 @@ import {
 import PinPad from '../../components/PinPad';
 import { loadSampleMenu } from '../../data/menuStore';
 import { makePinHash, OutletType, saveSettings } from '../../data/settingsStore';
-import { menuIsEmpty } from '../../db/database';
+import { addStaff, menuIsEmpty } from '../../db/database';
+import { loginAs, reloadStaff } from '../../data/staffStore';
 import { colors, fonts } from '../../theme';
 
 type Step = 'name' | 'type' | 'tables' | 'menu' | 'pin' | 'confirm';
@@ -27,6 +28,7 @@ const GSTIN_PATTERN = /^[0-9]{2}[A-Z0-9]{13}$/;
 
 export default function SetupScreen({ onBack, onDone }: { onBack: () => void; onDone: () => void }) {
   const [name, setName] = useState('');
+  const [ownerName, setOwnerName] = useState('');
   const [gstin, setGstin] = useState('');
   const [outletType, setOutletType] = useState<OutletType | null>(null);
   const [tableCount, setTableCount] = useState(10);
@@ -66,6 +68,7 @@ export default function SetupScreen({ onBack, onDone }: { onBack: () => void; on
   function continueFromName() {
     const n = name.trim();
     if (n.length < 2) return setError('Enter your restaurant name.');
+    if (ownerName.trim().length < 2) return setError('Enter your name.');
     const g = gstin.trim().toUpperCase();
     if (g && !GSTIN_PATTERN.test(g)) return setError('GSTIN should be 15 characters, like 07ABCDE1234F1Z5. You can also leave it empty.');
     setGstin(g);
@@ -84,16 +87,17 @@ export default function SetupScreen({ onBack, onDone }: { onBack: () => void; on
     try {
       const { hash, salt } = await makePinHash(pin);
       if (needsMenuStep && menuChoice === 'sample') loadSampleMenu();
+      const ownerId = addStaff({ name: ownerName.trim(), role: 'owner', pinHash: hash, pinSalt: salt });
       saveSettings({
         restaurantName: name.trim(),
         gstin,
         outletType: outletType ?? 'both',
         tableCount: outletType === 'counter' ? 0 : tableCount,
         plan: 'pilot',
-        ownerPinHash: hash,
-        ownerPinSalt: salt,
         setupDone: true,
       });
+      reloadStaff();
+      loginAs(ownerId);
       onDone();
     } catch {
       setSaving(false);
@@ -142,6 +146,15 @@ export default function SetupScreen({ onBack, onDone }: { onBack: () => void; on
               style={styles.input}
               autoFocus
               returnKeyType="next"
+            />
+            <Text style={styles.label}>Your name</Text>
+            <TextInput
+              value={ownerName}
+              onChangeText={setOwnerName}
+              placeholder="e.g. Rakesh Sharma"
+              placeholderTextColor={colors.muted}
+              style={styles.input}
+              autoCapitalize="words"
             />
             <Text style={styles.label}>GSTIN (optional)</Text>
             <TextInput

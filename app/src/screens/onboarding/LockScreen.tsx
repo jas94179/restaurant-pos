@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import PinPad from '../../components/PinPad';
-import { checkOwnerPin, useSettings } from '../../data/settingsStore';
+import { useSettings } from '../../data/settingsStore';
+import { loginWithPin } from '../../data/staffStore';
 import { APP_NAME, colors, fonts } from '../../theme';
 
-// Shown every time the app opens. Staff PINs will be added here later.
-export default function LockScreen({ onUnlock }: { onUnlock: () => void }) {
+// Shown every time the app opens, and when switching user. Each person types their own PIN.
+export default function LockScreen() {
   const settings = useSettings();
   const [pin, setPin] = useState('');
   const [error, setError] = useState(false);
@@ -17,10 +18,8 @@ export default function LockScreen({ onUnlock }: { onUnlock: () => void }) {
     const p = pin + d;
     setPin(p);
     if (p.length === 4) {
-      const ok = await checkOwnerPin(p);
-      if (ok) {
-        onUnlock();
-      } else {
+      const user = await loginWithPin(p);
+      if (!user) {
         setError(true);
         setAttempts((a) => a + 1);
         setTimeout(() => setPin(''), 350);
@@ -34,7 +33,7 @@ export default function LockScreen({ onUnlock }: { onUnlock: () => void }) {
         <Text style={styles.wordmark}>{APP_NAME}</Text>
         <Text style={styles.name}>{settings.restaurantName}</Text>
         <Text style={[styles.hint, error && styles.hintError]}>
-          {error ? `Wrong PIN. Try again.${attempts >= 3 ? ' Ask the owner if you have forgotten it.' : ''}` : 'Enter your PIN'}
+          {error ? `That PIN doesn't match anyone.${attempts >= 3 ? ' Ask the owner to reset your PIN.' : ' Try again.'}` : 'Enter your PIN'}
         </Text>
       </View>
       <PinPad length={pin.length} onDigit={type} onDelete={() => setPin((p) => p.slice(0, -1))} error={error} dark />

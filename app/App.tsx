@@ -19,6 +19,8 @@ import LockScreen from './src/screens/onboarding/LockScreen';
 import AppHeader from './src/components/AppHeader';
 import ProfileSheet from './src/components/ProfileSheet';
 import { useSettings } from './src/data/settingsStore';
+import { can, logout, ROLE_LABEL, useCurrentUser } from './src/data/staffStore';
+import StaffScreen from './src/screens/StaffScreen';
 import { colors, fonts } from './src/theme';
 
 type Tab = 'orders' | 'bills' | 'insights' | 'profile';
@@ -40,7 +42,7 @@ function Root() {
   });
   const settings = useSettings();
   const [onboarding, setOnboarding] = useState<'welcome' | 'setup'>('welcome');
-  const [unlocked, setUnlocked] = useState(false);
+  const user = useCurrentUser();
 
   if (!fontsLoaded) return <View style={{ flex: 1, backgroundColor: colors.brand }} />;
 
@@ -51,37 +53,40 @@ function Root() {
         {onboarding === 'welcome' ? (
           <WelcomeScreen onStart={() => setOnboarding('setup')} />
         ) : (
-          <SetupScreen onBack={() => setOnboarding('welcome')} onDone={() => setUnlocked(true)} />
+          <SetupScreen onBack={() => setOnboarding('welcome')} onDone={() => {}} />
         )}
         <StatusBar style={onboarding === 'welcome' ? 'light' : 'dark'} />
       </>
     );
   }
 
-  // Every time the app opens: PIN first.
-  if (!unlocked) {
+  // Every time the app opens, and on switching user: PIN first.
+  if (!user) {
     return (
       <>
-        <LockScreen onUnlock={() => setUnlocked(true)} />
+        <LockScreen />
         <StatusBar style="light" />
       </>
     );
   }
 
-  return <MainApp onLock={() => setUnlocked(false)} />;
+  // key: a new person gets a fresh app (their own tabs, no one else's open screens).
+  return <MainApp key={user.id} onLock={logout} />;
 }
 
 // Simple tab switcher for the prototype. We will move to Expo Router
 // when the app has more screens (settings, staff, dashboard).
 function MainApp({ onLock }: { onLock: () => void }) {
   const settings = useSettings();
+  const user = useCurrentUser();
+  const showInsights = can(user, 'insights');
   const hasTables = settings.outletType !== 'counter';
   const showModeSwitch = settings.outletType === 'both';
   const [tab, setTab] = useState<Tab>('orders');
   // Inside Orders: counter billing or the tables floor.
   const [mode, setMode] = useState<OrderMode>(settings.outletType === 'dine_in' ? 'tables' : 'counter');
   const [activeTable, setActiveTable] = useState<number | null>(null);
-  const [morePage, setMorePage] = useState<'list' | 'menu'>('list');
+  const [morePage, setMorePage] = useState<'list' | 'menu' | 'staff'>('list');
   const [profileOpen, setProfileOpen] = useState(false);
 
   // Keep the order mode valid when the outlet type changes in Restaurant details.
@@ -109,13 +114,16 @@ function MainApp({ onLock }: { onLock: () => void }) {
           ? 'Insights'
           : morePage === 'menu'
             ? 'Menu'
-            : 'Profile';
+            : morePage === 'staff'
+              ? 'Staff and PINs'
+              : 'Profile';
 
   return (
     <View style={styles.root}>
       <AppHeader
         title={headerTitle}
-        userName="Owner"
+        userName={user?.name ?? ''}
+        userRole={user ? ROLE_LABEL[user.role] : ''}
         onLock={onLock}
       />
 
@@ -159,15 +167,20 @@ function MainApp({ onLock }: { onLock: () => void }) {
       <View style={[styles.body, tab !== 'bills' && styles.hidden]}>
         <TransactionsScreen visible={tab === 'bills'} />
       </View>
-      <View style={[styles.body, tab !== 'insights' && styles.hidden]}>
-        <DashboardScreen visible={tab === 'insights'} />
-      </View>
+      {showInsights && (
+        <View style={[styles.body, tab !== 'insights' && styles.hidden]}>
+          <DashboardScreen visible={tab === 'insights'} />
+        </View>
+      )}
       <View style={[styles.body, tab !== 'profile' && styles.hidden]}>
-        {morePage === 'menu' ? (
+        {morePage === 'menu' && can(user, 'editMenu') ? (
           <MenuScreen onBack={() => setMorePage('list')} />
+        ) : morePage === 'staff' && can(user, 'manageStaff') ? (
+          <StaffScreen onBack={() => setMorePage('list')} />
         ) : (
           <ProfileScreen
             onOpenMenu={() => setMorePage('menu')}
+            onOpenStaff={() => setMorePage('staff')}
             onOpenRestaurant={() => setProfileOpen(true)}
             onLock={onLock}
           />
@@ -177,7 +190,9 @@ function MainApp({ onLock }: { onLock: () => void }) {
       <View style={[styles.tabBar, { paddingBottom: Math.max(insets.bottom, 10) }]}>
         <TabButton label="Orders" icon="orders" active={tab === 'orders'} onPress={() => setTab('orders')} />
         <TabButton label="Bills" icon="bills" active={tab === 'bills'} onPress={() => setTab('bills')} />
-        <TabButton label="Insights" icon="insights" active={tab === 'insights'} onPress={() => setTab('insights')} />
+        {showInsights && (
+          <TabButton label="Insights" icon="insights" active={tab === 'insights'} onPress={() => setTab('insights')} />
+        )}
         <TabButton
           label="Profile"
           icon="profile"

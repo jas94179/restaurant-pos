@@ -22,6 +22,8 @@ export type Cart = Record<string, number>; // item id -> quantity
 export type NewBill = {
   orderType: 'takeaway' | 'dine_in';
   tableNo?: number;
+  staffId?: string;
+  staffName?: string;
   paymentMode: PaymentMode;
   subtotal: number;
   gst: number;
@@ -92,6 +94,10 @@ const billColumns = db.getAllSync<{ name: string }>('PRAGMA table_info(bills)').
 if (!billColumns.includes('table_no')) {
   db.execSync('ALTER TABLE bills ADD COLUMN table_no INTEGER');
 }
+if (!billColumns.includes('staff_id')) {
+  db.execSync('ALTER TABLE bills ADD COLUMN staff_id TEXT');
+  db.execSync('ALTER TABLE bills ADD COLUMN staff_name TEXT');
+}
 
 // "2026-10-09" in the phone's local time (not UTC), so the day changes at local midnight.
 export function dayKey(date: Date = new Date()): string {
@@ -124,9 +130,9 @@ export function saveBill(bill: NewBill): { id: string; token: number } {
   db.withTransactionSync(() => {
     token = getNextToken(day);
     db.runSync(
-      `INSERT INTO bills (id, token, created_at, day, order_type, table_no, payment_mode, subtotal, gst, total)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [id, token, now.toISOString(), day, bill.orderType, bill.tableNo ?? null, bill.paymentMode, bill.subtotal, bill.gst, bill.total],
+      `INSERT INTO bills (id, token, created_at, day, order_type, table_no, payment_mode, subtotal, gst, total, staff_id, staff_name)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [id, token, now.toISOString(), day, bill.orderType, bill.tableNo ?? null, bill.paymentMode, bill.subtotal, bill.gst, bill.total, bill.staffId ?? null, bill.staffName ?? null],
     );
     for (const l of bill.lines) {
       db.runSync(
@@ -448,12 +454,13 @@ export function getBillList(fromDay: string, toDay: string): BillListRow[] {
 
 export type BillDetail = BillRow & {
   subtotal: number;
+  staff_name: string | null;
   items: { name: string; price: number; qty: number; amount: number }[];
 };
 
 export function getBillDetail(id: string): BillDetail | null {
-  const bill = db.getFirstSync<BillRow & { subtotal: number }>(
-    `SELECT id, token, created_at, day, order_type, table_no, payment_mode, subtotal, gst, total
+  const bill = db.getFirstSync<BillRow & { subtotal: number; staff_name: string | null }>(
+    `SELECT id, token, created_at, day, order_type, table_no, payment_mode, subtotal, gst, total, staff_name
      FROM bills WHERE id = ?`,
     [id],
   );
@@ -463,4 +470,57 @@ export function getBillDetail(id: string): BillDetail | null {
     [id],
   );
   return { ...bill, items };
+}
+
+// ---------- Staff ----------
+// Everyone who uses the app has a name, a role and their own PIN.
+// PINs are stored only as salted hashes.
+
+export type Role = 'owner' | 'manager' | 'cashier';
+export type Staff = { id: string; name: string; role: Role; pinHash: string; pinSalt: string; active: boolean };
+
+db.execSync(`
+  CREATE TABLE IF NOT EXISTS staff (
+    id TEXT PRIMARY KEY NOT NULL,
+    name TEXT NOT NULL,
+    role TEXT NOT NULL,
+    pin_hash TEXT NOT NULL,
+    pin_salt TEXT NOT NULL,
+    active INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT NOT NULL
+  );
+`);
+
+type StaffRow = { id: string; name: string; role: Role; pin_hash: string; pin_salt: string; active: number };
+
+export function getStaff(includeInactive = false): Staff[] {
+  return db
+    .getAllSync<StaffRow>(
+      `SELECT id, name, role, pin_hash, pin_salt, active FROM staff
+       ${includeInactive ? '' : 'WHERE active = 1'}
+       ORDER BY CASE role WHEN 'owner' THEN 0 WHEN 'manager' THEN 1 ELSE 2 END, name`,
+    )
+    .map((r) => ({ id: r.id, name: r.name, role: r.role, pinHash: r.pin_hash, pinSalt: r.pin_salt, active: r.active === 1 }));
+}
+
+export function addStaff(input: { name: string; role: Role; pinHash: string; pinSalt: string }): string {
+  const id = newId();
+  db.runSync(
+    'INSERT INTO staff (id, name, role, pin_hash, pin_salt, active, created_at) VALUES (?, ?, ?, ?, ?, 1, ?)',
+    [id, input.name.trim(), input.role, input.pinHash, input.pinSalt, new Date().toISOString()],
+  );
+  return id;
+}
+
+export function updateStaff(id: string, values: { name: string; role: Role }): void {
+  db.runSync('UPDATE staff SET name = ?, role = ? WHERE id = ?', [values.name.trim(), values.role, id]);
+}
+
+export function setStaffPin(id: string, pinHash: string, pinSalt: string): void {
+  db.runSync('UPDATE staff SET pin_hash = ?, pin_salt = ? WHERE id = ?', [pinHash, pinSalt, id]);
+}
+
+// Staff are deactivated, not deleted, so old bills still show who made them.
+export function deactivateStaff(id: string): void {
+  db.runSync('UPDATE staff SET active = 0 WHERE id = ?', [id]);
 }

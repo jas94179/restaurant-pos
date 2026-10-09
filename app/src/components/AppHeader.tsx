@@ -5,21 +5,22 @@ import { colors, fonts } from '../theme';
 
 type Props = {
   title: string;
-  userName: string; // who is logged in, e.g. "Owner" (staff names come with PINs)
+  userName: string; // who is logged in
+  userRole: string; // their role, e.g. "Cashier"
   onLock: () => void;
 };
 
 // Slim one-line header: where you are on the left; live status and who is logged in on the right.
-export default function AppHeader({ title, userName, onLock }: Props) {
+export default function AppHeader({ title, userName, userRole, onLock }: Props) {
   const insets = useSafeAreaInsets();
   const net = useNetworkState();
   // Only speak up when something needs attention. Bills are always saved on the phone.
   const offline = net.isConnected === false || net.isInternetReachable === false;
 
   function openUserMenu() {
-    Alert.alert(userName, 'Lock the app so the next person enters their PIN.', [
+    Alert.alert(`${userName}, ${userRole}`, 'Switch user or lock the app. The next person enters their own PIN.', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Lock app', style: 'destructive', onPress: onLock },
+      { text: 'Switch user', onPress: onLock },
     ]);
   }
 
@@ -40,7 +41,7 @@ export default function AppHeader({ title, userName, onLock }: Props) {
           onPress={openUserMenu}
           style={({ pressed }) => [styles.user, pressed && { opacity: 0.7 }]}
           accessibilityRole="button"
-          accessibilityLabel={`Logged in as ${userName}. Tap to lock.`}
+          accessibilityLabel={`Logged in as ${userName}, ${userRole}. Tap to switch user.`}
           hitSlop={6}
         >
           <View style={styles.userDot}>
