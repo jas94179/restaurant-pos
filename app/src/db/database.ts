@@ -429,3 +429,38 @@ export function getTopItems(fromDay: string, toDay: string, limit = 5): ItemTota
     [fromDay, toDay, limit],
   );
 }
+
+// ---------- Transactions ----------
+
+export type BillListRow = BillRow & { item_count: number };
+
+export function getBillList(fromDay: string, toDay: string): BillListRow[] {
+  return db.getAllSync<BillListRow>(
+    `SELECT b.id, b.token, b.created_at, b.day, b.order_type, b.table_no, b.payment_mode, b.gst, b.total,
+            COALESCE(SUM(i.qty), 0) AS item_count
+     FROM bills b LEFT JOIN bill_items i ON i.bill_id = b.id
+     WHERE b.day BETWEEN ? AND ? AND b.status = 'paid'
+     GROUP BY b.id
+     ORDER BY b.created_at DESC`,
+    [fromDay, toDay],
+  );
+}
+
+export type BillDetail = BillRow & {
+  subtotal: number;
+  items: { name: string; price: number; qty: number; amount: number }[];
+};
+
+export function getBillDetail(id: string): BillDetail | null {
+  const bill = db.getFirstSync<BillRow & { subtotal: number }>(
+    `SELECT id, token, created_at, day, order_type, table_no, payment_mode, subtotal, gst, total
+     FROM bills WHERE id = ?`,
+    [id],
+  );
+  if (!bill) return null;
+  const items = db.getAllSync<{ name: string; price: number; qty: number; amount: number }>(
+    'SELECT name, price, qty, amount FROM bill_items WHERE bill_id = ? ORDER BY id',
+    [id],
+  );
+  return { ...bill, items };
+}
