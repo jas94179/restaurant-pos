@@ -113,4 +113,17 @@ export async function pinInUse(pin: string, exceptId?: string): Promise<boolean>
   return false;
 }
 
+// Checks an approval PIN (owner or manager) without changing who is logged in.
+export async function findApprover(pin: string): Promise<Staff | null> {
+  for (const s of staffList) {
+    if (s.role !== 'owner' && s.role !== 'manager') continue;
+    if ((await hashPin(pin, s.pinSalt)) === s.pinHash) return s;
+  }
+  return null;
+}
+
+export function canApprove(user: Staff | null): boolean {
+  return user?.role === 'owner' || user?.role === 'manager';
+}
+
 export { makePinHash };

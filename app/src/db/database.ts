@@ -107,6 +107,11 @@ const billColumns = db.getAllSync<{ name: string }>('PRAGMA table_info(bills)').
 if (!billColumns.includes('table_no')) {
   db.execSync('ALTER TABLE bills ADD COLUMN table_no INTEGER');
 }
+if (!billColumns.includes('cancelled_at')) {
+  db.execSync('ALTER TABLE bills ADD COLUMN cancelled_at TEXT');
+  db.execSync('ALTER TABLE bills ADD COLUMN cancelled_by TEXT');
+  db.execSync('ALTER TABLE bills ADD COLUMN cancel_reason TEXT');
+}
 if (!billColumns.includes('platform_order_id')) {
   db.execSync('ALTER TABLE bills ADD COLUMN platform_order_id TEXT');
 }
@@ -461,14 +466,14 @@ export function getTopItems(fromDay: string, toDay: string, limit = 5): ItemTota
 
 // ---------- Transactions ----------
 
-export type BillListRow = BillRow & { item_count: number };
+export type BillListRow = BillRow & { item_count: number; status: 'paid' | 'cancelled' };
 
 export function getBillList(fromDay: string, toDay: string): BillListRow[] {
   return db.getAllSync<BillListRow>(
     `SELECT b.id, b.token, b.created_at, b.day, b.order_type, b.table_no, b.platform_order_id, b.payment_mode, b.gst, b.total,
-            COALESCE(SUM(i.qty), 0) AS item_count
+            b.status, COALESCE(SUM(i.qty), 0) AS item_count
      FROM bills b LEFT JOIN bill_items i ON i.bill_id = b.id
-     WHERE b.day BETWEEN ? AND ? AND b.status = 'paid'
+     WHERE b.day BETWEEN ? AND ? AND b.status IN ('paid', 'cancelled')
      GROUP BY b.id
      ORDER BY b.created_at DESC`,
     [fromDay, toDay],
@@ -479,12 +484,17 @@ export type BillDetail = BillRow & {
   subtotal: number;
   staff_name: string | null;
   gst_rate: number;
+  status: 'paid' | 'cancelled';
+  cancelled_at: string | null;
+  cancelled_by: string | null;
+  cancel_reason: string | null;
   items: { name: string; price: number; qty: number; amount: number }[];
 };
 
 export function getBillDetail(id: string): BillDetail | null {
-  const bill = db.getFirstSync<BillRow & { subtotal: number; staff_name: string | null; gst_rate: number }>(
-    `SELECT id, token, created_at, day, order_type, table_no, platform_order_id, payment_mode, subtotal, gst, total, staff_name, gst_rate
+  const bill = db.getFirstSync<Omit<BillDetail, 'items'>>(
+    `SELECT id, token, created_at, day, order_type, table_no, platform_order_id, payment_mode, subtotal, gst, total,
+            staff_name, gst_rate, status, cancelled_at, cancelled_by, cancel_reason
      FROM bills WHERE id = ?`,
     [id],
   );
@@ -556,4 +566,12 @@ export function platformOrderExists(platform: Platform, orderId: string): boolea
     [platform, orderId.trim()],
   );
   return (row?.n ?? 0) > 0;
+}
+
+// Cancelled bills are never deleted: they stay in Bills, marked, and drop out of all totals.
+export function cancelBill(id: string, approvedBy: string, reason: string): void {
+  db.runSync(
+    "UPDATE bills SET status = 'cancelled', cancelled_at = ?, cancelled_by = ?, cancel_reason = ? WHERE id = ? AND status = 'paid'",
+    [new Date().toISOString(), approvedBy, reason, id],
+  );
 }

@@ -6,6 +6,7 @@ import { can, useCurrentUser } from '../data/staffStore';
 import { formatRupees } from '../utils/money';
 import { billText } from '../utils/billText';
 import WhatsAppShareSheet from '../components/WhatsAppShareSheet';
+import CancelBillSheet from '../components/CancelBillSheet';
 import { colors, fonts } from '../theme';
 
 type Range = 'today' | 'yesterday' | 'week' | 'month';
@@ -94,18 +95,21 @@ export default function TransactionsScreen({ visible }: { visible: boolean }) {
       .sort((a, b) => (a < b ? 1 : -1))
       .map((day) => ({
         title: dayTitle(day),
-        total: byDay[day].reduce((s, b) => s + b.total, 0),
+        total: byDay[day].reduce((s, b) => s + (b.status === 'cancelled' ? 0 : b.total), 0),
         data: byDay[day],
       }));
   }, [filtered]);
 
-  const total = filtered.reduce((s, b) => s + b.total, 0);
+  const paidBills = filtered.filter((b) => b.status !== 'cancelled');
+  const total = paidBills.reduce((s, b) => s + b.total, 0);
+  const cancelledCount = filtered.length - paidBills.length;
 
   return (
     <View style={styles.screen}>
       <View style={styles.top}>
         <Text style={styles.subtitle}>
-          {filtered.length} bill{filtered.length === 1 ? '' : 's'}, {formatRupees(total)}
+          {paidBills.length} bill{paidBills.length === 1 ? '' : 's'}, {formatRupees(total)}
+          {cancelledCount > 0 ? `, ${cancelledCount} cancelled` : ''}
         </Text>
 
         {!allDays && <Text style={styles.onlyToday}>Showing today's bills.</Text>}
@@ -171,7 +175,10 @@ export default function TransactionsScreen({ visible }: { visible: boolean }) {
                 {time(b.created_at)}, {b.item_count} item{b.item_count === 1 ? '' : 's'}, {modeLabel(b.payment_mode)}
               </Text>
             </View>
-            <Text style={styles.rowTotal}>{formatRupees(b.total)}</Text>
+            <View style={{ alignItems: 'flex-end' }}>
+              <Text style={[styles.rowTotal, b.status === 'cancelled' && styles.struck]}>{formatRupees(b.total)}</Text>
+              {b.status === 'cancelled' && <Text style={styles.cancelTag}>Cancelled</Text>}
+            </View>
           </Pressable>
         )}
         ListEmptyComponent={
@@ -181,15 +188,26 @@ export default function TransactionsScreen({ visible }: { visible: boolean }) {
         }
       />
 
-      {openBill && <BillSheet bill={openBill} onClose={() => setOpenBill(null)} />}
+      {openBill && (
+        <BillSheet
+          bill={openBill}
+          onClose={() => setOpenBill(null)}
+          onChanged={() => {
+            load();
+            setOpenBill(getBillDetail(openBill.id));
+          }}
+        />
+      )}
     </View>
   );
 }
 
 // Looks like the printed bill, so staff can read it out to a customer.
-function BillSheet({ bill, onClose }: { bill: BillDetail; onClose: () => void }) {
+function BillSheet({ bill, onClose, onChanged }: { bill: BillDetail; onClose: () => void; onChanged: () => void }) {
   const settings = useSettings();
   const [shareText, setShareText] = useState<string | null>(null);
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const cancelled = bill.status === 'cancelled';
   const d = new Date(bill.created_at);
 
   return (
@@ -198,7 +216,16 @@ function BillSheet({ bill, onClose }: { bill: BillDetail; onClose: () => void })
       <View style={styles.sheet}>
         <View style={styles.handle} />
         <ScrollView contentContainerStyle={{ paddingBottom: 8 }}>
-          <View style={styles.receipt}>
+          {cancelled && (
+            <View style={styles.cancelBanner}>
+              <Text style={styles.cancelBannerTitle}>Cancelled</Text>
+              <Text style={styles.cancelBannerText}>
+                {bill.cancel_reason}. Approved by {bill.cancelled_by}
+                {bill.cancelled_at ? `, ${time(bill.cancelled_at)}` : ''}. Not counted in sales.
+              </Text>
+            </View>
+          )}
+          <View style={[styles.receipt, cancelled && { opacity: 0.6 }]}>
             <Text style={styles.rName}>{settings.restaurantName}</Text>
             {!!settings.gstin && <Text style={styles.rMeta}>GSTIN {settings.gstin}</Text>}
 
@@ -266,19 +293,38 @@ function BillSheet({ bill, onClose }: { bill: BillDetail; onClose: () => void })
             </View>
           </View>
 
-          <Pressable
-            style={styles.waBtn}
-            onPress={() => setShareText(billText(bill, { name: settings.restaurantName, gstin: settings.gstin }))}
-            accessibilityRole="button"
-          >
-            <Text style={styles.waText}>Send on WhatsApp</Text>
-          </Pressable>
+          {!cancelled && (
+            <Pressable
+              style={styles.waBtn}
+              onPress={() => setShareText(billText(bill, { name: settings.restaurantName, gstin: settings.gstin }))}
+              accessibilityRole="button"
+            >
+              <Text style={styles.waText}>Send on WhatsApp</Text>
+            </Pressable>
+          )}
           <Pressable style={styles.closeBtn} onPress={onClose} accessibilityRole="button">
             <Text style={styles.closeText}>Close</Text>
           </Pressable>
+          {!cancelled && (
+            <Pressable style={styles.cancelLink} onPress={() => setCancelOpen(true)} accessibilityRole="button">
+              <Text style={styles.cancelLinkText}>Cancel this bill</Text>
+            </Pressable>
+          )}
         </ScrollView>
       </View>
       {shareText && <WhatsAppShareSheet message={shareText} onClose={() => setShareText(null)} />}
+      {cancelOpen && (
+        <CancelBillSheet
+          billId={bill.id}
+          token={bill.token}
+          total={bill.total}
+          onClose={() => setCancelOpen(false)}
+          onDone={() => {
+            setCancelOpen(false);
+            onChanged();
+          }}
+        />
+      )}
     </View>
   );
 }
@@ -328,6 +374,13 @@ const styles = StyleSheet.create({
   itemAmount: { fontFamily: fonts.regular, fontSize: 15, color: colors.ink },
   rTotalLabel: { fontFamily: fonts.bold, fontSize: 18, color: colors.ink },
   rTotal: { fontFamily: fonts.bold, fontSize: 20, color: colors.brand },
+  struck: { textDecorationLine: 'line-through', color: colors.muted },
+  cancelTag: { fontFamily: fonts.semibold, fontSize: 11, color: colors.danger, marginTop: 2 },
+  cancelBanner: { padding: 14, borderRadius: 14, backgroundColor: '#FCEBEA', marginBottom: 10 },
+  cancelBannerTitle: { fontFamily: fonts.bold, fontSize: 16, color: colors.danger },
+  cancelBannerText: { fontFamily: fonts.regular, fontSize: 13, lineHeight: 18, color: colors.ink, marginTop: 2 },
+  cancelLink: { height: 44, alignItems: 'center', justifyContent: 'center', marginTop: 4 },
+  cancelLinkText: { fontFamily: fonts.semibold, fontSize: 15, color: colors.danger },
   waBtn: { height: 52, borderRadius: 14, backgroundColor: '#1F8F4E', alignItems: 'center', justifyContent: 'center', marginTop: 14 },
   waText: { fontFamily: fonts.bold, fontSize: 16, color: colors.paper },
   closeBtn: { height: 48, borderRadius: 14, borderWidth: 1.5, borderColor: colors.line, backgroundColor: colors.paper, alignItems: 'center', justifyContent: 'center', marginTop: 8 },
