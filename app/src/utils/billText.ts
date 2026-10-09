@@ -19,7 +19,8 @@ export function billText(bill: BillDetail, restaurant: { name: string; gstin: st
   lines.push(`*${restaurant.name}*`);
   if (restaurant.gstin) lines.push(`GSTIN ${restaurant.gstin}`);
   lines.push('');
-  lines.push(`Bill #${bill.token}  |  ${when}`);
+  if (bill.invoice_no) lines.push(`Invoice ${bill.invoice_no}`);
+  lines.push(`Token #${bill.token}  |  ${when}`);
   lines.push(order);
   lines.push('');
   for (const it of bill.items) {
@@ -34,6 +35,7 @@ export function billText(bill: BillDetail, restaurant: { name: string; gstin: st
   }
   lines.push(`*Total  ${formatRupees(bill.total)}*`);
   lines.push(`Paid by ${modeLabel(bill.payment_mode)}`);
+  if (bill.order_type === 'delivery') lines.push(`GST paid by ${modeLabel(bill.payment_mode)} under Section 9(5).`);
   lines.push('');
   lines.push('Thank you for visiting!');
   return lines.join('\n');

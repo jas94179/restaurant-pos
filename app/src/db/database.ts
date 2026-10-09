@@ -107,6 +107,12 @@ const billColumns = db.getAllSync<{ name: string }>('PRAGMA table_info(bills)').
 if (!billColumns.includes('table_no')) {
   db.execSync('ALTER TABLE bills ADD COLUMN table_no INTEGER');
 }
+if (!billColumns.includes('invoice_no')) {
+  db.execSync('ALTER TABLE bills ADD COLUMN invoice_no TEXT');
+  db.execSync('ALTER TABLE bills ADD COLUMN invoice_fy TEXT');
+  db.execSync('ALTER TABLE bills ADD COLUMN invoice_serial INTEGER');
+  backfillInvoiceNumbers();
+}
 if (!billColumns.includes('cancelled_at')) {
   db.execSync('ALTER TABLE bills ADD COLUMN cancelled_at TEXT');
   db.execSync('ALTER TABLE bills ADD COLUMN cancelled_by TEXT');
@@ -132,6 +138,47 @@ export function dayKey(date: Date = new Date()): string {
   return `${y}-${m}-${d}`;
 }
 
+// ---------- GST invoice numbers ----------
+// GST needs every tax invoice to have its own serial number within the financial year
+// (April to March). Daily tokens are only for calling out orders.
+// Format: INV-2627-00001 (FY 2026-27, serial 1). Delivery-app orders get none: the app issues that invoice.
+
+export function financialYear(date: Date = new Date()): string {
+  const y = date.getFullYear();
+  const start = date.getMonth() >= 3 ? y : y - 1; // April is month 3
+  return `${String(start).slice(2)}${String(start + 1).slice(2)}`;
+}
+
+export function formatInvoiceNo(fy: string, serial: number): string {
+  return `INV-${fy}-${String(serial).padStart(5, '0')}`;
+}
+
+function nextInvoiceSerial(fy: string): number {
+  const row = db.getFirstSync<{ m: number | null }>('SELECT MAX(invoice_serial) AS m FROM bills WHERE invoice_fy = ?', [fy]);
+  return (row?.m ?? 0) + 1;
+}
+
+// One time: number the bills saved before invoice numbers existed, oldest first.
+function backfillInvoiceNumbers() {
+  const rows = db.getAllSync<{ id: string; created_at: string; order_type: string }>(
+    'SELECT id, created_at, order_type FROM bills ORDER BY created_at',
+  );
+  const serials: Record<string, number> = {};
+  db.withTransactionSync(() => {
+    for (const r of rows) {
+      if (r.order_type === 'delivery') continue;
+      const fy = financialYear(new Date(r.created_at));
+      serials[fy] = (serials[fy] ?? 0) + 1;
+      db.runSync('UPDATE bills SET invoice_no = ?, invoice_fy = ?, invoice_serial = ? WHERE id = ?', [
+        formatInvoiceNo(fy, serials[fy]),
+        fy,
+        serials[fy],
+        r.id,
+      ]);
+    }
+  });
+}
+
 // Unique id made on the phone, so the same bill is never saved twice when we add cloud sync.
 function newId(): string {
   return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
@@ -146,18 +193,27 @@ export function getNextToken(day: string = dayKey()): number {
   return (row?.maxToken ?? 0) + 1;
 }
 
-export function saveBill(bill: NewBill): { id: string; token: number } {
+export function saveBill(bill: NewBill): { id: string; token: number; invoiceNo: string | null } {
   const now = new Date();
   const day = dayKey(now);
   const id = newId();
   let token = 0;
+  let invoiceNo: string | null = null;
 
   db.withTransactionSync(() => {
     token = getNextToken(day);
+    // Number and save in one transaction, so two bills can never get the same invoice number.
+    let fy: string | null = null;
+    let serial: number | null = null;
+    if (bill.orderType !== 'delivery') {
+      fy = financialYear(now);
+      serial = nextInvoiceSerial(fy);
+      invoiceNo = formatInvoiceNo(fy, serial);
+    }
     db.runSync(
-      `INSERT INTO bills (id, token, created_at, day, order_type, table_no, payment_mode, subtotal, gst, total, staff_id, staff_name, gst_rate, platform_order_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [id, token, now.toISOString(), day, bill.orderType, bill.tableNo ?? null, bill.paymentMode, bill.subtotal, bill.gst, bill.total, bill.staffId ?? null, bill.staffName ?? null, bill.gstRate, bill.platformOrderId ?? null],
+      `INSERT INTO bills (id, token, created_at, day, order_type, table_no, payment_mode, subtotal, gst, total, staff_id, staff_name, gst_rate, platform_order_id, invoice_no, invoice_fy, invoice_serial)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [id, token, now.toISOString(), day, bill.orderType, bill.tableNo ?? null, bill.paymentMode, bill.subtotal, bill.gst, bill.total, bill.staffId ?? null, bill.staffName ?? null, bill.gstRate, bill.platformOrderId ?? null, invoiceNo, fy, serial],
     );
     for (const l of bill.lines) {
       db.runSync(
@@ -171,7 +227,7 @@ export function saveBill(bill: NewBill): { id: string; token: number } {
     }
   });
 
-  return { id, token };
+  return { id, token, invoiceNo };
 }
 
 export function getDaySummary(day: string = dayKey()): DaySummary {
@@ -437,6 +493,7 @@ export type BillRow = {
   order_type: string;
   table_no: number | null;
   platform_order_id: string | null;
+  invoice_no: string | null;
   payment_mode: PaymentMode;
   gst: number;
   total: number;
@@ -444,7 +501,7 @@ export type BillRow = {
 
 export function getBillsInRange(fromDay: string, toDay: string): BillRow[] {
   return db.getAllSync<BillRow>(
-    `SELECT id, token, created_at, day, order_type, table_no, platform_order_id, payment_mode, gst, total
+    `SELECT id, token, created_at, day, order_type, table_no, platform_order_id, invoice_no, payment_mode, gst, total
      FROM bills WHERE day BETWEEN ? AND ? AND status = 'paid' ORDER BY created_at DESC`,
     [fromDay, toDay],
   );
@@ -470,7 +527,7 @@ export type BillListRow = BillRow & { item_count: number; status: 'paid' | 'canc
 
 export function getBillList(fromDay: string, toDay: string): BillListRow[] {
   return db.getAllSync<BillListRow>(
-    `SELECT b.id, b.token, b.created_at, b.day, b.order_type, b.table_no, b.platform_order_id, b.payment_mode, b.gst, b.total,
+    `SELECT b.id, b.token, b.created_at, b.day, b.order_type, b.table_no, b.platform_order_id, b.invoice_no, b.payment_mode, b.gst, b.total,
             b.status, COALESCE(SUM(i.qty), 0) AS item_count
      FROM bills b LEFT JOIN bill_items i ON i.bill_id = b.id
      WHERE b.day BETWEEN ? AND ? AND b.status IN ('paid', 'cancelled')
@@ -493,7 +550,7 @@ export type BillDetail = BillRow & {
 
 export function getBillDetail(id: string): BillDetail | null {
   const bill = db.getFirstSync<Omit<BillDetail, 'items'>>(
-    `SELECT id, token, created_at, day, order_type, table_no, platform_order_id, payment_mode, subtotal, gst, total,
+    `SELECT id, token, created_at, day, order_type, table_no, platform_order_id, invoice_no, payment_mode, subtotal, gst, total,
             staff_name, gst_rate, status, cancelled_at, cancelled_by, cancel_reason
      FROM bills WHERE id = ?`,
     [id],

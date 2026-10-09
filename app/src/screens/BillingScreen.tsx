@@ -67,7 +67,14 @@ export default function BillingScreen({ tableNo, onBackToTables, onTableSettled 
   const [source, setSource] = useState<'counter' | DeliveryApp>('counter');
   const [platformOrderId, setPlatformOrderId] = useState('');
   const [showQr, setShowQr] = useState(false);
-  const [lastBill, setLastBill] = useState<{ id: string; token: number; total: number; mode: string; tableNo: number | null } | null>(null);
+  const [lastBill, setLastBill] = useState<{
+    id: string;
+    token: number;
+    invoiceNo: string | null;
+    total: number;
+    mode: string;
+    tableNo: number | null;
+  } | null>(null);
   const [shareText, setShareText] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -90,7 +97,10 @@ export default function BillingScreen({ tableNo, onBackToTables, onTableSettled 
   );
   const itemCount = cartLines.reduce((sum, l) => sum + l.qty, 0);
   const itemsSum = cartLines.reduce((sum, l) => sum + l.amount, 0);
-  const { subtotal, gst, total } = computeTotals(itemsSum, settings);
+  // Zomato and Swiggy pay GST on orders through them (Section 9(5)), so the restaurant adds none.
+  const deliverySelected = !isTable && source !== 'counter';
+  const tax = deliverySelected ? { gstRate: 0, pricesIncludeGst: false } : settings;
+  const { subtotal, gst, total } = computeTotals(itemsSum, tax);
 
   // UPI at the counter or table shows a QR with the exact amount before saving.
   const needsUpiQr = paymentMode === 'upi' && (isTable || source === 'counter');
@@ -148,7 +158,7 @@ export default function BillingScreen({ tableNo, onBackToTables, onTableSettled 
         paymentMode: isDelivery ? (source as DeliveryApp) : paymentMode,
         subtotal,
         gst,
-        gstRate: settings.gstRate,
+        gstRate: tax.gstRate,
         total,
         lines: cartLines.map(({ item, qty, amount }) => ({
           itemId: item.id,
@@ -161,7 +171,7 @@ export default function BillingScreen({ tableNo, onBackToTables, onTableSettled 
       const modeLabel = isDelivery
         ? `${PLATFORMS.find((p) => p.key === source)?.label} #${orderId}`
         : (PAYMENT_MODES.find((m) => m.key === paymentMode)?.label ?? '');
-      setLastBill({ id: saved.id, token: saved.token, total, mode: modeLabel, tableNo });
+      setLastBill({ id: saved.id, token: saved.token, invoiceNo: saved.invoiceNo, total, mode: modeLabel, tableNo });
       setToken(getNextToken());
       setPaymentMode('cash');
       setSource('counter');
@@ -314,7 +324,10 @@ export default function BillingScreen({ tableNo, onBackToTables, onTableSettled 
           </ScrollView>
 
           <View style={styles.totals}>
-            {settings.gstRate > 0 && (
+            {deliverySelected && settings.gstRate > 0 && (
+              <Text style={styles.paidNote}>No GST added: Zomato and Swiggy pay GST on their orders.</Text>
+            )}
+            {tax.gstRate > 0 && (
               <>
                 <TotalRow
                   label={settings.pricesIncludeGst ? 'Before GST' : 'Subtotal'}

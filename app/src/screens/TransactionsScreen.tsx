@@ -83,7 +83,8 @@ export default function TransactionsScreen({ visible }: { visible: boolean }) {
       return (
         typeLabel(b).toLowerCase().includes(q) ||
         modeLabel(b.payment_mode).toLowerCase().includes(q) ||
-        (b.platform_order_id ?? '').toLowerCase().includes(q)
+        (b.platform_order_id ?? '').toLowerCase().includes(q) ||
+        (b.invoice_no ?? '').toLowerCase().includes(q)
       );
     });
   }, [bills, query]);
@@ -133,7 +134,7 @@ export default function TransactionsScreen({ visible }: { visible: boolean }) {
           <TextInput
             value={query}
             onChangeText={setQuery}
-            placeholder="Search token, table (T4) or UPI"
+            placeholder="Search token, invoice, table (T4) or UPI"
             placeholderTextColor={colors.muted}
             style={styles.searchInput}
             autoCorrect={false}
@@ -231,9 +232,15 @@ function BillSheet({ bill, onClose, onChanged }: { bill: BillDetail; onClose: ()
 
             <View style={styles.rDivider} />
 
+            {bill.invoice_no ? (
+              <View style={styles.rRow}>
+                <Text style={styles.rLabel}>Invoice</Text>
+                <Text style={styles.rValueStrong}>{bill.invoice_no}</Text>
+              </View>
+            ) : null}
             <View style={styles.rRow}>
-              <Text style={styles.rLabel}>Bill</Text>
-              <Text style={styles.rValueStrong}>#{bill.token}</Text>
+              <Text style={styles.rLabel}>Token</Text>
+              <Text style={styles.rValue}>#{bill.token}</Text>
             </View>
             <View style={styles.rRow}>
               <Text style={styles.rLabel}>Date</Text>
