@@ -6,7 +6,7 @@ import { BricolageGrotesque_400Regular } from '@expo-google-fonts/bricolage-grot
 import { BricolageGrotesque_600SemiBold } from '@expo-google-fonts/bricolage-grotesque/600SemiBold';
 import { BricolageGrotesque_800ExtraBold } from '@expo-google-fonts/bricolage-grotesque/800ExtraBold';
 import BillingScreen from './src/screens/BillingScreen';
-import ReportScreen from './src/screens/ReportScreen';
+import DashboardScreen from './src/screens/DashboardScreen';
 import TablesScreen from './src/screens/TablesScreen';
 import MenuScreen from './src/screens/MenuScreen';
 import WelcomeScreen from './src/screens/onboarding/WelcomeScreen';
@@ -100,7 +100,7 @@ function MainApp({ onLock }: { onLock: () => void }) {
         </View>
       )}
       <View style={[styles.body, tab !== 'report' && styles.hidden]}>
-        <ReportScreen visible={tab === 'report'} />
+        <DashboardScreen visible={tab === 'report'} />
       </View>
       <View style={[styles.body, tab !== 'menu' && styles.hidden]}>
         <MenuScreen />
@@ -109,7 +109,7 @@ function MainApp({ onLock }: { onLock: () => void }) {
       <View style={styles.tabBar}>
         <TabButton label="Billing" active={tab === 'billing'} onPress={() => setTab('billing')} />
         {showTables && <TabButton label="Tables" active={tab === 'tables'} onPress={() => setTab('tables')} />}
-        <TabButton label="Sales" active={tab === 'report'} onPress={() => setTab('report')} />
+        <TabButton label="Insights" active={tab === 'report'} onPress={() => setTab('report')} />
         <TabButton label="Menu" active={tab === 'menu'} onPress={() => setTab('menu')} />
       </View>
 

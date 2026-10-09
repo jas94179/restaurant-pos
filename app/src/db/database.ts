@@ -392,3 +392,40 @@ export function menuIsEmpty(): boolean {
   const row = db.getFirstSync<{ n: number }>('SELECT COUNT(*) AS n FROM categories');
   return (row?.n ?? 0) === 0;
 }
+
+// ---------- Insights ----------
+// Raw numbers for the owner dashboard. Days are 'YYYY-MM-DD' strings, so text comparison works.
+
+export type BillRow = {
+  id: string;
+  token: number;
+  created_at: string;
+  day: string;
+  order_type: string;
+  table_no: number | null;
+  payment_mode: PaymentMode;
+  gst: number;
+  total: number;
+};
+
+export function getBillsInRange(fromDay: string, toDay: string): BillRow[] {
+  return db.getAllSync<BillRow>(
+    `SELECT id, token, created_at, day, order_type, table_no, payment_mode, gst, total
+     FROM bills WHERE day BETWEEN ? AND ? AND status = 'paid' ORDER BY created_at DESC`,
+    [fromDay, toDay],
+  );
+}
+
+export type ItemTotal = { name: string; qty: number; amount: number };
+
+export function getTopItems(fromDay: string, toDay: string, limit = 5): ItemTotal[] {
+  return db.getAllSync<ItemTotal>(
+    `SELECT i.name AS name, SUM(i.qty) AS qty, SUM(i.amount) AS amount
+     FROM bill_items i JOIN bills b ON b.id = i.bill_id
+     WHERE b.day BETWEEN ? AND ? AND b.status = 'paid'
+     GROUP BY i.item_id
+     ORDER BY qty DESC, amount DESC
+     LIMIT ?`,
+    [fromDay, toDay, limit],
+  );
+}
