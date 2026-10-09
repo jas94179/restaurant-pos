@@ -14,6 +14,7 @@ import { useSettings } from '../data/settingsStore';
 import { can, getCurrentUser } from '../data/staffStore';
 import {
   Cart,
+  getBillDetail,
   getNextToken,
   getTableCart,
   DbMenuItem,
@@ -28,6 +29,9 @@ import {
 } from '../db/database';
 import { formatRupees } from '../utils/money';
 import { computeTotals } from '../utils/tax';
+import UpiQrSheet from '../components/UpiQrSheet';
+import WhatsAppShareSheet from '../components/WhatsAppShareSheet';
+import { billText } from '../utils/billText';
 import { colors, fonts } from '../theme';
 
 type Props = {
@@ -62,7 +66,9 @@ export default function BillingScreen({ tableNo, onBackToTables, onTableSettled 
   // Counter orders can also come from delivery apps (quick entry, typed in by staff).
   const [source, setSource] = useState<'counter' | DeliveryApp>('counter');
   const [platformOrderId, setPlatformOrderId] = useState('');
-  const [lastBill, setLastBill] = useState<{ token: number; total: number; mode: string; tableNo: number | null } | null>(null);
+  const [showQr, setShowQr] = useState(false);
+  const [lastBill, setLastBill] = useState<{ id: string; token: number; total: number; mode: string; tableNo: number | null } | null>(null);
+  const [shareText, setShareText] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   // When something is typed, search across every category; otherwise show the chosen category.
@@ -85,6 +91,9 @@ export default function BillingScreen({ tableNo, onBackToTables, onTableSettled 
   const itemCount = cartLines.reduce((sum, l) => sum + l.qty, 0);
   const itemsSum = cartLines.reduce((sum, l) => sum + l.amount, 0);
   const { subtotal, gst, total } = computeTotals(itemsSum, settings);
+
+  // UPI at the counter or table shows a QR with the exact amount before saving.
+  const needsUpiQr = paymentMode === 'upi' && (isTable || source === 'counter');
 
   function changeQty(id: string, delta: number) {
     setLastBill(null);
@@ -152,7 +161,7 @@ export default function BillingScreen({ tableNo, onBackToTables, onTableSettled 
       const modeLabel = isDelivery
         ? `${PLATFORMS.find((p) => p.key === source)?.label} #${orderId}`
         : (PAYMENT_MODES.find((m) => m.key === paymentMode)?.label ?? '');
-      setLastBill({ token: saved.token, total, mode: modeLabel, tableNo });
+      setLastBill({ id: saved.id, token: saved.token, total, mode: modeLabel, tableNo });
       setToken(getNextToken());
       setPaymentMode('cash');
       setSource('counter');
@@ -188,10 +197,20 @@ export default function BillingScreen({ tableNo, onBackToTables, onTableSettled 
 
       {lastBill && (
         <View style={styles.banner}>
-          <Text style={styles.bannerText}>
+          <Text style={[styles.bannerText, { flex: 1 }]}>
             {lastBill.tableNo != null ? `Table ${lastBill.tableNo} settled` : `Bill saved · Token #${lastBill.token}`} ·{' '}
             {formatRupees(lastBill.total)} · {lastBill.mode}
           </Text>
+          <Pressable
+            onPress={() => {
+              const detail = getBillDetail(lastBill.id);
+              if (detail) setShareText(billText(detail, { name: settings.restaurantName, gstin: settings.gstin }));
+            }}
+            style={styles.waBtn}
+            accessibilityRole="button"
+          >
+            <Text style={styles.waText}>WhatsApp</Text>
+          </Pressable>
         </View>
       )}
 
@@ -366,15 +385,23 @@ export default function BillingScreen({ tableNo, onBackToTables, onTableSettled 
             </>
           )}
 
+          {needsUpiQr && !settings.upiId && (
+            <Text style={styles.paidNote}>
+              Add your UPI ID in Profile, Restaurant details, to show a QR with the exact amount.
+            </Text>
+          )}
+
           {error && <Text style={styles.error}>{error}</Text>}
 
           <Pressable
             style={[styles.saveBtn, itemCount === 0 && styles.saveBtnDisabled]}
             disabled={itemCount === 0}
-            onPress={saveBill}
+            onPress={() => (needsUpiQr && settings.upiId ? setShowQr(true) : saveBill())}
           >
             <Text style={styles.saveText}>
-              {isTable
+              {needsUpiQr && settings.upiId
+                ? 'Show UPI QR'
+                : isTable
                 ? 'Settle table'
                 : source !== 'counter'
                   ? `Save ${source === 'zomato' ? 'Zomato' : 'Swiggy'} order`
@@ -383,6 +410,22 @@ export default function BillingScreen({ tableNo, onBackToTables, onTableSettled 
             </Text>
           </Pressable>
         </View>
+      )}
+
+      {shareText && <WhatsAppShareSheet message={shareText} onClose={() => setShareText(null)} />}
+
+      {showQr && (
+        <UpiQrSheet
+          upiId={settings.upiId}
+          payeeName={settings.restaurantName}
+          amount={total}
+          note={isTable ? `Table ${tableNo}` : `Bill ${token}`}
+          onBack={() => setShowQr(false)}
+          onPaid={() => {
+            setShowQr(false);
+            saveBill();
+          }}
+        />
       )}
     </View>
   );
@@ -457,7 +500,9 @@ const styles = StyleSheet.create({
   header: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   title: { fontSize: 22, fontFamily: fonts.bold, color: INK },
   subtitle: { fontFamily: fonts.regular, fontSize: 14, color: MUTED },
-  banner: { marginHorizontal: 16, marginBottom: 8, padding: 10, borderRadius: 8, backgroundColor: '#E6F4EA' },
+  banner: { marginHorizontal: 16, marginBottom: 8, padding: 10, borderRadius: 10, backgroundColor: '#E6F4EA', flexDirection: 'row', alignItems: 'center', gap: 10 },
+  waBtn: { paddingHorizontal: 12, height: 32, borderRadius: 8, backgroundColor: '#1F8F4E', justifyContent: 'center' },
+  waText: { fontFamily: fonts.bold, fontSize: 13, color: colors.paper },
   bannerText: { color: '#14532D', fontFamily: fonts.semibold },
   backLink: { fontFamily: fonts.semibold, fontSize: 14, color: colors.brand, marginBottom: 2 },
   modeRow: { flexDirection: 'row', gap: 8, marginHorizontal: 16, marginBottom: 8 },

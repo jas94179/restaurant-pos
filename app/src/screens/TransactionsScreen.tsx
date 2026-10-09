@@ -4,6 +4,8 @@ import { BillDetail, BillListRow, dayKey, getBillDetail, getBillList, modeLabel 
 import { useSettings } from '../data/settingsStore';
 import { can, useCurrentUser } from '../data/staffStore';
 import { formatRupees } from '../utils/money';
+import { billText } from '../utils/billText';
+import WhatsAppShareSheet from '../components/WhatsAppShareSheet';
 import { colors, fonts } from '../theme';
 
 type Range = 'today' | 'yesterday' | 'week' | 'month';
@@ -187,6 +189,7 @@ export default function TransactionsScreen({ visible }: { visible: boolean }) {
 // Looks like the printed bill, so staff can read it out to a customer.
 function BillSheet({ bill, onClose }: { bill: BillDetail; onClose: () => void }) {
   const settings = useSettings();
+  const [shareText, setShareText] = useState<string | null>(null);
   const d = new Date(bill.created_at);
 
   return (
@@ -263,11 +266,19 @@ function BillSheet({ bill, onClose }: { bill: BillDetail; onClose: () => void })
             </View>
           </View>
 
+          <Pressable
+            style={styles.waBtn}
+            onPress={() => setShareText(billText(bill, { name: settings.restaurantName, gstin: settings.gstin }))}
+            accessibilityRole="button"
+          >
+            <Text style={styles.waText}>Send on WhatsApp</Text>
+          </Pressable>
           <Pressable style={styles.closeBtn} onPress={onClose} accessibilityRole="button">
             <Text style={styles.closeText}>Close</Text>
           </Pressable>
         </ScrollView>
       </View>
+      {shareText && <WhatsAppShareSheet message={shareText} onClose={() => setShareText(null)} />}
     </View>
   );
 }
@@ -317,6 +328,8 @@ const styles = StyleSheet.create({
   itemAmount: { fontFamily: fonts.regular, fontSize: 15, color: colors.ink },
   rTotalLabel: { fontFamily: fonts.bold, fontSize: 18, color: colors.ink },
   rTotal: { fontFamily: fonts.bold, fontSize: 20, color: colors.brand },
-  closeBtn: { height: 52, borderRadius: 14, backgroundColor: colors.brand, alignItems: 'center', justifyContent: 'center', marginTop: 14 },
-  closeText: { fontFamily: fonts.bold, fontSize: 16, color: colors.paper },
+  waBtn: { height: 52, borderRadius: 14, backgroundColor: '#1F8F4E', alignItems: 'center', justifyContent: 'center', marginTop: 14 },
+  waText: { fontFamily: fonts.bold, fontSize: 16, color: colors.paper },
+  closeBtn: { height: 48, borderRadius: 14, borderWidth: 1.5, borderColor: colors.line, backgroundColor: colors.paper, alignItems: 'center', justifyContent: 'center', marginTop: 8 },
+  closeText: { fontFamily: fonts.semibold, fontSize: 16, color: colors.ink },
 });
