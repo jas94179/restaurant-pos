@@ -3,19 +3,36 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import BillingScreen from './src/screens/BillingScreen';
 import ReportScreen from './src/screens/ReportScreen';
+import TablesScreen from './src/screens/TablesScreen';
 
-type Tab = 'billing' | 'report';
+type Tab = 'billing' | 'tables' | 'report';
 
-// Simple two-tab switcher for the prototype. We will move to Expo Router
-// when the app has more screens (menu setup, tables, settings).
+// Simple tab switcher for the prototype. We will move to Expo Router
+// when the app has more screens (menu setup, settings).
 export default function App() {
   const [tab, setTab] = useState<Tab>('billing');
+  const [activeTable, setActiveTable] = useState<number | null>(null);
 
   return (
     <View style={styles.root}>
-      {/* Both screens stay alive so a half-made bill is not lost when switching tabs. */}
+      {/* All screens stay alive so a half-made bill is not lost when switching tabs. */}
       <View style={[styles.body, tab !== 'billing' && styles.hidden]}>
-        <BillingScreen />
+        <BillingScreen
+          tableNo={activeTable}
+          onPickTable={() => setTab('tables')}
+          onLeaveTable={() => setActiveTable(null)}
+          onTableSettled={() => setActiveTable(null)}
+        />
+      </View>
+      <View style={[styles.body, tab !== 'tables' && styles.hidden]}>
+        <TablesScreen
+          visible={tab === 'tables'}
+          activeTable={activeTable}
+          onOpenTable={(n) => {
+            setActiveTable(n);
+            setTab('billing');
+          }}
+        />
       </View>
       <View style={[styles.body, tab !== 'report' && styles.hidden]}>
         <ReportScreen visible={tab === 'report'} />
@@ -23,6 +40,7 @@ export default function App() {
 
       <View style={styles.tabBar}>
         <TabButton label="Billing" active={tab === 'billing'} onPress={() => setTab('billing')} />
+        <TabButton label="Tables" active={tab === 'tables'} onPress={() => setTab('tables')} />
         <TabButton label="Today's sales" active={tab === 'report'} onPress={() => setTab('report')} />
       </View>
       <StatusBar style="dark" />
@@ -44,7 +62,7 @@ const styles = StyleSheet.create({
   body: { flex: 1 },
   hidden: { display: 'none' },
   tabBar: { flexDirection: 'row', borderTopWidth: 1, borderTopColor: '#E7E3DE', backgroundColor: '#fff', paddingBottom: 24 },
-  tab: { flex: 1, alignItems: 'center', paddingTop: 0, paddingBottom: 6 },
+  tab: { flex: 1, alignItems: 'center', paddingBottom: 6 },
   indicator: { height: 3, width: 40, borderRadius: 2, backgroundColor: 'transparent', marginBottom: 8 },
   indicatorActive: { backgroundColor: '#C2410C' },
   tabText: { fontSize: 14, color: '#6B6870', fontWeight: '600' },

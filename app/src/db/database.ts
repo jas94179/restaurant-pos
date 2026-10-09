@@ -17,8 +17,11 @@ export type BillLine = {
   amount: number; // paise
 };
 
+export type Cart = Record<string, number>; // item id -> quantity
+
 export type NewBill = {
   orderType: 'takeaway' | 'dine_in';
+  tableNo?: number;
   paymentMode: PaymentMode;
   subtotal: number;
   gst: number;
@@ -32,6 +35,7 @@ export type SavedBill = {
   created_at: string;
   day: string;
   order_type: string;
+  table_no: number | null;
   payment_mode: PaymentMode;
   subtotal: number;
   gst: number;
@@ -75,7 +79,19 @@ db.execSync(`
     amount INTEGER NOT NULL
   );
   CREATE INDEX IF NOT EXISTS idx_bill_items_bill ON bill_items(bill_id);
+  CREATE TABLE IF NOT EXISTS open_tables (
+    table_no INTEGER PRIMARY KEY NOT NULL,
+    cart TEXT NOT NULL,
+    opened_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
 `);
+
+// Upgrade older databases on the phone: add columns that newer versions need.
+const billColumns = db.getAllSync<{ name: string }>('PRAGMA table_info(bills)').map((c) => c.name);
+if (!billColumns.includes('table_no')) {
+  db.execSync('ALTER TABLE bills ADD COLUMN table_no INTEGER');
+}
 
 // "2026-10-09" in the phone's local time (not UTC), so the day changes at local midnight.
 export function dayKey(date: Date = new Date()): string {
@@ -108,15 +124,19 @@ export function saveBill(bill: NewBill): { id: string; token: number } {
   db.withTransactionSync(() => {
     token = getNextToken(day);
     db.runSync(
-      `INSERT INTO bills (id, token, created_at, day, order_type, payment_mode, subtotal, gst, total)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [id, token, now.toISOString(), day, bill.orderType, bill.paymentMode, bill.subtotal, bill.gst, bill.total],
+      `INSERT INTO bills (id, token, created_at, day, order_type, table_no, payment_mode, subtotal, gst, total)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [id, token, now.toISOString(), day, bill.orderType, bill.tableNo ?? null, bill.paymentMode, bill.subtotal, bill.gst, bill.total],
     );
     for (const l of bill.lines) {
       db.runSync(
         'INSERT INTO bill_items (bill_id, item_id, name, price, qty, amount) VALUES (?, ?, ?, ?, ?, ?)',
         [id, l.itemId, l.name, l.price, l.qty, l.amount],
       );
+    }
+    // A settled table becomes free again.
+    if (bill.tableNo != null) {
+      db.runSync('DELETE FROM open_tables WHERE table_no = ?', [bill.tableNo]);
     }
   });
 
@@ -151,4 +171,47 @@ export function getDaySummary(day: string = dayKey()): DaySummary {
   }
 
   return { day, billCount: bills.length, totalSales, gstCollected, byMode, bills };
+}
+
+// ---------- Dine-in tables ----------
+// A table's running order is saved after every change, so it survives the app closing.
+
+export type OpenTable = { tableNo: number; cart: Cart; openedAt: string };
+
+function parseCart(json: string): Cart {
+  try {
+    const value = JSON.parse(json);
+    return value && typeof value === 'object' ? (value as Cart) : {};
+  } catch {
+    return {};
+  }
+}
+
+export function getOpenTables(): Record<number, OpenTable> {
+  const rows = db.getAllSync<{ table_no: number; cart: string; opened_at: string }>(
+    'SELECT table_no, cart, opened_at FROM open_tables',
+  );
+  const result: Record<number, OpenTable> = {};
+  for (const r of rows) {
+    result[r.table_no] = { tableNo: r.table_no, cart: parseCart(r.cart), openedAt: r.opened_at };
+  }
+  return result;
+}
+
+export function getTableCart(tableNo: number): Cart {
+  const row = db.getFirstSync<{ cart: string }>('SELECT cart FROM open_tables WHERE table_no = ?', [tableNo]);
+  return row ? parseCart(row.cart) : {};
+}
+
+export function saveTableCart(tableNo: number, cart: Cart): void {
+  const now = new Date().toISOString();
+  if (Object.keys(cart).length === 0) {
+    db.runSync('DELETE FROM open_tables WHERE table_no = ?', [tableNo]);
+    return;
+  }
+  db.runSync(
+    `INSERT INTO open_tables (table_no, cart, opened_at, updated_at) VALUES (?, ?, ?, ?)
+     ON CONFLICT(table_no) DO UPDATE SET cart = excluded.cart, updated_at = excluded.updated_at`,
+    [tableNo, JSON.stringify(cart), now, now],
+  );
 }

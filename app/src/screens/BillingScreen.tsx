@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   FlatList,
   Pressable,
@@ -9,19 +9,43 @@ import {
   View,
 } from 'react-native';
 import { CATEGORIES, GST_PERCENT, MenuItem, SAMPLE_MENU } from '../data/sampleMenu';
-import { getNextToken, PaymentMode, PAYMENT_MODES, saveBill as saveBillToDb } from '../db/database';
+import {
+  Cart,
+  getNextToken,
+  getTableCart,
+  PaymentMode,
+  PAYMENT_MODES,
+  saveBill as saveBillToDb,
+  saveTableCart,
+} from '../db/database';
 import { formatRupees } from '../utils/money';
 
-type Cart = Record<string, number>; // item id -> quantity
+type Props = {
+  tableNo: number | null; // null = takeaway / counter
+  onPickTable: () => void;
+  onLeaveTable: () => void;
+  onTableSettled: () => void;
+};
 
-export default function BillingScreen() {
+export default function BillingScreen({ tableNo, onPickTable, onLeaveTable, onTableSettled }: Props) {
   const [category, setCategory] = useState(CATEGORIES[0]);
   const [search, setSearch] = useState('');
-  const [cart, setCart] = useState<Cart>({});
+  // Takeaway cart lives in memory; each table's cart is saved on the phone.
+  const [takeawayCart, setTakeawayCart] = useState<Cart>({});
+  const [tableCart, setTableCart] = useState<Cart>({});
+  const isTable = tableNo != null;
+  const cart = isTable ? tableCart : takeawayCart;
+
+  useEffect(() => {
+    if (tableNo != null) setTableCart(getTableCart(tableNo));
+    setCartOpen(false);
+    setError(null);
+  }, [tableNo]);
+
   const [cartOpen, setCartOpen] = useState(false);
   const [token, setToken] = useState(() => getNextToken());
   const [paymentMode, setPaymentMode] = useState<PaymentMode>('cash');
-  const [lastBill, setLastBill] = useState<{ token: number; total: number; mode: string } | null>(null);
+  const [lastBill, setLastBill] = useState<{ token: number; total: number; mode: string; tableNo: number | null } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   // When something is typed, search across every category; otherwise show the chosen category.
@@ -46,18 +70,22 @@ export default function BillingScreen() {
 
   function changeQty(id: string, delta: number) {
     setLastBill(null);
-    setCart((prev) => {
-      const next = { ...prev, [id]: Math.max(0, (prev[id] ?? 0) + delta) };
-      if (next[id] === 0) delete next[id];
-      return next;
-    });
+    const next = { ...cart, [id]: Math.max(0, (cart[id] ?? 0) + delta) };
+    if (next[id] === 0) delete next[id];
+    if (tableNo != null) {
+      setTableCart(next);
+      saveTableCart(tableNo, next); // saved instantly, survives closing the app
+    } else {
+      setTakeawayCart(next);
+    }
   }
 
   function saveBill() {
     if (itemCount === 0) return;
     try {
       const saved = saveBillToDb({
-        orderType: 'takeaway',
+        orderType: isTable ? 'dine_in' : 'takeaway',
+        tableNo: tableNo ?? undefined,
         paymentMode,
         subtotal,
         gst,
@@ -71,12 +99,17 @@ export default function BillingScreen() {
         })),
       });
       const modeLabel = PAYMENT_MODES.find((m) => m.key === paymentMode)?.label ?? '';
-      setLastBill({ token: saved.token, total, mode: modeLabel });
+      setLastBill({ token: saved.token, total, mode: modeLabel, tableNo });
       setToken(getNextToken());
-      setCart({});
       setPaymentMode('cash');
       setCartOpen(false);
       setError(null);
+      if (isTable) {
+        setTableCart({});
+        onTableSettled();
+      } else {
+        setTakeawayCart({});
+      }
     } catch (e) {
       // Keep the cart so nothing is lost; tell the cashier.
       setError('Could not save the bill. Please try again.');
@@ -86,14 +119,29 @@ export default function BillingScreen() {
   return (
     <View style={styles.screen}>
       <View style={styles.header}>
-        <Text style={styles.title}>Counter billing</Text>
-        <Text style={styles.subtitle}>Next token #{token}</Text>
+        <Text style={styles.title}>{isTable ? `Table ${tableNo}` : 'Counter billing'}</Text>
+        <Text style={styles.subtitle}>{isTable ? 'Dine-in' : `Next token #${token}`}</Text>
+      </View>
+
+      <View style={styles.modeRow}>
+        <Pressable
+          style={[styles.modeBtn, !isTable && styles.modeBtnActive]}
+          onPress={() => isTable && onLeaveTable()}
+        >
+          <Text style={[styles.modeText, !isTable && styles.modeTextActive]}>Takeaway</Text>
+        </Pressable>
+        <Pressable style={[styles.modeBtn, isTable && styles.modeBtnActive]} onPress={onPickTable}>
+          <Text style={[styles.modeText, isTable && styles.modeTextActive]}>
+            {isTable ? `Table ${tableNo} · change` : 'Dine-in · pick table'}
+          </Text>
+        </Pressable>
       </View>
 
       {lastBill && (
         <View style={styles.banner}>
           <Text style={styles.bannerText}>
-            Bill saved · Token #{lastBill.token} · {formatRupees(lastBill.total)} · {lastBill.mode}
+            {lastBill.tableNo != null ? `Table ${lastBill.tableNo} settled` : `Bill saved · Token #${lastBill.token}`} ·{' '}
+            {formatRupees(lastBill.total)} · {lastBill.mode}
           </Text>
         </View>
       )}
@@ -157,16 +205,17 @@ export default function BillingScreen() {
       {itemCount > 0 && !cartOpen && (
         <Pressable style={styles.cartBar} onPress={() => setCartOpen(true)}>
           <Text style={styles.cartBarText}>
+            {isTable ? `Table ${tableNo} · ` : ''}
             {itemCount} item{itemCount > 1 ? 's' : ''} · {formatRupees(total)}
           </Text>
-          <Text style={styles.cartBarText}>View bill ›</Text>
+          <Text style={styles.cartBarText}>{isTable ? 'Settle ›' : 'View bill ›'}</Text>
         </Pressable>
       )}
 
       {cartOpen && (
         <View style={styles.sheet}>
           <View style={styles.sheetHeader}>
-            <Text style={styles.sheetTitle}>Bill · Token #{token}</Text>
+            <Text style={styles.sheetTitle}>{isTable ? `Table ${tableNo} · Bill` : `Bill · Token #${token}`}</Text>
             <Pressable onPress={() => setCartOpen(false)} hitSlop={12}>
               <Text style={styles.link}>Add more</Text>
             </Pressable>
@@ -219,7 +268,9 @@ export default function BillingScreen() {
             disabled={itemCount === 0}
             onPress={saveBill}
           >
-            <Text style={styles.saveText}>Save bill · {formatRupees(total)}</Text>
+            <Text style={styles.saveText}>
+              {isTable ? 'Settle table' : 'Save bill'} · {formatRupees(total)}
+            </Text>
           </Pressable>
         </View>
       )}
@@ -286,6 +337,11 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: 14, color: MUTED },
   banner: { marginHorizontal: 16, marginBottom: 8, padding: 10, borderRadius: 8, backgroundColor: '#E6F4EA' },
   bannerText: { color: '#14532D', fontWeight: '600' },
+  modeRow: { flexDirection: 'row', gap: 8, marginHorizontal: 16, marginBottom: 8 },
+  modeBtn: { flex: 1, height: 40, borderRadius: 10, borderWidth: 1, borderColor: LINE, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
+  modeBtnActive: { backgroundColor: '#FFF7F2', borderColor: ACCENT, borderWidth: 1.5 },
+  modeText: { fontSize: 14, color: MUTED, fontWeight: '600' },
+  modeTextActive: { color: ACCENT },
   searchBox: { marginHorizontal: 16, marginBottom: 4, paddingHorizontal: 12, height: 44, borderRadius: 10, borderWidth: 1, borderColor: LINE, backgroundColor: '#fff', flexDirection: 'row', alignItems: 'center', gap: 8 },
   searchIcon: { fontSize: 18, color: MUTED },
   searchInput: { flex: 1, fontSize: 16, color: INK, paddingVertical: 0 },

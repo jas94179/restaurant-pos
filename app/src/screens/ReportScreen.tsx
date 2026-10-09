@@ -81,8 +81,8 @@ export default function ReportScreen({ visible }: { visible: boolean }) {
             <Text style={styles.token}>#{b.token}</Text>
             <View style={{ flex: 1 }}>
               <Text style={styles.billMain}>
-                {b.item_count} item{b.item_count === 1 ? '' : 's'} ·{' '}
-                {PAYMENT_MODES.find((m) => m.key === b.payment_mode)?.label}
+                {b.table_no != null ? `Table ${b.table_no}` : 'Takeaway'} · {b.item_count} item
+                {b.item_count === 1 ? '' : 's'} · {PAYMENT_MODES.find((m) => m.key === b.payment_mode)?.label}
               </Text>
               <Text style={styles.billSub}>{formatTime(b.created_at)}</Text>
             </View>
