@@ -8,6 +8,7 @@ import { colors, fonts } from '../theme';
 type Props = {
   onOpenMenu: () => void;
   onOpenStaff: () => void;
+  onOpenStock: () => void;
   onOpenRestaurant: () => void;
   onLock: () => void;
 };
@@ -24,7 +25,7 @@ const PLAN_LABEL: Record<string, string> = {
 
 // The restaurant's profile, plus everything used less often than billing,
 // so the bottom bar never grows past four tabs.
-export default function ProfileScreen({ onOpenMenu, onOpenStaff, onOpenRestaurant, onLock }: Props) {
+export default function ProfileScreen({ onOpenMenu, onOpenStaff, onOpenStock, onOpenRestaurant, onLock }: Props) {
   const settings = useSettings();
   const menu = useMenu();
   const user = useCurrentUser();
@@ -88,10 +89,20 @@ export default function ProfileScreen({ onOpenMenu, onOpenStaff, onOpenRestauran
         </>
       )}
 
+      {!isOwner && can(user, 'toggleStock') && (
+        <Group title="Today">
+          <Row
+            title="Stock on and off"
+            detail={outOfStock ? `${outOfStock} item${outOfStock === 1 ? '' : 's'} out of stock` : 'Everything is available'}
+            onPress={onOpenStock}
+          />
+        </Group>
+      )}
+
       {!isOwner && (
         <Text style={styles.note}>
-          Menu, staff and restaurant settings are managed by the owner. To mark a dish out of stock, long-press it while
-          billing.
+          Menu prices, staff and restaurant settings are managed by the owner. Tip: long-press a dish while billing to
+          switch it off quickly.
         </Text>
       )}
     </ScrollView>

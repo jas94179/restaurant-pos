@@ -21,6 +21,7 @@ import ProfileSheet from './src/components/ProfileSheet';
 import { useSettings } from './src/data/settingsStore';
 import { can, logout, ROLE_LABEL, useCurrentUser } from './src/data/staffStore';
 import StaffScreen from './src/screens/StaffScreen';
+import StockScreen from './src/screens/StockScreen';
 import { colors, fonts } from './src/theme';
 
 type Tab = 'orders' | 'bills' | 'insights' | 'profile';
@@ -86,7 +87,7 @@ function MainApp({ onLock }: { onLock: () => void }) {
   // Inside Orders: counter billing or the tables floor.
   const [mode, setMode] = useState<OrderMode>(settings.outletType === 'dine_in' ? 'tables' : 'counter');
   const [activeTable, setActiveTable] = useState<number | null>(null);
-  const [morePage, setMorePage] = useState<'list' | 'menu' | 'staff'>('list');
+  const [morePage, setMorePage] = useState<'list' | 'menu' | 'staff' | 'stock'>('list');
   const [profileOpen, setProfileOpen] = useState(false);
 
   // Keep the order mode valid when the outlet type changes in Restaurant details.
@@ -116,7 +117,9 @@ function MainApp({ onLock }: { onLock: () => void }) {
             ? 'Menu'
             : morePage === 'staff'
               ? 'Staff and PINs'
-              : 'Profile';
+              : morePage === 'stock'
+                ? 'Stock'
+                : 'Profile';
 
   return (
     <View style={styles.root}>
@@ -177,10 +180,13 @@ function MainApp({ onLock }: { onLock: () => void }) {
           <MenuScreen onBack={() => setMorePage('list')} />
         ) : morePage === 'staff' && can(user, 'manageStaff') ? (
           <StaffScreen onBack={() => setMorePage('list')} />
+        ) : morePage === 'stock' && can(user, 'toggleStock') ? (
+          <StockScreen onBack={() => setMorePage('list')} />
         ) : (
           <ProfileScreen
             onOpenMenu={() => setMorePage('menu')}
             onOpenStaff={() => setMorePage('staff')}
+            onOpenStock={() => setMorePage('stock')}
             onOpenRestaurant={() => setProfileOpen(true)}
             onLock={onLock}
           />
