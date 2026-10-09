@@ -17,8 +17,6 @@ function load(): MenuState {
   return { categories, items, byId };
 }
 
-seedMenuIfEmpty(SAMPLE_MENU, CATEGORIES);
-
 let state: MenuState = load();
 const listeners = new Set<() => void>();
 
@@ -39,4 +37,10 @@ export function useMenu(): MenuState {
     },
     () => state,
   );
+}
+
+// Used during setup when the owner picks "Start with sample menu".
+export function loadSampleMenu(): void {
+  seedMenuIfEmpty(SAMPLE_MENU, CATEGORIES);
+  reloadMenu();
 }

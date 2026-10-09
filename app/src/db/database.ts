@@ -359,3 +359,36 @@ export function setItemAvailable(id: string, available: boolean): void {
 export function archiveMenuItem(id: string): void {
   db.runSync('UPDATE menu_items SET archived = 1 WHERE id = ?', [id]);
 }
+
+// ---------- Settings ----------
+// Simple key/value settings for this restaurant (name, outlet type, PIN, plan...).
+
+db.execSync(`
+  CREATE TABLE IF NOT EXISTS settings (
+    key TEXT PRIMARY KEY NOT NULL,
+    value TEXT NOT NULL
+  );
+`);
+
+export function getAllSettings(): Record<string, string> {
+  const rows = db.getAllSync<{ key: string; value: string }>('SELECT key, value FROM settings');
+  const result: Record<string, string> = {};
+  for (const r of rows) result[r.key] = r.value;
+  return result;
+}
+
+export function setSettings(values: Record<string, string>): void {
+  db.withTransactionSync(() => {
+    for (const [key, value] of Object.entries(values)) {
+      db.runSync(
+        'INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value',
+        [key, value],
+      );
+    }
+  });
+}
+
+export function menuIsEmpty(): boolean {
+  const row = db.getFirstSync<{ n: number }>('SELECT COUNT(*) AS n FROM categories');
+  return (row?.n ?? 0) === 0;
+}

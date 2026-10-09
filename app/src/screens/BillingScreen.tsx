@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { GST_PERCENT } from '../data/sampleMenu';
 import { useMenu } from '../data/menuStore';
+import { useSettings } from '../data/settingsStore';
 import {
   Cart,
   getNextToken,
@@ -31,6 +32,7 @@ type Props = {
 
 export default function BillingScreen({ tableNo, onPickTable, onLeaveTable, onTableSettled }: Props) {
   const menu = useMenu();
+  const settings = useSettings();
   const [categoryId, setCategoryId] = useState<string | null>(null);
   // Fall back to the first category (also when the chosen one was deleted).
   const category =
@@ -131,6 +133,7 @@ export default function BillingScreen({ tableNo, onPickTable, onLeaveTable, onTa
         <Text style={styles.subtitle}>{isTable ? 'Dine-in' : `Next token #${token}`}</Text>
       </View>
 
+      {settings.outletType !== 'counter' && (
       <View style={styles.modeRow}>
         <Pressable
           style={[styles.modeBtn, !isTable && styles.modeBtnActive]}
@@ -144,6 +147,7 @@ export default function BillingScreen({ tableNo, onPickTable, onLeaveTable, onTa
           </Text>
         </Pressable>
       </View>
+      )}
 
       {lastBill && (
         <View style={styles.banner}>

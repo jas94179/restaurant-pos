@@ -4,9 +4,7 @@ import { GST_PERCENT } from '../data/sampleMenu';
 import { getMenu } from '../data/menuStore';
 import { getOpenTables, OpenTable } from '../db/database';
 import { formatRupees } from '../utils/money';
-
-// Number of tables for the pilot. This will become a setting per restaurant.
-export const TABLE_COUNT = 12;
+import { useSettings } from '../data/settingsStore';
 
 function tableTotals(t: OpenTable) {
   let items = 0;
@@ -34,6 +32,7 @@ type Props = {
 };
 
 export default function TablesScreen({ visible, activeTable, onOpenTable }: Props) {
+  const { tableCount: TABLE_COUNT } = useSettings();
   const [open, setOpen] = useState<Record<number, OpenTable>>(() => getOpenTables());
   const refresh = useCallback(() => setOpen(getOpenTables()), []);
 
