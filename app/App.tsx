@@ -12,6 +12,7 @@ import TablesScreen from './src/screens/TablesScreen';
 import MenuScreen from './src/screens/MenuScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import { SymbolView } from 'expo-symbols';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import WelcomeScreen from './src/screens/onboarding/WelcomeScreen';
 import SetupScreen from './src/screens/onboarding/SetupScreen';
 import LockScreen from './src/screens/onboarding/LockScreen';
@@ -24,6 +25,14 @@ type Tab = 'orders' | 'bills' | 'insights' | 'profile';
 type OrderMode = 'counter' | 'tables';
 
 export default function App() {
+  return (
+    <SafeAreaProvider>
+      <Root />
+    </SafeAreaProvider>
+  );
+}
+
+function Root() {
   const [fontsLoaded] = useFonts({
     BricolageGrotesque_400Regular,
     BricolageGrotesque_600SemiBold,
@@ -86,10 +95,29 @@ function MainApp({ onLock }: { onLock: () => void }) {
   }, [settings.outletType]);
 
   const onTablesFloor = mode === 'tables' && activeTable == null;
+  const insets = useSafeAreaInsets();
+  const headerTitle =
+    tab === 'orders'
+      ? mode === 'tables' && activeTable != null
+        ? `Table ${activeTable}`
+        : mode === 'tables'
+          ? 'Tables'
+          : 'Counter'
+      : tab === 'bills'
+        ? 'Bills'
+        : tab === 'insights'
+          ? 'Insights'
+          : morePage === 'menu'
+            ? 'Menu'
+            : 'Profile';
 
   return (
     <View style={styles.root}>
-      <AppHeader onProfile={() => setTab('profile')} />
+      <AppHeader
+        title={headerTitle}
+        userName="Owner"
+        onLock={onLock}
+      />
 
       {/* Orders: counter billing, or tables then a table's bill. Screens stay alive so nothing is lost. */}
       <View style={[styles.body, tab !== 'orders' && styles.hidden]}>
@@ -146,7 +174,7 @@ function MainApp({ onLock }: { onLock: () => void }) {
         )}
       </View>
 
-      <View style={styles.tabBar}>
+      <View style={[styles.tabBar, { paddingBottom: Math.max(insets.bottom, 10) }]}>
         <TabButton label="Orders" icon="orders" active={tab === 'orders'} onPress={() => setTab('orders')} />
         <TabButton label="Bills" icon="bills" active={tab === 'bills'} onPress={() => setTab('bills')} />
         <TabButton label="Insights" icon="insights" active={tab === 'insights'} onPress={() => setTab('insights')} />
@@ -163,7 +191,7 @@ function MainApp({ onLock }: { onLock: () => void }) {
         />
       </View>
 
-      {profileOpen && <ProfileSheet onClose={() => setProfileOpen(false)} onLock={onLock} />}
+      {profileOpen && <ProfileSheet onClose={() => setProfileOpen(false)} />}
       <StatusBar style="light" />
     </View>
   );
@@ -216,7 +244,7 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.mist },
   body: { flex: 1 },
   hidden: { display: 'none' },
-  tabBar: { flexDirection: 'row', borderTopWidth: 1, borderTopColor: colors.line, backgroundColor: colors.paper, paddingBottom: 24 },
+  tabBar: { flexDirection: 'row', borderTopWidth: 1, borderTopColor: colors.line, backgroundColor: colors.paper },
   tab: { flex: 1, alignItems: 'center', paddingBottom: 6 },
   indicator: { height: 3, width: 40, borderRadius: 2, backgroundColor: 'transparent', marginBottom: 6 },
   tabAvatar: { width: 24, height: 24, borderRadius: 12, borderWidth: 1.5, borderColor: colors.muted, alignItems: 'center', justifyContent: 'center' },

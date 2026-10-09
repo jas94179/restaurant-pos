@@ -12,6 +12,7 @@ import {
 import { OutletType, saveSettings, useSettings } from '../data/settingsStore';
 import { getOpenTables } from '../db/database';
 import { colors, fonts } from '../theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const TYPES: { key: OutletType; label: string }[] = [
   { key: 'counter', label: 'Counter' },
@@ -27,9 +28,10 @@ const PLAN_LABEL: Record<string, string> = {
 };
 const GSTIN_PATTERN = /^[0-9]{2}[A-Z0-9]{13}$/;
 
-type Props = { onClose: () => void; onLock: () => void };
+type Props = { onClose: () => void };
 
-export default function ProfileSheet({ onClose, onLock }: Props) {
+export default function ProfileSheet({ onClose }: Props) {
+  const insets = useSafeAreaInsets();
   const settings = useSettings();
   const [name, setName] = useState(settings.restaurantName);
   const [gstin, setGstin] = useState(settings.gstin);
@@ -69,7 +71,7 @@ export default function ProfileSheet({ onClose, onLock }: Props) {
     <View style={styles.backdrop}>
       <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Close profile" />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <View style={styles.sheet}>
+        <View style={[styles.sheet, { paddingBottom: insets.bottom + 20 }]}>
           <View style={styles.handle} />
           <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 8 }}>
             <View style={styles.head}>
@@ -134,12 +136,6 @@ export default function ProfileSheet({ onClose, onLock }: Props) {
               <Text style={styles.saveText}>Save changes</Text>
             </Pressable>
 
-            <View style={styles.divider} />
-
-            <Pressable style={styles.lockBtn} onPress={onLock} accessibilityRole="button">
-              <Text style={styles.lockText}>Lock app</Text>
-              <Text style={styles.lockHint}>Goes back to the PIN screen</Text>
-            </Pressable>
           </ScrollView>
         </View>
       </KeyboardAvoidingView>
@@ -149,7 +145,7 @@ export default function ProfileSheet({ onClose, onLock }: Props) {
 
 const styles = StyleSheet.create({
   backdrop: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15,42,31,0.45)', justifyContent: 'flex-end' },
-  sheet: { maxHeight: '88%', backgroundColor: colors.paper, borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingHorizontal: 20, paddingBottom: 32 },
+  sheet: { maxHeight: '88%', backgroundColor: colors.paper, borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingHorizontal: 20 },
   handle: { alignSelf: 'center', width: 40, height: 4, borderRadius: 2, backgroundColor: colors.line, marginTop: 10, marginBottom: 14 },
   head: { flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 8 },
   avatar: { width: 52, height: 52, borderRadius: 26, backgroundColor: colors.brand, alignItems: 'center', justifyContent: 'center' },

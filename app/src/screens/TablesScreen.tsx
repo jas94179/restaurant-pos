@@ -48,7 +48,6 @@ export default function TablesScreen({ visible, activeTable, onOpenTable }: Prop
   return (
     <View style={styles.screen}>
       <View style={styles.header}>
-        <Text style={styles.title}>Tables</Text>
         <Text style={styles.subtitle}>
           {busyCount} occupied · {TABLE_COUNT - busyCount} free
         </Text>

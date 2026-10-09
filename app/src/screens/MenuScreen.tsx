@@ -147,7 +147,6 @@ export default function MenuScreen({ onBack }: { onBack?: () => void }) {
             <Text style={styles.backLink}>‹ Profile</Text>
           </Pressable>
         )}
-        <Text style={styles.title}>Menu</Text>
         <Text style={styles.subtitle}>
           {visible.length} items · {menu.categories.length} categories
         </Text>

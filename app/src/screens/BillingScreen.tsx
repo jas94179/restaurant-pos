@@ -150,16 +150,16 @@ export default function BillingScreen({ tableNo, onBackToTables, onTableSettled 
 
   return (
     <View style={styles.screen}>
+      {/* The screen name is in the top header; this row only adds context. */}
       <View style={styles.header}>
-        <View>
-          {isTable && (
-            <Pressable onPress={onBackToTables} hitSlop={10} accessibilityRole="button">
-              <Text style={styles.backLink}>‹ All tables</Text>
-            </Pressable>
-          )}
-          <Text style={styles.title}>{isTable ? `Table ${tableNo}` : 'Counter billing'}</Text>
-        </View>
-        <Text style={styles.subtitle}>{isTable ? 'Dine-in' : `Next token #${token}`}</Text>
+        {isTable ? (
+          <Pressable onPress={onBackToTables} hitSlop={10} accessibilityRole="button">
+            <Text style={styles.backLink}>‹ All tables</Text>
+          </Pressable>
+        ) : (
+          <Text style={styles.subtitle}>Next token #{token}</Text>
+        )}
+        {isTable && <Text style={styles.subtitle}>Dine-in</Text>}
       </View>
 
 
@@ -373,7 +373,7 @@ const TINT = '#E5EEE9'; // light curry-leaf green for selected things
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.mist, paddingTop: 8 },
-  header: { paddingHorizontal: 16, paddingBottom: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
+  header: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   title: { fontSize: 22, fontFamily: fonts.bold, color: INK },
   subtitle: { fontFamily: fonts.regular, fontSize: 14, color: MUTED },
   banner: { marginHorizontal: 16, marginBottom: 8, padding: 10, borderRadius: 8, backgroundColor: '#E6F4EA' },

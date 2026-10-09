@@ -96,7 +96,6 @@ export default function TransactionsScreen({ visible }: { visible: boolean }) {
   return (
     <View style={styles.screen}>
       <View style={styles.top}>
-        <Text style={styles.title}>Bills</Text>
         <Text style={styles.subtitle}>
           {filtered.length} bill{filtered.length === 1 ? '' : 's'}, {formatRupees(total)}
         </Text>

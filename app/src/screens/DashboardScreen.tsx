@@ -28,7 +28,7 @@ export default function DashboardScreen({ visible }: { visible: boolean }) {
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <View style={styles.titleRow}>
-        <Text style={styles.title}>Insights</Text>
+        <Text style={styles.updated}>Updated when you open this tab</Text>
         <Pressable onPress={refresh} hitSlop={12} accessibilityRole="button">
           <Text style={styles.link}>Refresh</Text>
         </Pressable>
@@ -249,6 +249,7 @@ const styles = StyleSheet.create({
   content: { padding: 16, paddingBottom: 40 },
   titleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   title: { fontFamily: fonts.bold, fontSize: 26, color: colors.ink },
+  updated: { fontFamily: fonts.regular, fontSize: 13, color: colors.muted },
   link: { fontFamily: fonts.semibold, fontSize: 15, color: colors.brand },
   periods: { flexDirection: 'row', gap: 8, marginTop: 12, marginBottom: 16 },
   periodBtn: { flex: 1, height: 40, borderRadius: 12, borderWidth: 1.5, borderColor: colors.line, backgroundColor: colors.paper, alignItems: 'center', justifyContent: 'center' },

@@ -1,45 +1,69 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { useSettings } from '../data/settingsStore';
-import { APP_NAME, colors, fonts } from '../theme';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNetworkState } from 'expo-network';
+import { colors, fonts } from '../theme';
 
-// Top bar on every screen inside the app: brand and restaurant on the left, profile on the right.
-export default function AppHeader({ onProfile }: { onProfile: () => void }) {
-  const { restaurantName } = useSettings();
-  const initial = (restaurantName.trim()[0] ?? 'R').toUpperCase();
+type Props = {
+  title: string;
+  userName: string; // who is logged in, e.g. "Owner" (staff names come with PINs)
+  onLock: () => void;
+};
+
+// Slim one-line header: where you are on the left; live status and who is logged in on the right.
+export default function AppHeader({ title, userName, onLock }: Props) {
+  const insets = useSafeAreaInsets();
+  const net = useNetworkState();
+  // Only speak up when something needs attention. Bills are always saved on the phone.
+  const offline = net.isConnected === false || net.isInternetReachable === false;
+
+  function openUserMenu() {
+    Alert.alert(userName, 'Lock the app so the next person enters their PIN.', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Lock app', style: 'destructive', onPress: onLock },
+    ]);
+  }
 
   return (
-    <View style={styles.bar}>
-      <View style={styles.left}>
-        <View style={styles.coin}>
-          <Text style={styles.coinText}>₹</Text>
-        </View>
-        <View style={{ flexShrink: 1 }}>
-          <Text style={styles.brand}>{APP_NAME}</Text>
-          <Text style={styles.name} numberOfLines={1}>
-            {restaurantName}
+    <View style={[styles.bar, { paddingTop: insets.top + 8 }]}>
+      <Text style={styles.title} numberOfLines={1} accessibilityRole="header">
+        {title}
+      </Text>
+
+      <View style={styles.right}>
+        {offline && (
+          <View style={styles.status} accessibilityLabel="Offline. Bills are still saved on this phone.">
+            <View style={styles.statusDot} />
+            <Text style={styles.statusText}>Offline</Text>
+          </View>
+        )}
+        <Pressable
+          onPress={openUserMenu}
+          style={({ pressed }) => [styles.user, pressed && { opacity: 0.7 }]}
+          accessibilityRole="button"
+          accessibilityLabel={`Logged in as ${userName}. Tap to lock.`}
+          hitSlop={6}
+        >
+          <View style={styles.userDot}>
+            <Text style={styles.userInitial}>{(userName[0] ?? '?').toUpperCase()}</Text>
+          </View>
+          <Text style={styles.userName} numberOfLines={1}>
+            {userName}
           </Text>
-        </View>
+        </Pressable>
       </View>
-      <Pressable
-        onPress={onProfile}
-        style={({ pressed }) => [styles.avatar, pressed && { opacity: 0.7 }]}
-        accessibilityRole="button"
-        accessibilityLabel="Profile and settings"
-        hitSlop={8}
-      >
-        <Text style={styles.avatarText}>{initial}</Text>
-      </Pressable>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  bar: { backgroundColor: colors.brand, paddingTop: 52, paddingBottom: 14, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
-  left: { flexDirection: 'row', alignItems: 'center', gap: 10, flexShrink: 1 },
-  coin: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.turmeric, borderWidth: 2, borderColor: colors.turmericDeep, alignItems: 'center', justifyContent: 'center' },
-  coinText: { fontFamily: fonts.bold, fontSize: 16, color: colors.brandDeep },
-  brand: { fontFamily: fonts.bold, fontSize: 13, color: colors.turmeric, letterSpacing: -0.2 },
-  name: { fontFamily: fonts.bold, fontSize: 18, color: colors.paper },
-  avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.12)', borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.35)', alignItems: 'center', justifyContent: 'center' },
-  avatarText: { fontFamily: fonts.bold, fontSize: 17, color: colors.paper },
+  bar: { backgroundColor: colors.brand, paddingBottom: 10, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+  title: { flexShrink: 1, fontFamily: fonts.bold, fontSize: 20, color: colors.paper },
+  right: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  status: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 10, height: 30, borderRadius: 15, backgroundColor: '#FBF0D2' },
+  statusDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.turmericDeep },
+  statusText: { fontFamily: fonts.semibold, fontSize: 13, color: colors.brandDeep },
+  user: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingLeft: 4, paddingRight: 12, height: 34, borderRadius: 17, backgroundColor: 'rgba(255,255,255,0.12)' },
+  userDot: { width: 26, height: 26, borderRadius: 13, backgroundColor: colors.turmeric, alignItems: 'center', justifyContent: 'center' },
+  userInitial: { fontFamily: fonts.bold, fontSize: 13, color: colors.brandDeep },
+  userName: { maxWidth: 110, fontFamily: fonts.semibold, fontSize: 14, color: colors.paper },
 });
