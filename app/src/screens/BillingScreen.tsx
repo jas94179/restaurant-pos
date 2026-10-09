@@ -9,15 +9,8 @@ import {
   View,
 } from 'react-native';
 import { CATEGORIES, GST_PERCENT, MenuItem, SAMPLE_MENU } from '../data/sampleMenu';
-
-// Turns paise into "₹1,234.50" style text.
-export function formatRupees(paise: number): string {
-  const rupees = paise / 100;
-  return '₹' + rupees.toLocaleString('en-IN', {
-    minimumFractionDigits: rupees % 1 === 0 ? 0 : 2,
-    maximumFractionDigits: 2,
-  });
-}
+import { getNextToken, PaymentMode, PAYMENT_MODES, saveBill as saveBillToDb } from '../db/database';
+import { formatRupees } from '../utils/money';
 
 type Cart = Record<string, number>; // item id -> quantity
 
@@ -26,8 +19,10 @@ export default function BillingScreen() {
   const [search, setSearch] = useState('');
   const [cart, setCart] = useState<Cart>({});
   const [cartOpen, setCartOpen] = useState(false);
-  const [token, setToken] = useState(1);
-  const [lastBill, setLastBill] = useState<{ token: number; total: number } | null>(null);
+  const [token, setToken] = useState(() => getNextToken());
+  const [paymentMode, setPaymentMode] = useState<PaymentMode>('cash');
+  const [lastBill, setLastBill] = useState<{ token: number; total: number; mode: string } | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   // When something is typed, search across every category; otherwise show the chosen category.
   const query = search.trim().toLowerCase();
@@ -59,10 +54,33 @@ export default function BillingScreen() {
   }
 
   function saveBill() {
-    setLastBill({ token, total });
-    setToken((t) => t + 1);
-    setCart({});
-    setCartOpen(false);
+    if (itemCount === 0) return;
+    try {
+      const saved = saveBillToDb({
+        orderType: 'takeaway',
+        paymentMode,
+        subtotal,
+        gst,
+        total,
+        lines: cartLines.map(({ item, qty, amount }) => ({
+          itemId: item.id,
+          name: item.name,
+          price: item.price,
+          qty,
+          amount,
+        })),
+      });
+      const modeLabel = PAYMENT_MODES.find((m) => m.key === paymentMode)?.label ?? '';
+      setLastBill({ token: saved.token, total, mode: modeLabel });
+      setToken(getNextToken());
+      setCart({});
+      setPaymentMode('cash');
+      setCartOpen(false);
+      setError(null);
+    } catch (e) {
+      // Keep the cart so nothing is lost; tell the cashier.
+      setError('Could not save the bill. Please try again.');
+    }
   }
 
   return (
@@ -75,7 +93,7 @@ export default function BillingScreen() {
       {lastBill && (
         <View style={styles.banner}>
           <Text style={styles.bannerText}>
-            Bill saved · Token #{lastBill.token} · {formatRupees(lastBill.total)}
+            Bill saved · Token #{lastBill.token} · {formatRupees(lastBill.total)} · {lastBill.mode}
           </Text>
         </View>
       )}
@@ -181,12 +199,27 @@ export default function BillingScreen() {
             <TotalRow label="Total" value={formatRupees(total)} bold />
           </View>
 
+          <Text style={styles.payLabel}>Payment</Text>
+          <View style={styles.payRow}>
+            {PAYMENT_MODES.map((m) => (
+              <Pressable
+                key={m.key}
+                onPress={() => setPaymentMode(m.key)}
+                style={[styles.payBtn, paymentMode === m.key && styles.payBtnActive]}
+              >
+                <Text style={[styles.payText, paymentMode === m.key && styles.payTextActive]}>{m.label}</Text>
+              </Pressable>
+            ))}
+          </View>
+
+          {error && <Text style={styles.error}>{error}</Text>}
+
           <Pressable
             style={[styles.saveBtn, itemCount === 0 && styles.saveBtnDisabled]}
             disabled={itemCount === 0}
             onPress={saveBill}
           >
-            <Text style={styles.saveText}>Save bill</Text>
+            <Text style={styles.saveText}>Save bill · {formatRupees(total)}</Text>
           </Pressable>
         </View>
       )}
@@ -297,6 +330,13 @@ const styles = StyleSheet.create({
   totalLabel: { fontSize: 15, color: MUTED },
   totalValue: { fontSize: 15, color: INK },
   bold: { fontWeight: '700', color: INK, fontSize: 17 },
+  payLabel: { fontSize: 13, color: MUTED, marginTop: 4, marginBottom: 6 },
+  payRow: { flexDirection: 'row', gap: 8 },
+  payBtn: { flex: 1, height: 44, borderRadius: 10, borderWidth: 1, borderColor: LINE, alignItems: 'center', justifyContent: 'center' },
+  payBtnActive: { backgroundColor: INK, borderColor: INK },
+  payText: { fontSize: 15, color: INK, fontWeight: '600' },
+  payTextActive: { color: '#fff' },
+  error: { color: '#B3261E', marginTop: 8 },
   saveBtn: { marginTop: 8, padding: 16, borderRadius: 12, backgroundColor: INK, alignItems: 'center' },
   saveBtnDisabled: { opacity: 0.4 },
   saveText: { color: '#fff', fontSize: 16, fontWeight: '700' },
