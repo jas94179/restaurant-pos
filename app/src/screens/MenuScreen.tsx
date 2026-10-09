@@ -144,7 +144,7 @@ export default function MenuScreen({ onBack }: { onBack?: () => void }) {
       <View style={styles.header}>
         {onBack && (
           <Pressable onPress={onBack} hitSlop={10} accessibilityRole="button">
-            <Text style={styles.backLink}>‹ More</Text>
+            <Text style={styles.backLink}>‹ Profile</Text>
           </Pressable>
         )}
         <Text style={styles.title}>Menu</Text>

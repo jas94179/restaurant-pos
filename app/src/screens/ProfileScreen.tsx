@@ -12,8 +12,17 @@ type Props = {
 
 const OUTLET_LABEL = { counter: 'Counter', dine_in: 'Dine-in', both: 'Counter and tables' } as const;
 
-// Everything used less often than billing lives here, so the bottom bar never grows past four tabs.
-export default function MoreScreen({ onOpenMenu, onOpenRestaurant, onLock }: Props) {
+const PLAN_LABEL: Record<string, string> = {
+  pilot: 'Pilot plan, all features free',
+  free: 'Free plan',
+  starter: 'Starter plan',
+  pro: 'Pro plan',
+  business: 'Business plan',
+};
+
+// The restaurant's profile, plus everything used less often than billing,
+// so the bottom bar never grows past four tabs.
+export default function ProfileScreen({ onOpenMenu, onOpenRestaurant, onLock }: Props) {
   const settings = useSettings();
   const menu = useMenu();
   const itemCount = menu.items.filter((i) => !i.archived).length;
@@ -21,7 +30,18 @@ export default function MoreScreen({ onOpenMenu, onOpenRestaurant, onLock }: Pro
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>More</Text>
+      <View style={styles.profileCard}>
+        <View style={styles.avatar}>
+          <Text style={styles.avatarText}>{(settings.restaurantName.trim()[0] ?? 'R').toUpperCase()}</Text>
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.name} numberOfLines={2}>
+            {settings.restaurantName}
+          </Text>
+          <Text style={styles.meta}>{OUTLET_LABEL[settings.outletType]}</Text>
+          {!!settings.gstin && <Text style={styles.meta}>GSTIN {settings.gstin}</Text>}
+        </View>
+      </View>
 
       <Group title="Restaurant">
         <Row
@@ -31,7 +51,7 @@ export default function MoreScreen({ onOpenMenu, onOpenRestaurant, onLock }: Pro
         />
         <Row
           title="Restaurant details"
-          detail={`${settings.restaurantName}, ${OUTLET_LABEL[settings.outletType]}`}
+          detail="Name, GSTIN, how customers order, tables"
           onPress={onOpenRestaurant}
         />
       </Group>
@@ -44,7 +64,7 @@ export default function MoreScreen({ onOpenMenu, onOpenRestaurant, onLock }: Pro
       </Group>
 
       <Group title="Account">
-        <Row title="Plan" detail="Pilot plan, all features free" />
+        <Row title="Plan" detail={PLAN_LABEL[settings.plan] ?? settings.plan} />
         <Row title="Lock app" detail="Back to the PIN screen" onPress={onLock} danger />
       </Group>
     </ScrollView>
@@ -105,7 +125,11 @@ function Row({
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.mist },
   content: { padding: 16, paddingBottom: 40 },
-  title: { fontFamily: fonts.bold, fontSize: 26, color: colors.ink, marginBottom: 4 },
+  profileCard: { flexDirection: 'row', alignItems: 'center', gap: 16, padding: 18, borderRadius: 20, backgroundColor: colors.brand },
+  avatar: { width: 64, height: 64, borderRadius: 32, backgroundColor: colors.turmeric, borderWidth: 3, borderColor: colors.turmericDeep, alignItems: 'center', justifyContent: 'center' },
+  avatarText: { fontFamily: fonts.bold, fontSize: 28, color: colors.brandDeep },
+  name: { fontFamily: fonts.bold, fontSize: 22, lineHeight: 27, color: colors.paper },
+  meta: { fontFamily: fonts.regular, fontSize: 14, color: '#CFE0D6', marginTop: 2 },
   group: { marginTop: 18 },
   groupTitle: { fontFamily: fonts.semibold, fontSize: 14, color: colors.muted, marginBottom: 8, marginLeft: 4 },
   card: { backgroundColor: colors.paper, borderRadius: 16, borderWidth: 1, borderColor: colors.line, overflow: 'hidden' },

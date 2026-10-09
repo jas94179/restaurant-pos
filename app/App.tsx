@@ -10,7 +10,8 @@ import DashboardScreen from './src/screens/DashboardScreen';
 import TransactionsScreen from './src/screens/TransactionsScreen';
 import TablesScreen from './src/screens/TablesScreen';
 import MenuScreen from './src/screens/MenuScreen';
-import MoreScreen from './src/screens/MoreScreen';
+import ProfileScreen from './src/screens/ProfileScreen';
+import { SymbolView } from 'expo-symbols';
 import WelcomeScreen from './src/screens/onboarding/WelcomeScreen';
 import SetupScreen from './src/screens/onboarding/SetupScreen';
 import LockScreen from './src/screens/onboarding/LockScreen';
@@ -19,7 +20,7 @@ import ProfileSheet from './src/components/ProfileSheet';
 import { useSettings } from './src/data/settingsStore';
 import { colors, fonts } from './src/theme';
 
-type Tab = 'orders' | 'bills' | 'insights' | 'more';
+type Tab = 'orders' | 'bills' | 'insights' | 'profile';
 type OrderMode = 'counter' | 'tables';
 
 export default function App() {
@@ -88,7 +89,7 @@ function MainApp({ onLock }: { onLock: () => void }) {
 
   return (
     <View style={styles.root}>
-      <AppHeader onProfile={() => setProfileOpen(true)} />
+      <AppHeader onProfile={() => setTab('profile')} />
 
       {/* Orders: counter billing, or tables then a table's bill. Screens stay alive so nothing is lost. */}
       <View style={[styles.body, tab !== 'orders' && styles.hidden]}>
@@ -133,11 +134,11 @@ function MainApp({ onLock }: { onLock: () => void }) {
       <View style={[styles.body, tab !== 'insights' && styles.hidden]}>
         <DashboardScreen visible={tab === 'insights'} />
       </View>
-      <View style={[styles.body, tab !== 'more' && styles.hidden]}>
+      <View style={[styles.body, tab !== 'profile' && styles.hidden]}>
         {morePage === 'menu' ? (
           <MenuScreen onBack={() => setMorePage('list')} />
         ) : (
-          <MoreScreen
+          <ProfileScreen
             onOpenMenu={() => setMorePage('menu')}
             onOpenRestaurant={() => setProfileOpen(true)}
             onLock={onLock}
@@ -146,16 +147,18 @@ function MainApp({ onLock }: { onLock: () => void }) {
       </View>
 
       <View style={styles.tabBar}>
-        <TabButton label="Orders" active={tab === 'orders'} onPress={() => setTab('orders')} />
-        <TabButton label="Bills" active={tab === 'bills'} onPress={() => setTab('bills')} />
-        <TabButton label="Insights" active={tab === 'insights'} onPress={() => setTab('insights')} />
+        <TabButton label="Orders" icon="orders" active={tab === 'orders'} onPress={() => setTab('orders')} />
+        <TabButton label="Bills" icon="bills" active={tab === 'bills'} onPress={() => setTab('bills')} />
+        <TabButton label="Insights" icon="insights" active={tab === 'insights'} onPress={() => setTab('insights')} />
         <TabButton
-          label="More"
-          active={tab === 'more'}
+          label="Profile"
+          icon="profile"
+          initial={(settings.restaurantName.trim()[0] ?? 'R').toUpperCase()}
+          active={tab === 'profile'}
           onPress={() => {
-            // Tapping More again returns to its main list.
-            if (tab === 'more') setMorePage('list');
-            setTab('more');
+            // Tapping Profile again returns to its main page.
+            if (tab === 'profile') setMorePage('list');
+            setTab('profile');
           }}
         />
       </View>
@@ -166,10 +169,44 @@ function MainApp({ onLock }: { onLock: () => void }) {
   );
 }
 
-function TabButton({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
+type TabIcon = 'orders' | 'bills' | 'insights' | 'profile';
+
+// Native icons: SF Symbols on iPhone, Material Symbols on Android.
+const ICONS: Record<Exclude<TabIcon, 'profile'>, { ios: string; iosActive: string; android: string }> = {
+  orders: { ios: 'fork.knife', iosActive: 'fork.knife', android: 'restaurant' },
+  bills: { ios: 'doc.text', iosActive: 'doc.text.fill', android: 'receipt_long' },
+  insights: { ios: 'chart.bar', iosActive: 'chart.bar.fill', android: 'bar_chart' },
+};
+
+function TabButton({
+  label,
+  icon,
+  initial,
+  active,
+  onPress,
+}: {
+  label: string;
+  icon: TabIcon;
+  initial?: string;
+  active: boolean;
+  onPress: () => void;
+}) {
+  const tint = active ? colors.brand : colors.muted;
   return (
-    <Pressable style={styles.tab} onPress={onPress} accessibilityRole="tab" accessibilityState={{ selected: active }}>
+    <Pressable style={styles.tab} onPress={onPress} accessibilityRole="tab" accessibilityLabel={label} accessibilityState={{ selected: active }}>
       <View style={[styles.indicator, active && styles.indicatorActive]} />
+      {icon === 'profile' ? (
+        <View style={[styles.tabAvatar, active && styles.tabAvatarActive]}>
+          <Text style={[styles.tabAvatarText, active && styles.tabAvatarTextActive]}>{initial}</Text>
+        </View>
+      ) : (
+        <SymbolView
+          name={{ ios: active ? ICONS[icon].iosActive : ICONS[icon].ios, android: ICONS[icon].android, web: ICONS[icon].android } as any}
+          tintColor={tint}
+          size={24}
+          fallback={<View style={{ width: 24, height: 24 }} />}
+        />
+      )}
       <Text style={[styles.tabText, active && styles.tabTextActive]}>{label}</Text>
     </Pressable>
   );
@@ -181,13 +218,17 @@ const styles = StyleSheet.create({
   hidden: { display: 'none' },
   tabBar: { flexDirection: 'row', borderTopWidth: 1, borderTopColor: colors.line, backgroundColor: colors.paper, paddingBottom: 24 },
   tab: { flex: 1, alignItems: 'center', paddingBottom: 6 },
-  indicator: { height: 3, width: 40, borderRadius: 2, backgroundColor: 'transparent', marginBottom: 8 },
+  indicator: { height: 3, width: 40, borderRadius: 2, backgroundColor: 'transparent', marginBottom: 6 },
+  tabAvatar: { width: 24, height: 24, borderRadius: 12, borderWidth: 1.5, borderColor: colors.muted, alignItems: 'center', justifyContent: 'center' },
+  tabAvatarActive: { backgroundColor: colors.brand, borderColor: colors.brand },
+  tabAvatarText: { fontFamily: fonts.bold, fontSize: 12, color: colors.muted },
+  tabAvatarTextActive: { color: colors.turmeric },
   indicatorActive: { backgroundColor: colors.turmeric },
   switchRow: { flexDirection: 'row', gap: 6, marginHorizontal: 16, marginTop: 12, padding: 4, borderRadius: 14, backgroundColor: colors.line },
   switchBtn: { flex: 1, height: 38, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   switchBtnActive: { backgroundColor: colors.paper },
   switchText: { fontFamily: fonts.semibold, fontSize: 15, color: colors.muted },
   switchTextActive: { color: colors.brand },
-  tabText: { fontSize: 14, color: colors.muted, fontFamily: fonts.semibold },
+  tabText: { marginTop: 3, fontSize: 12, color: colors.muted, fontFamily: fonts.semibold },
   tabTextActive: { color: colors.brand },
 });
