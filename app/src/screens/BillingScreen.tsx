@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
+  Alert,
   FlatList,
   Pressable,
   ScrollView,
@@ -9,7 +10,7 @@ import {
   View,
 } from 'react-native';
 import { GST_PERCENT } from '../data/sampleMenu';
-import { useMenu } from '../data/menuStore';
+import { reloadMenu, useMenu } from '../data/menuStore';
 import { useSettings } from '../data/settingsStore';
 import {
   Cart,
@@ -20,18 +21,18 @@ import {
   PAYMENT_MODES,
   saveBill as saveBillToDb,
   saveTableCart,
+  setItemAvailable,
 } from '../db/database';
 import { formatRupees } from '../utils/money';
 import { colors, fonts } from '../theme';
 
 type Props = {
   tableNo: number | null; // null = takeaway / counter
-  onPickTable: () => void;
-  onLeaveTable: () => void;
+  onBackToTables: () => void;
   onTableSettled: () => void;
 };
 
-export default function BillingScreen({ tableNo, onPickTable, onLeaveTable, onTableSettled }: Props) {
+export default function BillingScreen({ tableNo, onBackToTables, onTableSettled }: Props) {
   const menu = useMenu();
   const settings = useSettings();
   const [categoryId, setCategoryId] = useState<string | null>(null);
@@ -91,6 +92,26 @@ export default function BillingScreen({ tableNo, onPickTable, onLeaveTable, onTa
     }
   }
 
+  // Long-press shortcut so staff can mark a dish out of stock without leaving billing.
+  function toggleStock(item: DbMenuItem) {
+    const goingOut = item.available;
+    Alert.alert(
+      item.name,
+      goingOut ? 'Mark as out of stock? Staff will not be able to add it.' : 'Mark as available again?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: goingOut ? 'Out of stock' : 'Available',
+          style: goingOut ? 'destructive' : 'default',
+          onPress: () => {
+            setItemAvailable(item.id, !goingOut);
+            reloadMenu();
+          },
+        },
+      ],
+    );
+  }
+
   function saveBill() {
     if (itemCount === 0) return;
     try {
@@ -130,25 +151,17 @@ export default function BillingScreen({ tableNo, onPickTable, onLeaveTable, onTa
   return (
     <View style={styles.screen}>
       <View style={styles.header}>
-        <Text style={styles.title}>{isTable ? `Table ${tableNo}` : 'Counter billing'}</Text>
+        <View>
+          {isTable && (
+            <Pressable onPress={onBackToTables} hitSlop={10} accessibilityRole="button">
+              <Text style={styles.backLink}>‹ All tables</Text>
+            </Pressable>
+          )}
+          <Text style={styles.title}>{isTable ? `Table ${tableNo}` : 'Counter billing'}</Text>
+        </View>
         <Text style={styles.subtitle}>{isTable ? 'Dine-in' : `Next token #${token}`}</Text>
       </View>
 
-      {settings.outletType !== 'counter' && (
-      <View style={styles.modeRow}>
-        <Pressable
-          style={[styles.modeBtn, !isTable && styles.modeBtnActive]}
-          onPress={() => isTable && onLeaveTable()}
-        >
-          <Text style={[styles.modeText, !isTable && styles.modeTextActive]}>Takeaway</Text>
-        </Pressable>
-        <Pressable style={[styles.modeBtn, isTable && styles.modeBtnActive]} onPress={onPickTable}>
-          <Text style={[styles.modeText, isTable && styles.modeTextActive]}>
-            {isTable ? `Table ${tableNo} · change` : 'Dine-in · pick table'}
-          </Text>
-        </Pressable>
-      </View>
-      )}
 
       {lastBill && (
         <View style={styles.banner}>
@@ -205,7 +218,7 @@ export default function BillingScreen({ tableNo, onPickTable, onLeaveTable, onTa
         contentContainerStyle={styles.grid}
         keyboardShouldPersistTaps="handled"
         ListEmptyComponent={
-          <Text style={styles.empty}>{query ? `No items match "${search}"` : 'No items in this category yet. Add them in the Menu tab.'}</Text>
+          <Text style={styles.empty}>{query ? `No items match "${search}"` : 'No items in this category yet. Add them in More, then Menu.'}</Text>
         }
         renderItem={({ item }) => (
           <ItemTile
@@ -213,6 +226,7 @@ export default function BillingScreen({ tableNo, onPickTable, onLeaveTable, onTa
             qty={cart[item.id] ?? 0}
             onAdd={() => changeQty(item.id, 1)}
             onRemove={() => changeQty(item.id, -1)}
+            onLongPress={() => toggleStock(item)}
           />
         )}
       />
@@ -298,14 +312,21 @@ function ItemTile({
   qty,
   onAdd,
   onRemove,
+  onLongPress,
 }: {
   item: DbMenuItem;
   qty: number;
   onAdd: () => void;
   onRemove: () => void;
+  onLongPress: () => void;
 }) {
   return (
-    <View style={[styles.tile, qty > 0 && styles.tileSelected, !item.available && styles.tileOff]}>
+    <Pressable
+      onLongPress={onLongPress}
+      delayLongPress={450}
+      accessibilityHint="Long press to change stock"
+      style={[styles.tile, qty > 0 && styles.tileSelected, !item.available && styles.tileOff]}
+    >
       <View style={[styles.vegMark, { borderColor: item.veg ? colors.veg : colors.danger }]}>
         <View style={[styles.vegDot, { backgroundColor: item.veg ? colors.veg : colors.danger }]} />
       </View>
@@ -331,7 +352,7 @@ function ItemTile({
           </Pressable>
         </View>
       )}
-    </View>
+    </Pressable>
   );
 }
 
@@ -352,11 +373,12 @@ const TINT = '#E5EEE9'; // light curry-leaf green for selected things
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.mist, paddingTop: 8 },
-  header: { paddingHorizontal: 16, paddingBottom: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
+  header: { paddingHorizontal: 16, paddingBottom: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
   title: { fontSize: 22, fontFamily: fonts.bold, color: INK },
   subtitle: { fontFamily: fonts.regular, fontSize: 14, color: MUTED },
   banner: { marginHorizontal: 16, marginBottom: 8, padding: 10, borderRadius: 8, backgroundColor: '#E6F4EA' },
   bannerText: { color: '#14532D', fontFamily: fonts.semibold },
+  backLink: { fontFamily: fonts.semibold, fontSize: 14, color: colors.brand, marginBottom: 2 },
   modeRow: { flexDirection: 'row', gap: 8, marginHorizontal: 16, marginBottom: 8 },
   modeBtn: { flex: 1, height: 40, borderRadius: 10, borderWidth: 1, borderColor: LINE, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
   modeBtnActive: { backgroundColor: TINT, borderColor: ACCENT, borderWidth: 1.5 },

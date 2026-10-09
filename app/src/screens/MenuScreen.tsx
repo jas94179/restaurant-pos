@@ -41,7 +41,7 @@ function priceText(paise: number): string {
   return paise % 100 === 0 ? String(paise / 100) : (paise / 100).toFixed(2);
 }
 
-export default function MenuScreen() {
+export default function MenuScreen({ onBack }: { onBack?: () => void }) {
   const menu = useMenu();
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [itemDraft, setItemDraft] = useState<ItemDraft | null>(null);
@@ -142,6 +142,11 @@ export default function MenuScreen() {
   return (
     <View style={styles.screen}>
       <View style={styles.header}>
+        {onBack && (
+          <Pressable onPress={onBack} hitSlop={10} accessibilityRole="button">
+            <Text style={styles.backLink}>‹ More</Text>
+          </Pressable>
+        )}
         <Text style={styles.title}>Menu</Text>
         <Text style={styles.subtitle}>
           {visible.length} items · {menu.categories.length} categories
@@ -344,6 +349,7 @@ const TINT = '#E5EEE9'; // light curry-leaf green for selected things
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.mist, paddingTop: 8 },
+  backLink: { fontFamily: fonts.semibold, fontSize: 14, color: colors.brand, marginBottom: 2 },
   header: { paddingHorizontal: 16, paddingBottom: 8 },
   title: { fontSize: 22, fontFamily: fonts.bold, color: INK },
   subtitle: { fontFamily: fonts.regular, fontSize: 14, color: MUTED, marginTop: 2 },
