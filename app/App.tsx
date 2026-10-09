@@ -4,8 +4,9 @@ import { StatusBar } from 'expo-status-bar';
 import BillingScreen from './src/screens/BillingScreen';
 import ReportScreen from './src/screens/ReportScreen';
 import TablesScreen from './src/screens/TablesScreen';
+import MenuScreen from './src/screens/MenuScreen';
 
-type Tab = 'billing' | 'tables' | 'report';
+type Tab = 'billing' | 'tables' | 'report' | 'menu';
 
 // Simple tab switcher for the prototype. We will move to Expo Router
 // when the app has more screens (menu setup, settings).
@@ -37,11 +38,15 @@ export default function App() {
       <View style={[styles.body, tab !== 'report' && styles.hidden]}>
         <ReportScreen visible={tab === 'report'} />
       </View>
+      <View style={[styles.body, tab !== 'menu' && styles.hidden]}>
+        <MenuScreen />
+      </View>
 
       <View style={styles.tabBar}>
         <TabButton label="Billing" active={tab === 'billing'} onPress={() => setTab('billing')} />
         <TabButton label="Tables" active={tab === 'tables'} onPress={() => setTab('tables')} />
-        <TabButton label="Today's sales" active={tab === 'report'} onPress={() => setTab('report')} />
+        <TabButton label="Sales" active={tab === 'report'} onPress={() => setTab('report')} />
+        <TabButton label="Menu" active={tab === 'menu'} onPress={() => setTab('menu')} />
       </View>
       <StatusBar style="dark" />
     </View>

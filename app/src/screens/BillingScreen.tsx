@@ -8,11 +8,13 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { CATEGORIES, GST_PERCENT, MenuItem, SAMPLE_MENU } from '../data/sampleMenu';
+import { GST_PERCENT } from '../data/sampleMenu';
+import { useMenu } from '../data/menuStore';
 import {
   Cart,
   getNextToken,
   getTableCart,
+  DbMenuItem,
   PaymentMode,
   PAYMENT_MODES,
   saveBill as saveBillToDb,
@@ -28,7 +30,11 @@ type Props = {
 };
 
 export default function BillingScreen({ tableNo, onPickTable, onLeaveTable, onTableSettled }: Props) {
-  const [category, setCategory] = useState(CATEGORIES[0]);
+  const menu = useMenu();
+  const [categoryId, setCategoryId] = useState<string | null>(null);
+  // Fall back to the first category (also when the chosen one was deleted).
+  const category =
+    menu.categories.find((c) => c.id === categoryId)?.id ?? menu.categories[0]?.id ?? null;
   const [search, setSearch] = useState('');
   // Takeaway cart lives in memory; each table's cart is saved on the phone.
   const [takeawayCart, setTakeawayCart] = useState<Cart>({});
@@ -50,18 +56,20 @@ export default function BillingScreen({ tableNo, onPickTable, onLeaveTable, onTa
 
   // When something is typed, search across every category; otherwise show the chosen category.
   const query = search.trim().toLowerCase();
+  const visibleItems = menu.items.filter((i) => !i.archived);
   const items = query
-    ? SAMPLE_MENU.filter((i) => i.name.toLowerCase().includes(query))
-    : SAMPLE_MENU.filter((i) => i.category === category);
+    ? visibleItems.filter((i) => i.name.toLowerCase().includes(query))
+    : visibleItems.filter((i) => i.categoryId === category);
 
   const cartLines = useMemo(
     () =>
-      SAMPLE_MENU.filter((i) => cart[i.id] > 0).map((i) => ({
-        item: i,
-        qty: cart[i.id],
-        amount: i.price * cart[i.id],
-      })),
-    [cart],
+      (Object.entries(cart) as [string, number][])
+        .filter(([id, qty]) => qty > 0 && menu.byId[id])
+        .map(([id, qty]) => {
+          const item = menu.byId[id];
+          return { item, qty, amount: item.price * qty };
+        }),
+    [cart, menu],
   );
   const itemCount = cartLines.reduce((sum, l) => sum + l.qty, 0);
   const subtotal = cartLines.reduce((sum, l) => sum + l.amount, 0);
@@ -171,13 +179,13 @@ export default function BillingScreen({ tableNo, onPickTable, onLeaveTable, onTa
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.chips}
         >
-          {CATEGORIES.map((c) => (
+          {menu.categories.map((c) => (
             <Pressable
-              key={c}
-              onPress={() => setCategory(c)}
-              style={[styles.chip, c === category && styles.chipActive]}
+              key={c.id}
+              onPress={() => setCategoryId(c.id)}
+              style={[styles.chip, c.id === category && styles.chipActive]}
             >
-              <Text style={[styles.chipText, c === category && styles.chipTextActive]}>{c}</Text>
+              <Text style={[styles.chipText, c.id === category && styles.chipTextActive]}>{c.name}</Text>
             </Pressable>
           ))}
         </ScrollView>
@@ -191,7 +199,9 @@ export default function BillingScreen({ tableNo, onPickTable, onLeaveTable, onTa
         columnWrapperStyle={styles.row}
         contentContainerStyle={styles.grid}
         keyboardShouldPersistTaps="handled"
-        ListEmptyComponent={<Text style={styles.empty}>No items match "{search}"</Text>}
+        ListEmptyComponent={
+          <Text style={styles.empty}>{query ? `No items match "${search}"` : 'No items in this category yet. Add them in the Menu tab.'}</Text>
+        }
         renderItem={({ item }) => (
           <ItemTile
             item={item}
@@ -284,20 +294,24 @@ function ItemTile({
   onAdd,
   onRemove,
 }: {
-  item: MenuItem;
+  item: DbMenuItem;
   qty: number;
   onAdd: () => void;
   onRemove: () => void;
 }) {
   return (
-    <View style={[styles.tile, qty > 0 && styles.tileSelected]}>
+    <View style={[styles.tile, qty > 0 && styles.tileSelected, !item.available && styles.tileOff]}>
       <View style={[styles.vegMark, { borderColor: item.veg ? '#1B8A3A' : '#B3261E' }]}>
         <View style={[styles.vegDot, { backgroundColor: item.veg ? '#1B8A3A' : '#B3261E' }]} />
       </View>
       <Text style={styles.tileName} numberOfLines={2}>{item.name}</Text>
       <Text style={styles.tilePrice}>{formatRupees(item.price)}</Text>
 
-      {qty === 0 ? (
+      {!item.available && qty === 0 ? (
+        <View style={styles.outBtn}>
+          <Text style={styles.outText}>Out of stock</Text>
+        </View>
+      ) : qty === 0 ? (
         <Pressable style={styles.addBtn} onPress={onAdd}>
           <Text style={styles.addText}>ADD</Text>
         </Pressable>
@@ -360,6 +374,9 @@ const styles = StyleSheet.create({
   vegDot: { width: 6, height: 6, borderRadius: 3 },
   tileName: { fontSize: 15, fontWeight: '600', color: INK },
   tilePrice: { marginTop: 4, fontSize: 14, color: MUTED },
+  tileOff: { opacity: 0.55 },
+  outBtn: { marginTop: 'auto', height: 36, borderRadius: 8, borderWidth: 1, borderColor: LINE, alignItems: 'center', justifyContent: 'center' },
+  outText: { color: MUTED, fontWeight: '600', fontSize: 13 },
   addBtn: { marginTop: 'auto', height: 36, borderRadius: 8, borderWidth: 1.5, borderColor: ACCENT, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFF7F2' },
   addText: { color: ACCENT, fontWeight: '800', fontSize: 14, letterSpacing: 0.5 },
   tileStepper: { marginTop: 'auto', height: 36, borderRadius: 8, backgroundColor: ACCENT, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },

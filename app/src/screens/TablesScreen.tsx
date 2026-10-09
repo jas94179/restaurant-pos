@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
-import { GST_PERCENT, SAMPLE_MENU } from '../data/sampleMenu';
+import { GST_PERCENT } from '../data/sampleMenu';
+import { getMenu } from '../data/menuStore';
 import { getOpenTables, OpenTable } from '../db/database';
 import { formatRupees } from '../utils/money';
 
@@ -11,7 +12,7 @@ function tableTotals(t: OpenTable) {
   let items = 0;
   let subtotal = 0;
   for (const [id, qty] of Object.entries(t.cart)) {
-    const item = SAMPLE_MENU.find((i) => i.id === id);
+    const item = getMenu().byId[id];
     if (!item) continue;
     items += qty;
     subtotal += item.price * qty;

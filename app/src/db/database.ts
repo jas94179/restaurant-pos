@@ -215,3 +215,147 @@ export function saveTableCart(tableNo: number, cart: Cart): void {
     [tableNo, JSON.stringify(cart), now, now],
   );
 }
+
+// ---------- Menu ----------
+// Categories and items live in the database so each restaurant can set its own menu.
+// Deleted items are only hidden (archived), so old bills and open tables still make sense.
+
+export type Category = { id: string; name: string; sort: number };
+export type DbMenuItem = {
+  id: string;
+  name: string;
+  categoryId: string;
+  price: number; // paise
+  veg: boolean;
+  available: boolean;
+  archived: boolean;
+};
+
+db.execSync(`
+  CREATE TABLE IF NOT EXISTS categories (
+    id TEXT PRIMARY KEY NOT NULL,
+    name TEXT NOT NULL,
+    sort INTEGER NOT NULL DEFAULT 0
+  );
+  CREATE TABLE IF NOT EXISTS menu_items (
+    id TEXT PRIMARY KEY NOT NULL,
+    name TEXT NOT NULL,
+    category_id TEXT NOT NULL REFERENCES categories(id),
+    price INTEGER NOT NULL,
+    veg INTEGER NOT NULL DEFAULT 1,
+    available INTEGER NOT NULL DEFAULT 1,
+    archived INTEGER NOT NULL DEFAULT 0,
+    sort INTEGER NOT NULL DEFAULT 0
+  );
+`);
+
+type ItemRow = {
+  id: string;
+  name: string;
+  category_id: string;
+  price: number;
+  veg: number;
+  available: number;
+  archived: number;
+};
+
+function toItem(r: ItemRow): DbMenuItem {
+  return {
+    id: r.id,
+    name: r.name,
+    categoryId: r.category_id,
+    price: r.price,
+    veg: r.veg === 1,
+    available: r.available === 1,
+    archived: r.archived === 1,
+  };
+}
+
+// First run only: copy the sample menu in, so the app is usable straight away.
+// Sample item ids are kept, so carts already saved on the phone still match.
+export function seedMenuIfEmpty(
+  sample: { id: string; name: string; category: string; price: number; veg: boolean }[],
+  categoryNames: string[],
+): void {
+  const row = db.getFirstSync<{ n: number }>('SELECT COUNT(*) AS n FROM categories');
+  if ((row?.n ?? 0) > 0) return;
+  db.withTransactionSync(() => {
+    const ids: Record<string, string> = {};
+    categoryNames.forEach((name, i) => {
+      const id = newId();
+      ids[name] = id;
+      db.runSync('INSERT INTO categories (id, name, sort) VALUES (?, ?, ?)', [id, name, i]);
+    });
+    sample.forEach((it, i) => {
+      db.runSync(
+        'INSERT INTO menu_items (id, name, category_id, price, veg, sort) VALUES (?, ?, ?, ?, ?, ?)',
+        [it.id, it.name, ids[it.category], it.price, it.veg ? 1 : 0, i],
+      );
+    });
+  });
+}
+
+export function getCategories(): Category[] {
+  return db.getAllSync<Category>('SELECT id, name, sort FROM categories ORDER BY sort, name');
+}
+
+// All items, including archived ones (needed to show old orders correctly).
+export function getAllMenuItems(): DbMenuItem[] {
+  return db
+    .getAllSync<ItemRow>(
+      'SELECT id, name, category_id, price, veg, available, archived FROM menu_items ORDER BY sort, name',
+    )
+    .map(toItem);
+}
+
+export function addCategory(name: string): string {
+  const id = newId();
+  const row = db.getFirstSync<{ m: number | null }>('SELECT MAX(sort) AS m FROM categories');
+  db.runSync('INSERT INTO categories (id, name, sort) VALUES (?, ?, ?)', [id, name.trim(), (row?.m ?? -1) + 1]);
+  return id;
+}
+
+export function renameCategory(id: string, name: string): void {
+  db.runSync('UPDATE categories SET name = ? WHERE id = ?', [name.trim(), id]);
+}
+
+// Only allowed when no visible items remain in the category.
+export function deleteCategory(id: string): boolean {
+  const row = db.getFirstSync<{ n: number }>(
+    'SELECT COUNT(*) AS n FROM menu_items WHERE category_id = ? AND archived = 0',
+    [id],
+  );
+  if ((row?.n ?? 0) > 0) return false;
+  db.runSync('DELETE FROM categories WHERE id = ?', [id]);
+  return true;
+}
+
+export type ItemInput = { name: string; categoryId: string; price: number; veg: boolean };
+
+export function addMenuItem(input: ItemInput): string {
+  const id = newId();
+  const row = db.getFirstSync<{ m: number | null }>('SELECT MAX(sort) AS m FROM menu_items');
+  db.runSync(
+    'INSERT INTO menu_items (id, name, category_id, price, veg, sort) VALUES (?, ?, ?, ?, ?, ?)',
+    [id, input.name.trim(), input.categoryId, input.price, input.veg ? 1 : 0, (row?.m ?? -1) + 1],
+  );
+  return id;
+}
+
+export function updateMenuItem(id: string, input: ItemInput): void {
+  db.runSync('UPDATE menu_items SET name = ?, category_id = ?, price = ?, veg = ? WHERE id = ?', [
+    input.name.trim(),
+    input.categoryId,
+    input.price,
+    input.veg ? 1 : 0,
+    id,
+  ]);
+}
+
+export function setItemAvailable(id: string, available: boolean): void {
+  db.runSync('UPDATE menu_items SET available = ? WHERE id = ?', [available ? 1 : 0, id]);
+}
+
+export function archiveMenuItem(id: string): void {
+  db.runSync('UPDATE menu_items SET archived = 1 WHERE id = ?', [id]);
+}
