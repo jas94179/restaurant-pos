@@ -20,6 +20,7 @@ export default function App() {
         <BillingScreen
           tableNo={activeTable}
           onPickTable={() => setTab('tables')}
+          onSwitchTable={(n) => setActiveTable(n)}
           onLeaveTable={() => setActiveTable(null)}
           onTableSettled={() => setActiveTable(null)}
         />
