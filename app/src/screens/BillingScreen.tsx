@@ -5,6 +5,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from 'react-native';
 import { CATEGORIES, GST_PERCENT, MenuItem, SAMPLE_MENU } from '../data/sampleMenu';
@@ -22,12 +23,17 @@ type Cart = Record<string, number>; // item id -> quantity
 
 export default function BillingScreen() {
   const [category, setCategory] = useState(CATEGORIES[0]);
+  const [search, setSearch] = useState('');
   const [cart, setCart] = useState<Cart>({});
   const [cartOpen, setCartOpen] = useState(false);
   const [token, setToken] = useState(1);
   const [lastBill, setLastBill] = useState<{ token: number; total: number } | null>(null);
 
-  const items = SAMPLE_MENU.filter((i) => i.category === category);
+  // When something is typed, search across every category; otherwise show the chosen category.
+  const query = search.trim().toLowerCase();
+  const items = query
+    ? SAMPLE_MENU.filter((i) => i.name.toLowerCase().includes(query))
+    : SAMPLE_MENU.filter((i) => i.category === category);
 
   const cartLines = useMemo(
     () =>
@@ -74,6 +80,25 @@ export default function BillingScreen() {
         </View>
       )}
 
+      <View style={styles.searchBox}>
+        <Text style={styles.searchIcon}>⌕</Text>
+        <TextInput
+          value={search}
+          onChangeText={setSearch}
+          placeholder="Search items"
+          placeholderTextColor={MUTED}
+          style={styles.searchInput}
+          autoCorrect={false}
+          returnKeyType="search"
+        />
+        {search.length > 0 && (
+          <Pressable onPress={() => setSearch('')} hitSlop={12}>
+            <Text style={styles.clear}>✕</Text>
+          </Pressable>
+        )}
+      </View>
+
+      {!query && (
       <View>
         <ScrollView
           horizontal
@@ -91,6 +116,7 @@ export default function BillingScreen() {
           ))}
         </ScrollView>
       </View>
+      )}
 
       <FlatList
         data={items}
@@ -98,8 +124,15 @@ export default function BillingScreen() {
         numColumns={2}
         columnWrapperStyle={styles.row}
         contentContainerStyle={styles.grid}
+        keyboardShouldPersistTaps="handled"
+        ListEmptyComponent={<Text style={styles.empty}>No items match "{search}"</Text>}
         renderItem={({ item }) => (
-          <ItemTile item={item} qty={cart[item.id] ?? 0} onAdd={() => changeQty(item.id, 1)} />
+          <ItemTile
+            item={item}
+            qty={cart[item.id] ?? 0}
+            onAdd={() => changeQty(item.id, 1)}
+            onRemove={() => changeQty(item.id, -1)}
+          />
         )}
       />
 
@@ -161,22 +194,41 @@ export default function BillingScreen() {
   );
 }
 
-function ItemTile({ item, qty, onAdd }: { item: MenuItem; qty: number; onAdd: () => void }) {
+function ItemTile({
+  item,
+  qty,
+  onAdd,
+  onRemove,
+}: {
+  item: MenuItem;
+  qty: number;
+  onAdd: () => void;
+  onRemove: () => void;
+}) {
   return (
-    <Pressable style={[styles.tile, qty > 0 && styles.tileSelected]} onPress={onAdd}>
-      <View style={styles.tileTop}>
-        <View style={[styles.vegMark, { borderColor: item.veg ? '#1B8A3A' : '#B3261E' }]}>
-          <View style={[styles.vegDot, { backgroundColor: item.veg ? '#1B8A3A' : '#B3261E' }]} />
-        </View>
-        {qty > 0 && (
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{qty}</Text>
-          </View>
-        )}
+    <View style={[styles.tile, qty > 0 && styles.tileSelected]}>
+      <View style={[styles.vegMark, { borderColor: item.veg ? '#1B8A3A' : '#B3261E' }]}>
+        <View style={[styles.vegDot, { backgroundColor: item.veg ? '#1B8A3A' : '#B3261E' }]} />
       </View>
       <Text style={styles.tileName} numberOfLines={2}>{item.name}</Text>
       <Text style={styles.tilePrice}>{formatRupees(item.price)}</Text>
-    </Pressable>
+
+      {qty === 0 ? (
+        <Pressable style={styles.addBtn} onPress={onAdd}>
+          <Text style={styles.addText}>ADD</Text>
+        </Pressable>
+      ) : (
+        <View style={styles.tileStepper}>
+          <Pressable style={styles.tileStepBtn} onPress={onRemove} hitSlop={6}>
+            <Text style={styles.tileStepText}>−</Text>
+          </Pressable>
+          <Text style={styles.tileQty}>{qty}</Text>
+          <Pressable style={styles.tileStepBtn} onPress={onAdd} hitSlop={6}>
+            <Text style={styles.tileStepText}>+</Text>
+          </Pressable>
+        </View>
+      )}
+    </View>
   );
 }
 
@@ -201,6 +253,11 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: 14, color: MUTED },
   banner: { marginHorizontal: 16, marginBottom: 8, padding: 10, borderRadius: 8, backgroundColor: '#E6F4EA' },
   bannerText: { color: '#14532D', fontWeight: '600' },
+  searchBox: { marginHorizontal: 16, marginBottom: 4, paddingHorizontal: 12, height: 44, borderRadius: 10, borderWidth: 1, borderColor: LINE, backgroundColor: '#fff', flexDirection: 'row', alignItems: 'center', gap: 8 },
+  searchIcon: { fontSize: 18, color: MUTED },
+  searchInput: { flex: 1, fontSize: 16, color: INK, paddingVertical: 0 },
+  clear: { fontSize: 16, color: MUTED },
+  empty: { textAlign: 'center', color: MUTED, marginTop: 32, fontSize: 15 },
   chips: { paddingHorizontal: 12, paddingVertical: 8, gap: 8 },
   chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: LINE, backgroundColor: '#fff' },
   chipActive: { backgroundColor: INK, borderColor: INK },
@@ -208,15 +265,18 @@ const styles = StyleSheet.create({
   chipTextActive: { color: '#fff', fontWeight: '600' },
   grid: { padding: 12, paddingBottom: 100 },
   row: { gap: 12 },
-  tile: { flex: 1, minHeight: 104, marginBottom: 12, padding: 12, borderRadius: 12, backgroundColor: '#fff', borderWidth: 1, borderColor: LINE },
+  tile: { flex: 1, minHeight: 132, marginBottom: 12, padding: 12, borderRadius: 12, backgroundColor: '#fff', borderWidth: 1, borderColor: LINE },
   tileSelected: { borderColor: ACCENT, borderWidth: 2 },
-  tileTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
-  vegMark: { width: 14, height: 14, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
+  vegMark: { width: 14, height: 14, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
   vegDot: { width: 6, height: 6, borderRadius: 3 },
-  badge: { minWidth: 24, height: 24, borderRadius: 12, backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 },
-  badgeText: { color: '#fff', fontWeight: '700' },
   tileName: { fontSize: 15, fontWeight: '600', color: INK },
   tilePrice: { marginTop: 4, fontSize: 14, color: MUTED },
+  addBtn: { marginTop: 'auto', height: 36, borderRadius: 8, borderWidth: 1.5, borderColor: ACCENT, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFF7F2' },
+  addText: { color: ACCENT, fontWeight: '800', fontSize: 14, letterSpacing: 0.5 },
+  tileStepper: { marginTop: 'auto', height: 36, borderRadius: 8, backgroundColor: ACCENT, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  tileStepBtn: { width: 40, height: 36, alignItems: 'center', justifyContent: 'center' },
+  tileStepText: { color: '#fff', fontSize: 20, fontWeight: '700' },
+  tileQty: { color: '#fff', fontSize: 16, fontWeight: '800' },
   cartBar: { position: 'absolute', left: 12, right: 12, bottom: 24, padding: 16, borderRadius: 12, backgroundColor: ACCENT, flexDirection: 'row', justifyContent: 'space-between' },
   cartBarText: { color: '#fff', fontSize: 16, fontWeight: '700' },
   sheet: { position: 'absolute', left: 0, right: 0, bottom: 0, maxHeight: '80%', backgroundColor: '#fff', borderTopLeftRadius: 16, borderTopRightRadius: 16, padding: 16, paddingBottom: 32, borderTopWidth: 1, borderColor: LINE },
