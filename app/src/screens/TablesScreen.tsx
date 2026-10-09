@@ -3,7 +3,9 @@ import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { GST_PERCENT, SAMPLE_MENU } from '../data/sampleMenu';
 import { getOpenTables, OpenTable } from '../db/database';
 import { formatRupees } from '../utils/money';
-import { TABLE_COUNT } from '../config';
+
+// Number of tables for the pilot. This will become a setting per restaurant.
+export const TABLE_COUNT = 12;
 
 function tableTotals(t: OpenTable) {
   let items = 0;

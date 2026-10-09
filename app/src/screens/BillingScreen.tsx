@@ -12,7 +12,6 @@ import { CATEGORIES, GST_PERCENT, MenuItem, SAMPLE_MENU } from '../data/sampleMe
 import {
   Cart,
   getNextToken,
-  getOpenTables,
   getTableCart,
   PaymentMode,
   PAYMENT_MODES,
@@ -20,17 +19,15 @@ import {
   saveTableCart,
 } from '../db/database';
 import { formatRupees } from '../utils/money';
-import { TABLE_COUNT } from '../config';
 
 type Props = {
   tableNo: number | null; // null = takeaway / counter
   onPickTable: () => void;
-  onSwitchTable: (tableNo: number) => void;
   onLeaveTable: () => void;
   onTableSettled: () => void;
 };
 
-export default function BillingScreen({ tableNo, onPickTable, onSwitchTable, onLeaveTable, onTableSettled }: Props) {
+export default function BillingScreen({ tableNo, onPickTable, onLeaveTable, onTableSettled }: Props) {
   const [category, setCategory] = useState(CATEGORIES[0]);
   const [search, setSearch] = useState('');
   // Takeaway cart lives in memory; each table's cart is saved on the phone.
@@ -38,9 +35,6 @@ export default function BillingScreen({ tableNo, onPickTable, onSwitchTable, onL
   const [tableCart, setTableCart] = useState<Cart>({});
   const isTable = tableNo != null;
   const cart = isTable ? tableCart : takeawayCart;
-
-  // Which tables have running orders, for the quick table switcher.
-  const busyTables = useMemo(() => (isTable ? getOpenTables() : {}), [isTable, tableNo, tableCart]);
 
   useEffect(() => {
     if (tableNo != null) setTableCart(getTableCart(tableNo));
@@ -142,29 +136,6 @@ export default function BillingScreen({ tableNo, onPickTable, onSwitchTable, onL
           </Text>
         </Pressable>
       </View>
-
-      {isTable && (
-        <View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tableStrip}>
-            {Array.from({ length: TABLE_COUNT }, (_, i) => i + 1).map((n) => {
-              const active = n === tableNo;
-              const busy = !!busyTables[n];
-              return (
-                <Pressable
-                  key={n}
-                  onPress={() => !active && onSwitchTable(n)}
-                  style={[styles.tableChip, busy && styles.tableChipBusy, active && styles.tableChipActive]}
-                >
-                  <Text style={[styles.tableChipText, busy && styles.tableChipTextBusy, active && styles.tableChipTextActive]}>
-                    T{n}
-                  </Text>
-                  {busy && !active && <View style={styles.busyDot} />}
-                </Pressable>
-              );
-            })}
-          </ScrollView>
-        </View>
-      )}
 
       {lastBill && (
         <View style={styles.banner}>
@@ -371,14 +342,6 @@ const styles = StyleSheet.create({
   modeBtnActive: { backgroundColor: '#FFF7F2', borderColor: ACCENT, borderWidth: 1.5 },
   modeText: { fontSize: 14, color: MUTED, fontWeight: '600' },
   modeTextActive: { color: ACCENT },
-  tableStrip: { paddingHorizontal: 16, paddingBottom: 8, gap: 8 },
-  tableChip: { minWidth: 48, height: 40, paddingHorizontal: 10, borderRadius: 10, borderWidth: 1, borderColor: LINE, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
-  tableChipBusy: { borderColor: ACCENT, backgroundColor: '#FFF7F2' },
-  tableChipActive: { backgroundColor: ACCENT, borderColor: ACCENT },
-  tableChipText: { fontSize: 15, fontWeight: '700', color: MUTED },
-  tableChipTextBusy: { color: ACCENT },
-  tableChipTextActive: { color: '#fff' },
-  busyDot: { position: 'absolute', top: 5, right: 5, width: 6, height: 6, borderRadius: 3, backgroundColor: ACCENT },
   searchBox: { marginHorizontal: 16, marginBottom: 4, paddingHorizontal: 12, height: 44, borderRadius: 10, borderWidth: 1, borderColor: LINE, backgroundColor: '#fff', flexDirection: 'row', alignItems: 'center', gap: 8 },
   searchIcon: { fontSize: 18, color: MUTED },
   searchInput: { flex: 1, fontSize: 16, color: INK, paddingVertical: 0 },
