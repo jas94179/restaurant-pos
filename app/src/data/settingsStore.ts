@@ -18,6 +18,7 @@ export type Settings = {
   gstRate: number; // 0, 5 or 18
   pricesIncludeGst: boolean;
   upiId: string; // e.g. sharmasweets@okaxis, for the UPI QR on bills
+  lastBackupAt: string; // ISO time of the last backup file
 };
 
 function load(): Settings {
@@ -35,6 +36,7 @@ function load(): Settings {
     gstRate: s.gstRate != null ? Number(s.gstRate) : 5,
     pricesIncludeGst: s.pricesIncludeGst === '1',
     upiId: s.upiId ?? '',
+    lastBackupAt: s.lastBackupAt ?? '',
   };
 }
 

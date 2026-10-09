@@ -632,3 +632,61 @@ export function cancelBill(id: string, approvedBy: string, reason: string): void
     [new Date().toISOString(), approvedBy, reason, id],
   );
 }
+
+// ---------- Backup and restore ----------
+// The whole database as one JSON file. Restore replaces everything on this phone.
+
+const BACKUP_TABLES = ['settings', 'staff', 'categories', 'menu_items', 'bills', 'bill_items', 'open_tables'] as const;
+export const BACKUP_FORMAT = 'galla-backup';
+export const BACKUP_VERSION = 1;
+
+export type BackupFile = {
+  format: string;
+  version: number;
+  exportedAt: string;
+  tables: Record<string, Record<string, unknown>[]>;
+};
+
+export function exportBackup(): BackupFile {
+  const tables: BackupFile['tables'] = {};
+  for (const t of BACKUP_TABLES) {
+    tables[t] = db.getAllSync<Record<string, unknown>>(`SELECT * FROM ${t}`);
+  }
+  return { format: BACKUP_FORMAT, version: BACKUP_VERSION, exportedAt: new Date().toISOString(), tables };
+}
+
+export function describeBackup(b: BackupFile) {
+  const settings = Object.fromEntries((b.tables.settings ?? []).map((r) => [r.key, r.value]));
+  return {
+    restaurantName: String(settings.restaurantName ?? 'Unknown restaurant'),
+    bills: (b.tables.bills ?? []).length,
+    items: (b.tables.menu_items ?? []).length,
+    staff: (b.tables.staff ?? []).length,
+    exportedAt: b.exportedAt,
+  };
+}
+
+export function isBackupFile(value: unknown): value is BackupFile {
+  const v = value as BackupFile;
+  return !!v && v.format === BACKUP_FORMAT && typeof v.version === 'number' && !!v.tables && typeof v.tables === 'object';
+}
+
+export function restoreBackup(b: BackupFile): void {
+  if (b.version > BACKUP_VERSION) throw new Error('This backup is from a newer version of the app. Update the app first.');
+  db.withTransactionSync(() => {
+    for (const t of BACKUP_TABLES) {
+      // Only copy columns this version of the app knows; missing ones get their defaults.
+      const columns = db.getAllSync<{ name: string }>(`PRAGMA table_info(${t})`).map((c) => c.name);
+      db.runSync(`DELETE FROM ${t}`);
+      for (const row of b.tables[t] ?? []) {
+        const keys = Object.keys(row).filter((k) => columns.includes(k));
+        if (keys.length === 0) continue;
+        const placeholders = keys.map(() => '?').join(', ');
+        db.runSync(
+          `INSERT INTO ${t} (${keys.join(', ')}) VALUES (${placeholders})`,
+          keys.map((k) => row[k] as string | number | null),
+        );
+      }
+    }
+  });
+}

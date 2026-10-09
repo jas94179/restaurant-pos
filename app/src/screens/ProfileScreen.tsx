@@ -9,6 +9,7 @@ type Props = {
   onOpenMenu: () => void;
   onOpenStaff: () => void;
   onOpenStock: () => void;
+  onOpenBackup: () => void;
   onOpenRestaurant: () => void;
   onLock: () => void;
 };
@@ -25,7 +26,7 @@ const PLAN_LABEL: Record<string, string> = {
 
 // The restaurant's profile, plus everything used less often than billing,
 // so the bottom bar never grows past four tabs.
-export default function ProfileScreen({ onOpenMenu, onOpenStaff, onOpenStock, onOpenRestaurant, onLock }: Props) {
+export default function ProfileScreen({ onOpenMenu, onOpenStaff, onOpenStock, onOpenBackup, onOpenRestaurant, onLock }: Props) {
   const settings = useSettings();
   const menu = useMenu();
   const user = useCurrentUser();
@@ -72,14 +73,22 @@ export default function ProfileScreen({ onOpenMenu, onOpenStaff, onOpenStock, on
             />
             <Row
               title="Restaurant details"
-              detail="Name, GSTIN, how customers order, tables"
+              detail="Name, GSTIN, GST, UPI ID, tables"
               onPress={onOpenRestaurant}
+            />
+            <Row
+              title="Backup and restore"
+              detail={
+                settings.lastBackupAt
+                  ? `Last backup ${new Date(settings.lastBackupAt).toLocaleDateString('en-IN')}`
+                  : 'No backup yet. Back up now.'
+              }
+              onPress={onOpenBackup}
             />
           </Group>
 
           <Group title="Coming soon">
             <Row title="Printers" detail="Bill and kitchen slips" soon />
-            <Row title="Backup" detail="Keep a copy of your bills online" soon />
             <Row title="Import menu" detail="Load your menu from a photo" soon />
           </Group>
 

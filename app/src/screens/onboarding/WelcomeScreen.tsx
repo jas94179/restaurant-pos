@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
-import { AccessibilityInfo, Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native';
+import { AccessibilityInfo, Alert, Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native';
+import { pickAndRestore } from '../../data/backup';
 import { APP_NAME, colors, fonts } from '../../theme';
 
 // First screen on a new phone. One moment of motion: a coin drops into the cash-box slot.
@@ -59,6 +60,17 @@ export default function WelcomeScreen({ onStart }: { onStart: () => void }) {
           <Text style={styles.ctaText}>Set up my restaurant</Text>
         </Pressable>
         <Text style={styles.small}>Takes about 2 minutes.</Text>
+        <Pressable
+          onPress={async () => {
+            const error = await pickAndRestore();
+            if (error) Alert.alert('Restore', error);
+          }}
+          hitSlop={8}
+          accessibilityRole="button"
+          style={styles.restore}
+        >
+          <Text style={styles.restoreText}>Moving from another phone? Restore from a backup</Text>
+        </Pressable>
       </View>
     </View>
   );
@@ -89,5 +101,7 @@ const styles = StyleSheet.create({
   pointText: { fontFamily: fonts.regular, fontSize: 16, color: colors.paper },
   cta: { height: 58, borderRadius: 16, backgroundColor: colors.turmeric, alignItems: 'center', justifyContent: 'center' },
   ctaText: { fontFamily: fonts.bold, fontSize: 18, color: colors.brandDeep },
+  restore: { marginTop: 14, alignItems: 'center' },
+  restoreText: { fontFamily: fonts.semibold, fontSize: 14, color: colors.turmeric, textDecorationLine: 'underline' },
   small: { fontFamily: fonts.regular, fontSize: 13, color: '#9DB8AA', textAlign: 'center', marginTop: 12 },
 });
