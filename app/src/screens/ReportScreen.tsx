@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { DaySummary, getDaySummary, PAYMENT_MODES } from '../db/database';
 import { formatRupees } from '../utils/money';
+import { colors, fonts } from '../theme';
 
 function formatTime(iso: string): string {
   const d = new Date(iso);
@@ -94,32 +95,33 @@ export default function ReportScreen({ visible }: { visible: boolean }) {
   );
 }
 
-const INK = '#1C1B1F';
-const MUTED = '#6B6870';
-const ACCENT = '#C2410C';
-const LINE = '#E7E3DE';
+const INK = colors.ink;
+const MUTED = colors.muted;
+const ACCENT = colors.brand;
+const LINE = colors.line;
+const TINT = '#E5EEE9'; // light curry-leaf green for selected things
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#FAF8F5', paddingTop: 52 },
+  screen: { flex: 1, backgroundColor: colors.mist, paddingTop: 8 },
   header: { paddingHorizontal: 16, paddingBottom: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  title: { fontSize: 22, fontWeight: '700', color: INK },
-  subtitle: { fontSize: 14, color: MUTED },
-  link: { color: ACCENT, fontWeight: '600', fontSize: 15 },
+  title: { fontSize: 22, fontFamily: fonts.bold, color: INK },
+  subtitle: { fontFamily: fonts.regular, fontSize: 14, color: MUTED },
+  link: { color: ACCENT, fontFamily: fonts.semibold, fontSize: 15 },
   content: { padding: 16, paddingBottom: 32 },
-  hero: { padding: 16, borderRadius: 12, backgroundColor: INK },
-  heroLabel: { color: '#D6D3D1', fontSize: 14 },
-  heroValue: { color: '#fff', fontSize: 32, fontWeight: '800', marginVertical: 4 },
-  heroSub: { color: '#D6D3D1', fontSize: 13 },
+  hero: { padding: 18, borderRadius: 16, backgroundColor: colors.brand },
+  heroLabel: { color: '#CFE0D6', fontFamily: fonts.regular, fontSize: 14 },
+  heroValue: { color: colors.turmeric, fontSize: 32, fontFamily: fonts.bold, marginVertical: 4 },
+  heroSub: { color: '#CFE0D6', fontFamily: fonts.regular, fontSize: 13 },
   modes: { flexDirection: 'row', gap: 8, marginTop: 12 },
   modeCard: { flex: 1, padding: 12, borderRadius: 12, backgroundColor: '#fff', borderWidth: 1, borderColor: LINE },
-  modeLabel: { color: MUTED, fontSize: 13 },
-  modeValue: { color: INK, fontSize: 17, fontWeight: '700', marginTop: 2 },
-  modeSub: { color: MUTED, fontSize: 12, marginTop: 2 },
-  sectionTitle: { fontSize: 16, fontWeight: '700', color: INK, marginTop: 20, marginBottom: 4 },
+  modeLabel: { color: MUTED, fontFamily: fonts.regular, fontSize: 13 },
+  modeValue: { color: INK, fontSize: 17, fontFamily: fonts.bold, marginTop: 2 },
+  modeSub: { color: MUTED, fontFamily: fonts.regular, fontSize: 12, marginTop: 2 },
+  sectionTitle: { fontSize: 16, fontFamily: fonts.bold, color: INK, marginTop: 20, marginBottom: 4 },
   empty: { color: MUTED, textAlign: 'center', marginTop: 24 },
   billRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: LINE, gap: 12 },
-  token: { width: 44, fontSize: 15, fontWeight: '700', color: INK },
-  billMain: { fontSize: 15, color: INK },
-  billSub: { fontSize: 12, color: MUTED, marginTop: 2 },
-  billTotal: { fontSize: 15, fontWeight: '600', color: INK },
+  token: { width: 44, fontSize: 15, fontFamily: fonts.bold, color: INK },
+  billMain: { fontFamily: fonts.regular, fontSize: 15, color: INK },
+  billSub: { fontFamily: fonts.regular, fontSize: 12, color: MUTED, marginTop: 2 },
+  billTotal: { fontSize: 15, fontFamily: fonts.semibold, color: INK },
 });

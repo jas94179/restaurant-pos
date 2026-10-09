@@ -22,6 +22,7 @@ import {
   saveTableCart,
 } from '../db/database';
 import { formatRupees } from '../utils/money';
+import { colors, fonts } from '../theme';
 
 type Props = {
   tableNo: number | null; // null = takeaway / counter
@@ -305,8 +306,8 @@ function ItemTile({
 }) {
   return (
     <View style={[styles.tile, qty > 0 && styles.tileSelected, !item.available && styles.tileOff]}>
-      <View style={[styles.vegMark, { borderColor: item.veg ? '#1B8A3A' : '#B3261E' }]}>
-        <View style={[styles.vegDot, { backgroundColor: item.veg ? '#1B8A3A' : '#B3261E' }]} />
+      <View style={[styles.vegMark, { borderColor: item.veg ? colors.veg : colors.danger }]}>
+        <View style={[styles.vegDot, { backgroundColor: item.veg ? colors.veg : colors.danger }]} />
       </View>
       <Text style={styles.tileName} numberOfLines={2}>{item.name}</Text>
       <Text style={styles.tilePrice}>{formatRupees(item.price)}</Text>
@@ -343,78 +344,79 @@ function TotalRow({ label, value, bold }: { label: string; value: string; bold?:
   );
 }
 
-const INK = '#1C1B1F';
-const MUTED = '#6B6870';
-const ACCENT = '#C2410C';
-const LINE = '#E7E3DE';
+const INK = colors.ink;
+const MUTED = colors.muted;
+const ACCENT = colors.brand;
+const LINE = colors.line;
+const TINT = '#E5EEE9'; // light curry-leaf green for selected things
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#FAF8F5', paddingTop: 52 },
+  screen: { flex: 1, backgroundColor: colors.mist, paddingTop: 8 },
   header: { paddingHorizontal: 16, paddingBottom: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
-  title: { fontSize: 22, fontWeight: '700', color: INK },
-  subtitle: { fontSize: 14, color: MUTED },
+  title: { fontSize: 22, fontFamily: fonts.bold, color: INK },
+  subtitle: { fontFamily: fonts.regular, fontSize: 14, color: MUTED },
   banner: { marginHorizontal: 16, marginBottom: 8, padding: 10, borderRadius: 8, backgroundColor: '#E6F4EA' },
-  bannerText: { color: '#14532D', fontWeight: '600' },
+  bannerText: { color: '#14532D', fontFamily: fonts.semibold },
   modeRow: { flexDirection: 'row', gap: 8, marginHorizontal: 16, marginBottom: 8 },
   modeBtn: { flex: 1, height: 40, borderRadius: 10, borderWidth: 1, borderColor: LINE, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
-  modeBtnActive: { backgroundColor: '#FFF7F2', borderColor: ACCENT, borderWidth: 1.5 },
-  modeText: { fontSize: 14, color: MUTED, fontWeight: '600' },
+  modeBtnActive: { backgroundColor: TINT, borderColor: ACCENT, borderWidth: 1.5 },
+  modeText: { fontSize: 14, color: MUTED, fontFamily: fonts.semibold },
   modeTextActive: { color: ACCENT },
   searchBox: { marginHorizontal: 16, marginBottom: 4, paddingHorizontal: 12, height: 44, borderRadius: 10, borderWidth: 1, borderColor: LINE, backgroundColor: '#fff', flexDirection: 'row', alignItems: 'center', gap: 8 },
-  searchIcon: { fontSize: 18, color: MUTED },
-  searchInput: { flex: 1, fontSize: 16, color: INK, paddingVertical: 0 },
-  clear: { fontSize: 16, color: MUTED },
-  empty: { textAlign: 'center', color: MUTED, marginTop: 32, fontSize: 15 },
+  searchIcon: { fontFamily: fonts.regular, fontSize: 18, color: MUTED },
+  searchInput: { flex: 1, fontFamily: fonts.regular, fontSize: 16, color: INK, paddingVertical: 0 },
+  clear: { fontFamily: fonts.regular, fontSize: 16, color: MUTED },
+  empty: { textAlign: 'center', color: MUTED, marginTop: 32, fontFamily: fonts.regular, fontSize: 15 },
   chips: { paddingHorizontal: 12, paddingVertical: 8, gap: 8 },
   chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: LINE, backgroundColor: '#fff' },
   chipActive: { backgroundColor: INK, borderColor: INK },
-  chipText: { color: INK, fontSize: 14 },
-  chipTextActive: { color: '#fff', fontWeight: '600' },
+  chipText: { color: INK, fontFamily: fonts.regular, fontSize: 14 },
+  chipTextActive: { color: '#fff', fontFamily: fonts.semibold },
   grid: { padding: 12, paddingBottom: 100 },
   row: { gap: 12 },
   tile: { flex: 1, minHeight: 132, marginBottom: 12, padding: 12, borderRadius: 12, backgroundColor: '#fff', borderWidth: 1, borderColor: LINE },
   tileSelected: { borderColor: ACCENT, borderWidth: 2 },
   vegMark: { width: 14, height: 14, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
   vegDot: { width: 6, height: 6, borderRadius: 3 },
-  tileName: { fontSize: 15, fontWeight: '600', color: INK },
-  tilePrice: { marginTop: 4, fontSize: 14, color: MUTED },
+  tileName: { fontSize: 15, fontFamily: fonts.semibold, color: INK },
+  tilePrice: { marginTop: 4, fontFamily: fonts.regular, fontSize: 14, color: MUTED },
   tileOff: { opacity: 0.55 },
   outBtn: { marginTop: 'auto', height: 36, borderRadius: 8, borderWidth: 1, borderColor: LINE, alignItems: 'center', justifyContent: 'center' },
-  outText: { color: MUTED, fontWeight: '600', fontSize: 13 },
-  addBtn: { marginTop: 'auto', height: 36, borderRadius: 8, borderWidth: 1.5, borderColor: ACCENT, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFF7F2' },
-  addText: { color: ACCENT, fontWeight: '800', fontSize: 14, letterSpacing: 0.5 },
+  outText: { color: MUTED, fontFamily: fonts.semibold, fontSize: 13 },
+  addBtn: { marginTop: 'auto', height: 36, borderRadius: 8, borderWidth: 1.5, borderColor: ACCENT, alignItems: 'center', justifyContent: 'center', backgroundColor: TINT },
+  addText: { color: ACCENT, fontFamily: fonts.bold, fontSize: 14, letterSpacing: 0.5 },
   tileStepper: { marginTop: 'auto', height: 36, borderRadius: 8, backgroundColor: ACCENT, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   tileStepBtn: { width: 40, height: 36, alignItems: 'center', justifyContent: 'center' },
-  tileStepText: { color: '#fff', fontSize: 20, fontWeight: '700' },
-  tileQty: { color: '#fff', fontSize: 16, fontWeight: '800' },
+  tileStepText: { color: '#fff', fontSize: 20, fontFamily: fonts.bold },
+  tileQty: { color: '#fff', fontSize: 16, fontFamily: fonts.bold },
   cartBar: { position: 'absolute', left: 12, right: 12, bottom: 24, padding: 16, borderRadius: 12, backgroundColor: ACCENT, flexDirection: 'row', justifyContent: 'space-between' },
-  cartBarText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  cartBarText: { color: '#fff', fontSize: 16, fontFamily: fonts.bold },
   sheet: { position: 'absolute', left: 0, right: 0, bottom: 0, maxHeight: '80%', backgroundColor: '#fff', borderTopLeftRadius: 16, borderTopRightRadius: 16, padding: 16, paddingBottom: 32, borderTopWidth: 1, borderColor: LINE },
   sheetHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  sheetTitle: { fontSize: 18, fontWeight: '700', color: INK },
-  link: { color: ACCENT, fontWeight: '600', fontSize: 15 },
+  sheetTitle: { fontSize: 18, fontFamily: fonts.bold, color: INK },
+  link: { color: ACCENT, fontFamily: fonts.semibold, fontSize: 15 },
   lines: { flexGrow: 0 },
   line: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: LINE, gap: 10 },
-  lineName: { fontSize: 15, color: INK, fontWeight: '500' },
-  muted: { fontSize: 12, color: MUTED },
+  lineName: { fontSize: 15, color: INK, fontFamily: fonts.semibold },
+  muted: { fontFamily: fonts.regular, fontSize: 12, color: MUTED },
   stepper: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   stepBtn: { width: 32, height: 32, borderRadius: 8, borderWidth: 1, borderColor: LINE, alignItems: 'center', justifyContent: 'center' },
-  stepText: { fontSize: 18, color: INK },
-  qty: { minWidth: 20, textAlign: 'center', fontSize: 15, fontWeight: '600' },
-  amount: { width: 72, textAlign: 'right', fontSize: 15, color: INK },
+  stepText: { fontFamily: fonts.regular, fontSize: 18, color: INK },
+  qty: { minWidth: 20, textAlign: 'center', fontSize: 15, fontFamily: fonts.semibold },
+  amount: { width: 72, textAlign: 'right', fontFamily: fonts.regular, fontSize: 15, color: INK },
   totals: { paddingVertical: 10, gap: 4 },
   totalRow: { flexDirection: 'row', justifyContent: 'space-between' },
-  totalLabel: { fontSize: 15, color: MUTED },
-  totalValue: { fontSize: 15, color: INK },
-  bold: { fontWeight: '700', color: INK, fontSize: 17 },
-  payLabel: { fontSize: 13, color: MUTED, marginTop: 4, marginBottom: 6 },
+  totalLabel: { fontFamily: fonts.regular, fontSize: 15, color: MUTED },
+  totalValue: { fontFamily: fonts.regular, fontSize: 15, color: INK },
+  bold: { fontFamily: fonts.bold, color: INK, fontSize: 17 },
+  payLabel: { fontFamily: fonts.regular, fontSize: 13, color: MUTED, marginTop: 4, marginBottom: 6 },
   payRow: { flexDirection: 'row', gap: 8 },
   payBtn: { flex: 1, height: 44, borderRadius: 10, borderWidth: 1, borderColor: LINE, alignItems: 'center', justifyContent: 'center' },
   payBtnActive: { backgroundColor: INK, borderColor: INK },
-  payText: { fontSize: 15, color: INK, fontWeight: '600' },
+  payText: { fontSize: 15, color: INK, fontFamily: fonts.semibold },
   payTextActive: { color: '#fff' },
-  error: { color: '#B3261E', marginTop: 8 },
+  error: { color: colors.danger, marginTop: 8 },
   saveBtn: { marginTop: 8, padding: 16, borderRadius: 12, backgroundColor: INK, alignItems: 'center' },
   saveBtnDisabled: { opacity: 0.4 },
-  saveText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  saveText: { color: '#fff', fontSize: 16, fontFamily: fonts.bold },
 });

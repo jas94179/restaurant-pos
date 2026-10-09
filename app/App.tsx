@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from '@expo-google-fonts/bricolage-grotesque/useFonts';
@@ -12,6 +12,8 @@ import MenuScreen from './src/screens/MenuScreen';
 import WelcomeScreen from './src/screens/onboarding/WelcomeScreen';
 import SetupScreen from './src/screens/onboarding/SetupScreen';
 import LockScreen from './src/screens/onboarding/LockScreen';
+import AppHeader from './src/components/AppHeader';
+import ProfileSheet from './src/components/ProfileSheet';
 import { useSettings } from './src/data/settingsStore';
 import { colors, fonts } from './src/theme';
 
@@ -53,19 +55,29 @@ export default function App() {
     );
   }
 
-  return <MainApp />;
+  return <MainApp onLock={() => setUnlocked(false)} />;
 }
 
 // Simple tab switcher for the prototype. We will move to Expo Router
 // when the app has more screens (settings, staff, dashboard).
-function MainApp() {
+function MainApp({ onLock }: { onLock: () => void }) {
   const settings = useSettings();
   const showTables = settings.outletType !== 'counter';
   const [tab, setTab] = useState<Tab>(settings.outletType === 'dine_in' ? 'tables' : 'billing');
   const [activeTable, setActiveTable] = useState<number | null>(null);
+  const [profileOpen, setProfileOpen] = useState(false);
+
+  // If the outlet is switched to counter-only, leave the Tables tab.
+  useEffect(() => {
+    if (!showTables) {
+      setActiveTable(null);
+      setTab((t) => (t === 'tables' ? 'billing' : t));
+    }
+  }, [showTables]);
 
   return (
     <View style={styles.root}>
+      <AppHeader onProfile={() => setProfileOpen(true)} />
       {/* All screens stay alive so a half-made bill is not lost when switching tabs. */}
       <View style={[styles.body, tab !== 'billing' && styles.hidden]}>
         <BillingScreen
@@ -100,7 +112,9 @@ function MainApp() {
         <TabButton label="Sales" active={tab === 'report'} onPress={() => setTab('report')} />
         <TabButton label="Menu" active={tab === 'menu'} onPress={() => setTab('menu')} />
       </View>
-      <StatusBar style="dark" />
+
+      {profileOpen && <ProfileSheet onClose={() => setProfileOpen(false)} onLock={onLock} />}
+      <StatusBar style="light" />
     </View>
   );
 }
@@ -115,7 +129,7 @@ function TabButton({ label, active, onPress }: { label: string; active: boolean;
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#FAF8F5' },
+  root: { flex: 1, backgroundColor: colors.mist },
   body: { flex: 1 },
   hidden: { display: 'none' },
   tabBar: { flexDirection: 'row', borderTopWidth: 1, borderTopColor: colors.line, backgroundColor: colors.paper, paddingBottom: 24 },

@@ -24,6 +24,7 @@ import {
   updateMenuItem,
 } from '../db/database';
 import { formatRupees } from '../utils/money';
+import { colors, fonts } from '../theme';
 
 type ItemDraft = { id: string | null; name: string; price: string; categoryId: string; veg: boolean };
 type CategoryDraft = { id: string | null; name: string };
@@ -327,7 +328,7 @@ function Sheet({ children }: { children: ReactNode }) {
 }
 
 function VegMark({ veg }: { veg: boolean }) {
-  const color = veg ? '#1B8A3A' : '#B3261E';
+  const color = veg ? colors.veg : colors.danger;
   return (
     <View style={[styles.vegMark, { borderColor: color }]}>
       <View style={[styles.vegDot, { backgroundColor: color }]} />
@@ -335,52 +336,53 @@ function VegMark({ veg }: { veg: boolean }) {
   );
 }
 
-const INK = '#1C1B1F';
-const MUTED = '#6B6870';
-const ACCENT = '#C2410C';
-const LINE = '#E7E3DE';
+const INK = colors.ink;
+const MUTED = colors.muted;
+const ACCENT = colors.brand;
+const LINE = colors.line;
+const TINT = '#E5EEE9'; // light curry-leaf green for selected things
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#FAF8F5', paddingTop: 52 },
+  screen: { flex: 1, backgroundColor: colors.mist, paddingTop: 8 },
   header: { paddingHorizontal: 16, paddingBottom: 8 },
-  title: { fontSize: 22, fontWeight: '700', color: INK },
-  subtitle: { fontSize: 14, color: MUTED, marginTop: 2 },
+  title: { fontSize: 22, fontFamily: fonts.bold, color: INK },
+  subtitle: { fontFamily: fonts.regular, fontSize: 14, color: MUTED, marginTop: 2 },
   chips: { paddingHorizontal: 12, paddingVertical: 8, gap: 8 },
   chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: LINE, backgroundColor: '#fff' },
   chipActive: { backgroundColor: INK, borderColor: INK },
-  chipText: { color: INK, fontSize: 14 },
-  chipTextActive: { color: '#fff', fontWeight: '600' },
-  chipAdd: { borderStyle: 'dashed', borderColor: ACCENT, backgroundColor: '#FFF7F2' },
-  chipAddText: { color: ACCENT, fontSize: 14, fontWeight: '600' },
+  chipText: { color: INK, fontFamily: fonts.regular, fontSize: 14 },
+  chipTextActive: { color: '#fff', fontFamily: fonts.semibold },
+  chipAdd: { borderStyle: 'dashed', borderColor: ACCENT, backgroundColor: TINT },
+  chipAddText: { color: ACCENT, fontSize: 14, fontFamily: fonts.semibold },
   categoryBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingTop: 4, paddingBottom: 4 },
-  categoryName: { fontSize: 16, fontWeight: '700', color: INK },
-  link: { color: ACCENT, fontWeight: '600', fontSize: 14 },
+  categoryName: { fontSize: 16, fontFamily: fonts.bold, color: INK },
+  link: { color: ACCENT, fontFamily: fonts.semibold, fontSize: 14 },
   list: { paddingHorizontal: 16, paddingBottom: 100 },
-  empty: { color: MUTED, textAlign: 'center', marginTop: 32, fontSize: 15 },
+  empty: { color: MUTED, textAlign: 'center', marginTop: 32, fontFamily: fonts.regular, fontSize: 15 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: LINE },
-  rowName: { fontSize: 16, color: INK, fontWeight: '500' },
-  rowSub: { fontSize: 13, color: MUTED, marginTop: 2 },
+  rowName: { fontSize: 16, color: INK, fontFamily: fonts.semibold },
+  rowSub: { fontFamily: fonts.regular, fontSize: 13, color: MUTED, marginTop: 2 },
   dim: { color: MUTED },
   vegMark: { width: 14, height: 14, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
   vegDot: { width: 6, height: 6, borderRadius: 3 },
   addItemBtn: { position: 'absolute', left: 16, right: 16, bottom: 20, height: 52, borderRadius: 12, backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center' },
-  addItemText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  addItemText: { color: '#fff', fontSize: 16, fontFamily: fonts.bold },
   backdrop: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' },
   sheet: { backgroundColor: '#fff', borderTopLeftRadius: 16, borderTopRightRadius: 16, padding: 16, paddingBottom: 28 },
-  sheetTitle: { fontSize: 18, fontWeight: '700', color: INK, marginBottom: 4 },
-  label: { fontSize: 13, color: MUTED, marginTop: 12, marginBottom: 6 },
-  input: { height: 46, borderRadius: 10, borderWidth: 1, borderColor: LINE, paddingHorizontal: 12, fontSize: 16, color: INK },
+  sheetTitle: { fontSize: 18, fontFamily: fonts.bold, color: INK, marginBottom: 4 },
+  label: { fontFamily: fonts.regular, fontSize: 13, color: MUTED, marginTop: 12, marginBottom: 6 },
+  input: { height: 46, borderRadius: 10, borderWidth: 1, borderColor: LINE, paddingHorizontal: 12, fontFamily: fonts.regular, fontSize: 16, color: INK },
   segment: { flexDirection: 'row', gap: 8 },
   segBtn: { flex: 1, height: 44, borderRadius: 10, borderWidth: 1, borderColor: LINE, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   segBtnActive: { borderColor: INK, borderWidth: 1.5 },
-  segText: { fontSize: 15, color: MUTED, fontWeight: '600' },
+  segText: { fontSize: 15, color: MUTED, fontFamily: fonts.semibold },
   segTextActive: { color: INK },
-  error: { color: '#B3261E', marginTop: 10 },
+  error: { color: colors.danger, marginTop: 10 },
   actions: { flexDirection: 'row', gap: 8, marginTop: 16 },
   deleteBtn: { height: 48, paddingHorizontal: 16, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  deleteText: { color: '#B3261E', fontWeight: '700', fontSize: 15 },
+  deleteText: { color: colors.danger, fontFamily: fonts.bold, fontSize: 15 },
   cancelBtn: { flex: 1, height: 48, borderRadius: 12, borderWidth: 1, borderColor: LINE, alignItems: 'center', justifyContent: 'center' },
-  cancelText: { color: INK, fontWeight: '600', fontSize: 15 },
+  cancelText: { color: INK, fontFamily: fonts.semibold, fontSize: 15 },
   saveBtn: { flex: 1, height: 48, borderRadius: 12, backgroundColor: INK, alignItems: 'center', justifyContent: 'center' },
-  saveText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+  saveText: { color: '#fff', fontFamily: fonts.bold, fontSize: 15 },
 });

@@ -5,6 +5,7 @@ import { getMenu } from '../data/menuStore';
 import { getOpenTables, OpenTable } from '../db/database';
 import { formatRupees } from '../utils/money';
 import { useSettings } from '../data/settingsStore';
+import { colors, fonts } from '../theme';
 
 function tableTotals(t: OpenTable) {
   let items = 0;
@@ -87,24 +88,25 @@ export default function TablesScreen({ visible, activeTable, onOpenTable }: Prop
   );
 }
 
-const INK = '#1C1B1F';
-const MUTED = '#6B6870';
-const ACCENT = '#C2410C';
-const LINE = '#E7E3DE';
+const INK = colors.ink;
+const MUTED = colors.muted;
+const ACCENT = colors.brand;
+const LINE = colors.line;
+const TINT = '#E5EEE9'; // light curry-leaf green for selected things
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#FAF8F5', paddingTop: 52 },
+  screen: { flex: 1, backgroundColor: colors.mist, paddingTop: 8 },
   header: { paddingHorizontal: 16, paddingBottom: 8 },
-  title: { fontSize: 22, fontWeight: '700', color: INK },
-  subtitle: { fontSize: 14, color: MUTED, marginTop: 2 },
+  title: { fontSize: 22, fontFamily: fonts.bold, color: INK },
+  subtitle: { fontFamily: fonts.regular, fontSize: 14, color: MUTED, marginTop: 2 },
   grid: { padding: 12, paddingBottom: 32 },
   row: { gap: 10 },
   table: { flex: 1, aspectRatio: 1, marginBottom: 10, borderRadius: 12, borderWidth: 1, borderColor: LINE, backgroundColor: '#fff', padding: 10, justifyContent: 'space-between' },
-  tableBusy: { backgroundColor: '#FFF7F2', borderColor: ACCENT },
+  tableBusy: { backgroundColor: TINT, borderColor: ACCENT },
   tableActive: { borderWidth: 2.5 },
-  tableNo: { fontSize: 20, fontWeight: '800', color: INK },
+  tableNo: { fontSize: 20, fontFamily: fonts.bold, color: INK },
   tableNoBusy: { color: ACCENT },
-  free: { fontSize: 13, color: MUTED },
-  tableAmount: { fontSize: 15, fontWeight: '700', color: INK },
-  tableSub: { fontSize: 11, color: MUTED },
+  free: { fontFamily: fonts.regular, fontSize: 13, color: MUTED },
+  tableAmount: { fontSize: 15, fontFamily: fonts.bold, color: INK },
+  tableSub: { fontFamily: fonts.regular, fontSize: 11, color: MUTED },
 });
