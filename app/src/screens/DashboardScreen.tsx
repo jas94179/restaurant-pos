@@ -1,7 +1,7 @@
 import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Bar, buildInsights, Insights, Period, PERIODS } from '../data/insights';
-import { PAYMENT_MODES } from '../db/database';
+import { ALL_MODES, modeLabel } from '../db/database';
 import { useSettings } from '../data/settingsStore';
 import { can, useCurrentUser } from '../data/staffStore';
 import { formatRupees } from '../utils/money';
@@ -99,7 +99,7 @@ export default function DashboardScreen({ visible }: { visible: boolean }) {
       </Card>
 
       <Card title="Payment">
-        {PAYMENT_MODES.map((m) => (
+        {ALL_MODES.filter((m) => m.key === 'cash' || m.key === 'upi' || m.key === 'card' || data.byMode[m.key] > 0).map((m) => (
           <ShareRow
             key={m.key}
             label={m.label}
@@ -109,8 +109,8 @@ export default function DashboardScreen({ visible }: { visible: boolean }) {
         ))}
       </Card>
 
-      {settings.outletType === 'both' && (
-        <Card title="Dine-in and takeaway">
+      {(settings.outletType === 'both' || data.byType.delivery > 0) && (
+        <Card title="Order types">
           <ShareRow
             label="Dine-in"
             value={`${formatRupees(data.byType.dineIn)} · ${pct(data.byType.dineIn, data.totalSales)}`}
@@ -121,6 +121,13 @@ export default function DashboardScreen({ visible }: { visible: boolean }) {
             value={`${formatRupees(data.byType.takeaway)} · ${pct(data.byType.takeaway, data.totalSales)}`}
             fraction={data.totalSales ? data.byType.takeaway / data.totalSales : 0}
           />
+          {data.byType.delivery > 0 && (
+            <ShareRow
+              label="Zomato and Swiggy"
+              value={`${formatRupees(data.byType.delivery)} · ${pct(data.byType.delivery, data.totalSales)}`}
+              fraction={data.byType.delivery / data.totalSales}
+            />
+          )}
         </Card>
       )}
 
@@ -134,8 +141,8 @@ export default function DashboardScreen({ visible }: { visible: boolean }) {
                 <Text style={styles.token}>#{b.token}</Text>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.billMain}>
-                    {b.table_no != null ? `Table ${b.table_no}` : 'Takeaway'} ·{' '}
-                    {PAYMENT_MODES.find((m) => m.key === b.payment_mode)?.label}
+                    {b.table_no != null ? `Table ${b.table_no}` : b.order_type === 'delivery' ? `${modeLabel(b.payment_mode)} #${b.platform_order_id ?? ''}` : 'Takeaway'} ·{' '}
+                    {modeLabel(b.payment_mode)}
                   </Text>
                   <Text style={styles.billSub}>{formatTime(b.created_at)}</Text>
                 </View>

@@ -2,12 +2,23 @@
 // with no internet. Later this file will also handle encrypted storage and cloud backup.
 import * as SQLite from 'expo-sqlite';
 
-export type PaymentMode = 'cash' | 'upi' | 'card';
+export type PaymentMode = 'cash' | 'upi' | 'card' | 'zomato' | 'swiggy';
+// What the cashier can choose at the counter.
 export const PAYMENT_MODES: { key: PaymentMode; label: string }[] = [
   { key: 'cash', label: 'Cash' },
   { key: 'upi', label: 'UPI' },
   { key: 'card', label: 'Card' },
 ];
+// Delivery apps: the customer has already paid the app.
+export type Platform = 'zomato' | 'swiggy';
+export const PLATFORMS: { key: Platform; label: string }[] = [
+  { key: 'zomato', label: 'Zomato' },
+  { key: 'swiggy', label: 'Swiggy' },
+];
+export const ALL_MODES = [...PAYMENT_MODES, ...PLATFORMS];
+export function modeLabel(m: string): string {
+  return ALL_MODES.find((p) => p.key === m)?.label ?? m;
+}
 
 export type BillLine = {
   itemId: string;
@@ -20,10 +31,12 @@ export type BillLine = {
 export type Cart = Record<string, number>; // item id -> quantity
 
 export type NewBill = {
-  orderType: 'takeaway' | 'dine_in';
+  orderType: 'takeaway' | 'dine_in' | 'delivery';
+  platformOrderId?: string;
   tableNo?: number;
   staffId?: string;
   staffName?: string;
+  gstRate: number;
   paymentMode: PaymentMode;
   subtotal: number;
   gst: number;
@@ -94,6 +107,13 @@ const billColumns = db.getAllSync<{ name: string }>('PRAGMA table_info(bills)').
 if (!billColumns.includes('table_no')) {
   db.execSync('ALTER TABLE bills ADD COLUMN table_no INTEGER');
 }
+if (!billColumns.includes('platform_order_id')) {
+  db.execSync('ALTER TABLE bills ADD COLUMN platform_order_id TEXT');
+}
+if (!billColumns.includes('gst_rate')) {
+  // Earlier bills were all 5%.
+  db.execSync('ALTER TABLE bills ADD COLUMN gst_rate REAL NOT NULL DEFAULT 5');
+}
 if (!billColumns.includes('staff_id')) {
   db.execSync('ALTER TABLE bills ADD COLUMN staff_id TEXT');
   db.execSync('ALTER TABLE bills ADD COLUMN staff_name TEXT');
@@ -130,9 +150,9 @@ export function saveBill(bill: NewBill): { id: string; token: number } {
   db.withTransactionSync(() => {
     token = getNextToken(day);
     db.runSync(
-      `INSERT INTO bills (id, token, created_at, day, order_type, table_no, payment_mode, subtotal, gst, total, staff_id, staff_name)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [id, token, now.toISOString(), day, bill.orderType, bill.tableNo ?? null, bill.paymentMode, bill.subtotal, bill.gst, bill.total, bill.staffId ?? null, bill.staffName ?? null],
+      `INSERT INTO bills (id, token, created_at, day, order_type, table_no, payment_mode, subtotal, gst, total, staff_id, staff_name, gst_rate, platform_order_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [id, token, now.toISOString(), day, bill.orderType, bill.tableNo ?? null, bill.paymentMode, bill.subtotal, bill.gst, bill.total, bill.staffId ?? null, bill.staffName ?? null, bill.gstRate, bill.platformOrderId ?? null],
     );
     for (const l of bill.lines) {
       db.runSync(
@@ -163,6 +183,8 @@ export function getDaySummary(day: string = dayKey()): DaySummary {
     cash: { count: 0, amount: 0 },
     upi: { count: 0, amount: 0 },
     card: { count: 0, amount: 0 },
+    zomato: { count: 0, amount: 0 },
+    swiggy: { count: 0, amount: 0 },
   };
   let totalSales = 0;
   let gstCollected = 0;
@@ -409,6 +431,7 @@ export type BillRow = {
   day: string;
   order_type: string;
   table_no: number | null;
+  platform_order_id: string | null;
   payment_mode: PaymentMode;
   gst: number;
   total: number;
@@ -416,7 +439,7 @@ export type BillRow = {
 
 export function getBillsInRange(fromDay: string, toDay: string): BillRow[] {
   return db.getAllSync<BillRow>(
-    `SELECT id, token, created_at, day, order_type, table_no, payment_mode, gst, total
+    `SELECT id, token, created_at, day, order_type, table_no, platform_order_id, payment_mode, gst, total
      FROM bills WHERE day BETWEEN ? AND ? AND status = 'paid' ORDER BY created_at DESC`,
     [fromDay, toDay],
   );
@@ -442,7 +465,7 @@ export type BillListRow = BillRow & { item_count: number };
 
 export function getBillList(fromDay: string, toDay: string): BillListRow[] {
   return db.getAllSync<BillListRow>(
-    `SELECT b.id, b.token, b.created_at, b.day, b.order_type, b.table_no, b.payment_mode, b.gst, b.total,
+    `SELECT b.id, b.token, b.created_at, b.day, b.order_type, b.table_no, b.platform_order_id, b.payment_mode, b.gst, b.total,
             COALESCE(SUM(i.qty), 0) AS item_count
      FROM bills b LEFT JOIN bill_items i ON i.bill_id = b.id
      WHERE b.day BETWEEN ? AND ? AND b.status = 'paid'
@@ -455,12 +478,13 @@ export function getBillList(fromDay: string, toDay: string): BillListRow[] {
 export type BillDetail = BillRow & {
   subtotal: number;
   staff_name: string | null;
+  gst_rate: number;
   items: { name: string; price: number; qty: number; amount: number }[];
 };
 
 export function getBillDetail(id: string): BillDetail | null {
-  const bill = db.getFirstSync<BillRow & { subtotal: number; staff_name: string | null }>(
-    `SELECT id, token, created_at, day, order_type, table_no, payment_mode, subtotal, gst, total, staff_name
+  const bill = db.getFirstSync<BillRow & { subtotal: number; staff_name: string | null; gst_rate: number }>(
+    `SELECT id, token, created_at, day, order_type, table_no, platform_order_id, payment_mode, subtotal, gst, total, staff_name, gst_rate
      FROM bills WHERE id = ?`,
     [id],
   );
@@ -523,4 +547,13 @@ export function setStaffPin(id: string, pinHash: string, pinSalt: string): void 
 // Staff are deactivated, not deleted, so old bills still show who made them.
 export function deactivateStaff(id: string): void {
   db.runSync('UPDATE staff SET active = 0 WHERE id = ?', [id]);
+}
+
+// Avoids entering the same delivery order twice.
+export function platformOrderExists(platform: Platform, orderId: string): boolean {
+  const row = db.getFirstSync<{ n: number }>(
+    "SELECT COUNT(*) AS n FROM bills WHERE payment_mode = ? AND platform_order_id = ? AND status = 'paid'",
+    [platform, orderId.trim()],
+  );
+  return (row?.n ?? 0) > 0;
 }

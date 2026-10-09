@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, SectionList, StyleSheet, Text, TextInput, View } from 'react-native';
-import { BillDetail, BillListRow, dayKey, getBillDetail, getBillList, PAYMENT_MODES } from '../db/database';
-import { GST_PERCENT } from '../data/sampleMenu';
+import { BillDetail, BillListRow, dayKey, getBillDetail, getBillList, modeLabel as labelForMode } from '../db/database';
 import { useSettings } from '../data/settingsStore';
 import { can, useCurrentUser } from '../data/staffStore';
 import { formatRupees } from '../utils/money';
@@ -44,12 +43,12 @@ function time(iso: string): string {
   return `${h % 12 || 12}:${String(d.getMinutes()).padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`;
 }
 
-function modeLabel(m: string): string {
-  return PAYMENT_MODES.find((p) => p.key === m)?.label ?? m;
-}
+const modeLabel = labelForMode;
 
-function typeLabel(b: { order_type: string; table_no: number | null }): string {
-  return b.table_no != null ? `Table ${b.table_no}` : 'Takeaway';
+function typeLabel(b: { order_type: string; table_no: number | null; payment_mode: string; platform_order_id: string | null }): string {
+  if (b.table_no != null) return `Table ${b.table_no}`;
+  if (b.order_type === 'delivery') return `${modeLabel(b.payment_mode)} #${b.platform_order_id ?? ''}`;
+  return 'Takeaway';
 }
 
 // Every saved bill, newest first, grouped by day. Tap a bill to see its items.
@@ -78,7 +77,11 @@ export default function TransactionsScreen({ visible }: { visible: boolean }) {
       if (String(b.token) === q) return true;
       const table = q.match(/^(?:t|table)\s*(\d+)$/);
       if (table) return b.table_no === Number(table[1]);
-      return typeLabel(b).toLowerCase().includes(q) || modeLabel(b.payment_mode).toLowerCase().includes(q);
+      return (
+        typeLabel(b).toLowerCase().includes(q) ||
+        modeLabel(b.payment_mode).toLowerCase().includes(q) ||
+        (b.platform_order_id ?? '').toLowerCase().includes(q)
+      );
     });
   }, [bills, query]);
 
@@ -238,14 +241,22 @@ function BillSheet({ bill, onClose }: { bill: BillDetail; onClose: () => void })
 
             <View style={styles.rDivider} />
 
-            <View style={styles.rRow}>
-              <Text style={styles.rLabel}>Subtotal</Text>
-              <Text style={styles.rValue}>{formatRupees(bill.subtotal)}</Text>
-            </View>
-            <View style={styles.rRow}>
-              <Text style={styles.rLabel}>GST {GST_PERCENT}%</Text>
-              <Text style={styles.rValue}>{formatRupees(bill.gst)}</Text>
-            </View>
+            {bill.gst > 0 && (
+              <>
+                <View style={styles.rRow}>
+                  <Text style={styles.rLabel}>Taxable value</Text>
+                  <Text style={styles.rValue}>{formatRupees(bill.subtotal)}</Text>
+                </View>
+                <View style={styles.rRow}>
+                  <Text style={styles.rLabel}>CGST {bill.gst_rate / 2}%</Text>
+                  <Text style={styles.rValue}>{formatRupees(Math.floor(bill.gst / 2))}</Text>
+                </View>
+                <View style={styles.rRow}>
+                  <Text style={styles.rLabel}>SGST {bill.gst_rate / 2}%</Text>
+                  <Text style={styles.rValue}>{formatRupees(bill.gst - Math.floor(bill.gst / 2))}</Text>
+                </View>
+              </>
+            )}
             <View style={[styles.rRow, { marginTop: 6 }]}>
               <Text style={styles.rTotalLabel}>Total</Text>
               <Text style={styles.rTotal}>{formatRupees(bill.total)}</Text>

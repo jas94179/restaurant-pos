@@ -9,7 +9,6 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { GST_PERCENT } from '../data/sampleMenu';
 import { reloadMenu, useMenu } from '../data/menuStore';
 import { useSettings } from '../data/settingsStore';
 import { can, getCurrentUser } from '../data/staffStore';
@@ -20,11 +19,15 @@ import {
   DbMenuItem,
   PaymentMode,
   PAYMENT_MODES,
+  Platform as DeliveryApp,
+  PLATFORMS,
+  platformOrderExists,
   saveBill as saveBillToDb,
   saveTableCart,
   setItemAvailable,
 } from '../db/database';
 import { formatRupees } from '../utils/money';
+import { computeTotals } from '../utils/tax';
 import { colors, fonts } from '../theme';
 
 type Props = {
@@ -56,6 +59,9 @@ export default function BillingScreen({ tableNo, onBackToTables, onTableSettled 
   const [cartOpen, setCartOpen] = useState(false);
   const [token, setToken] = useState(() => getNextToken());
   const [paymentMode, setPaymentMode] = useState<PaymentMode>('cash');
+  // Counter orders can also come from delivery apps (quick entry, typed in by staff).
+  const [source, setSource] = useState<'counter' | DeliveryApp>('counter');
+  const [platformOrderId, setPlatformOrderId] = useState('');
   const [lastBill, setLastBill] = useState<{ token: number; total: number; mode: string; tableNo: number | null } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -77,9 +83,8 @@ export default function BillingScreen({ tableNo, onBackToTables, onTableSettled 
     [cart, menu],
   );
   const itemCount = cartLines.reduce((sum, l) => sum + l.qty, 0);
-  const subtotal = cartLines.reduce((sum, l) => sum + l.amount, 0);
-  const gst = Math.round((subtotal * GST_PERCENT) / 100);
-  const total = subtotal + gst;
+  const itemsSum = cartLines.reduce((sum, l) => sum + l.amount, 0);
+  const { subtotal, gst, total } = computeTotals(itemsSum, settings);
 
   function changeQty(id: string, delta: number) {
     setLastBill(null);
@@ -116,15 +121,25 @@ export default function BillingScreen({ tableNo, onBackToTables, onTableSettled 
 
   function saveBill() {
     if (itemCount === 0) return;
+    const isDelivery = !isTable && source !== 'counter';
+    const orderId = platformOrderId.trim();
+    if (isDelivery) {
+      if (!orderId) return setError(`Enter the ${source === 'zomato' ? 'Zomato' : 'Swiggy'} order ID.`);
+      if (platformOrderExists(source as DeliveryApp, orderId)) {
+        return setError('This order ID is already saved. Check Bills before entering it again.');
+      }
+    }
     try {
       const saved = saveBillToDb({
-        orderType: isTable ? 'dine_in' : 'takeaway',
+        orderType: isTable ? 'dine_in' : isDelivery ? 'delivery' : 'takeaway',
+        platformOrderId: isDelivery ? orderId : undefined,
         tableNo: tableNo ?? undefined,
         staffId: getCurrentUser()?.id,
         staffName: getCurrentUser()?.name,
-        paymentMode,
+        paymentMode: isDelivery ? (source as DeliveryApp) : paymentMode,
         subtotal,
         gst,
+        gstRate: settings.gstRate,
         total,
         lines: cartLines.map(({ item, qty, amount }) => ({
           itemId: item.id,
@@ -134,10 +149,14 @@ export default function BillingScreen({ tableNo, onBackToTables, onTableSettled 
           amount,
         })),
       });
-      const modeLabel = PAYMENT_MODES.find((m) => m.key === paymentMode)?.label ?? '';
+      const modeLabel = isDelivery
+        ? `${PLATFORMS.find((p) => p.key === source)?.label} #${orderId}`
+        : (PAYMENT_MODES.find((m) => m.key === paymentMode)?.label ?? '');
       setLastBill({ token: saved.token, total, mode: modeLabel, tableNo });
       setToken(getNextToken());
       setPaymentMode('cash');
+      setSource('counter');
+      setPlatformOrderId('');
       setCartOpen(false);
       setError(null);
       if (isTable) {
@@ -276,23 +295,76 @@ export default function BillingScreen({ tableNo, onBackToTables, onTableSettled 
           </ScrollView>
 
           <View style={styles.totals}>
-            <TotalRow label="Subtotal" value={formatRupees(subtotal)} />
-            <TotalRow label={`GST ${GST_PERCENT}%`} value={formatRupees(gst)} />
+            {settings.gstRate > 0 && (
+              <>
+                <TotalRow
+                  label={settings.pricesIncludeGst ? 'Before GST' : 'Subtotal'}
+                  value={formatRupees(subtotal)}
+                />
+                <TotalRow
+                  label={`GST ${settings.gstRate}%${settings.pricesIncludeGst ? ' (included)' : ''}`}
+                  value={formatRupees(gst)}
+                />
+              </>
+            )}
             <TotalRow label="Total" value={formatRupees(total)} bold />
           </View>
 
-          <Text style={styles.payLabel}>Payment</Text>
-          <View style={styles.payRow}>
-            {PAYMENT_MODES.map((m) => (
-              <Pressable
-                key={m.key}
-                onPress={() => setPaymentMode(m.key)}
-                style={[styles.payBtn, paymentMode === m.key && styles.payBtnActive]}
-              >
-                <Text style={[styles.payText, paymentMode === m.key && styles.payTextActive]}>{m.label}</Text>
-              </Pressable>
-            ))}
-          </View>
+          {!isTable && (
+            <>
+              <Text style={styles.payLabel}>Order from</Text>
+              <View style={styles.payRow}>
+                {[{ key: 'counter' as const, label: 'Counter' }, ...PLATFORMS].map((o) => (
+                  <Pressable
+                    key={o.key}
+                    onPress={() => {
+                      setSource(o.key);
+                      setError(null);
+                    }}
+                    style={[styles.payBtn, source === o.key && styles.payBtnActive]}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected: source === o.key }}
+                  >
+                    <Text style={[styles.payText, source === o.key && styles.payTextActive]}>{o.label}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </>
+          )}
+
+          {!isTable && source !== 'counter' ? (
+            <>
+              <Text style={styles.payLabel}>{source === 'zomato' ? 'Zomato' : 'Swiggy'} order ID</Text>
+              <TextInput
+                value={platformOrderId}
+                onChangeText={(t) => {
+                  setPlatformOrderId(t);
+                  setError(null);
+                }}
+                placeholder="From the order on the delivery app"
+                placeholderTextColor={MUTED}
+                style={styles.orderIdInput}
+                autoCapitalize="characters"
+                autoCorrect={false}
+              />
+              <Text style={styles.paidNote}>Paid through {source === 'zomato' ? 'Zomato' : 'Swiggy'}. No payment to collect.</Text>
+            </>
+          ) : (
+            <>
+              <Text style={styles.payLabel}>Payment</Text>
+              <View style={styles.payRow}>
+                {PAYMENT_MODES.map((m) => (
+                  <Pressable
+                    key={m.key}
+                    onPress={() => setPaymentMode(m.key)}
+                    style={[styles.payBtn, paymentMode === m.key && styles.payBtnActive]}
+                  >
+                    <Text style={[styles.payText, paymentMode === m.key && styles.payTextActive]}>{m.label}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </>
+          )}
 
           {error && <Text style={styles.error}>{error}</Text>}
 
@@ -302,7 +374,12 @@ export default function BillingScreen({ tableNo, onBackToTables, onTableSettled 
             onPress={saveBill}
           >
             <Text style={styles.saveText}>
-              {isTable ? 'Settle table' : 'Save bill'} · {formatRupees(total)}
+              {isTable
+                ? 'Settle table'
+                : source !== 'counter'
+                  ? `Save ${source === 'zomato' ? 'Zomato' : 'Swiggy'} order`
+                  : 'Save bill'}{' '}
+              · {formatRupees(total)}
             </Text>
           </Pressable>
         </View>
@@ -435,6 +512,8 @@ const styles = StyleSheet.create({
   totalLabel: { fontFamily: fonts.regular, fontSize: 15, color: MUTED },
   totalValue: { fontFamily: fonts.regular, fontSize: 15, color: INK },
   bold: { fontFamily: fonts.bold, color: INK, fontSize: 17 },
+  orderIdInput: { height: 46, borderRadius: 10, borderWidth: 1.5, borderColor: LINE, paddingHorizontal: 12, fontFamily: fonts.regular, fontSize: 16, color: INK },
+  paidNote: { fontFamily: fonts.regular, fontSize: 13, color: MUTED, marginTop: 6 },
   payLabel: { fontFamily: fonts.regular, fontSize: 13, color: MUTED, marginTop: 4, marginBottom: 6 },
   payRow: { flexDirection: 'row', gap: 8 },
   payBtn: { flex: 1, height: 44, borderRadius: 10, borderWidth: 1, borderColor: LINE, alignItems: 'center', justifyContent: 'center' },

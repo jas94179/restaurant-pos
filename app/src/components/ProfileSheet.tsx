@@ -5,10 +5,12 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   TextInput,
   View,
 } from 'react-native';
+import { GST_RATES } from '../utils/tax';
 import { OutletType, saveSettings, useSettings } from '../data/settingsStore';
 import { getOpenTables } from '../db/database';
 import { colors, fonts } from '../theme';
@@ -27,6 +29,7 @@ const PLAN_LABEL: Record<string, string> = {
   business: 'Business plan',
 };
 const GSTIN_PATTERN = /^[0-9]{2}[A-Z0-9]{13}$/;
+const UPI_PATTERN = /^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$/;
 
 type Props = { onClose: () => void };
 
@@ -37,6 +40,9 @@ export default function ProfileSheet({ onClose }: Props) {
   const [gstin, setGstin] = useState(settings.gstin);
   const [outletType, setOutletType] = useState<OutletType>(settings.outletType);
   const [tables, setTables] = useState(settings.tableCount || 10);
+  const [gstRate, setGstRate] = useState(settings.gstRate);
+  const [inclusive, setInclusive] = useState(settings.pricesIncludeGst);
+  const [upiId, setUpiId] = useState(settings.upiId);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
 
@@ -46,6 +52,8 @@ export default function ProfileSheet({ onClose }: Props) {
     const g = gstin.trim().toUpperCase();
     if (n.length < 2) return setError('Enter your restaurant name.');
     if (g && !GSTIN_PATTERN.test(g)) return setError('GSTIN should be 15 characters, like 07ABCDE1234F1Z5.');
+    const u = upiId.trim();
+    if (u && !UPI_PATTERN.test(u)) return setError('UPI ID should look like name@bank, for example sharmasweets@okaxis.');
 
     // Don't hide tables that still have running orders.
     const busy = Object.keys(getOpenTables()).map(Number);
@@ -62,6 +70,9 @@ export default function ProfileSheet({ onClose }: Props) {
       gstin: g,
       outletType,
       tableCount: outletType === 'counter' ? 0 : tables,
+      gstRate,
+      pricesIncludeGst: inclusive,
+      upiId: u,
     });
     setError(null);
     setSaved(true);
@@ -129,6 +140,55 @@ export default function ProfileSheet({ onClose }: Props) {
               </>
             )}
 
+            <Text style={styles.section}>GST on bills</Text>
+            <View style={styles.segment}>
+              {GST_RATES.map((r) => (
+                <Pressable
+                  key={r.rate}
+                  onPress={() => { setGstRate(r.rate); setSaved(false); }}
+                  style={[styles.segBtn, gstRate === r.rate && styles.segBtnActive]}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected: gstRate === r.rate }}
+                >
+                  <Text style={[styles.segText, gstRate === r.rate && styles.segTextActive]}>{r.label}</Text>
+                </Pressable>
+              ))}
+            </View>
+            {gstRate > 0 && (
+              <View style={styles.switchRow}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.switchTitle}>Menu prices include GST</Text>
+                  <Text style={styles.hint}>
+                    {inclusive
+                      ? 'Customer pays the menu price. GST is shown inside it.'
+                      : 'GST is added on top of menu prices.'}
+                  </Text>
+                </View>
+                <Switch
+                  value={inclusive}
+                  onValueChange={(v) => { setInclusive(v); setSaved(false); }}
+                  trackColor={{ true: colors.brand, false: colors.line }}
+                />
+              </View>
+            )}
+            {gstRate > 0 && !gstin.trim() && (
+              <Text style={styles.warn}>Only GST-registered businesses can charge GST. Add your GSTIN above.</Text>
+            )}
+            <Text style={styles.hint}>Not sure which rate applies? Check with your CA.</Text>
+
+            <Text style={styles.section}>UPI payments</Text>
+            <Text style={styles.label}>Your UPI ID (shown as a QR on bills)</Text>
+            <TextInput
+              value={upiId}
+              onChangeText={(t) => { setUpiId(t); setSaved(false); }}
+              style={styles.input}
+              autoCapitalize="none"
+              autoCorrect={false}
+              keyboardType="email-address"
+              placeholder="e.g. sharmasweets@okaxis"
+              placeholderTextColor={colors.muted}
+            />
+
             {error && <Text style={styles.error}>{error}</Text>}
             {saved && <Text style={styles.saved}>Changes saved.</Text>}
 
@@ -164,6 +224,10 @@ const styles = StyleSheet.create({
   stepBtn: { width: 44, height: 44, borderRadius: 22, borderWidth: 1.5, borderColor: colors.line, alignItems: 'center', justifyContent: 'center' },
   stepText: { fontFamily: fonts.semibold, fontSize: 22, color: colors.brand },
   stepValue: { fontFamily: fonts.bold, fontSize: 24, color: colors.ink, minWidth: 40, textAlign: 'center' },
+  switchRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 14 },
+  switchTitle: { fontFamily: fonts.semibold, fontSize: 15, color: colors.ink },
+  hint: { fontFamily: fonts.regular, fontSize: 13, lineHeight: 18, color: colors.muted, marginTop: 6 },
+  warn: { fontFamily: fonts.regular, fontSize: 13, lineHeight: 18, color: colors.turmericDeep, marginTop: 10 },
   error: { fontFamily: fonts.regular, color: colors.danger, fontSize: 14, marginTop: 14 },
   saved: { fontFamily: fonts.semibold, color: colors.veg, fontSize: 14, marginTop: 14 },
   saveBtn: { height: 52, borderRadius: 14, backgroundColor: colors.brand, alignItems: 'center', justifyContent: 'center', marginTop: 16 },

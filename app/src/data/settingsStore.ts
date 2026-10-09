@@ -15,6 +15,9 @@ export type Settings = {
   plan: Plan;
   ownerPinHash: string;
   ownerPinSalt: string;
+  gstRate: number; // 0, 5 or 18
+  pricesIncludeGst: boolean;
+  upiId: string; // e.g. sharmasweets@okaxis, for the UPI QR on bills
 };
 
 function load(): Settings {
@@ -28,6 +31,10 @@ function load(): Settings {
     plan: (s.plan as Plan) ?? 'pilot',
     ownerPinHash: s.ownerPinHash ?? '',
     ownerPinSalt: s.ownerPinSalt ?? '',
+    // Default keeps the original behaviour (5%, added on top) for phones set up earlier.
+    gstRate: s.gstRate != null ? Number(s.gstRate) : 5,
+    pricesIncludeGst: s.pricesIncludeGst === '1',
+    upiId: s.upiId ?? '',
   };
 }
 

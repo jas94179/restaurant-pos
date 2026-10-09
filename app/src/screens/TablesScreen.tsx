@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
-import { GST_PERCENT } from '../data/sampleMenu';
 import { getMenu } from '../data/menuStore';
+import { getSettings } from '../data/settingsStore';
+import { computeTotals } from '../utils/tax';
 import { getOpenTables, OpenTable } from '../db/database';
 import { formatRupees } from '../utils/money';
 import { useSettings } from '../data/settingsStore';
@@ -16,7 +17,7 @@ function tableTotals(t: OpenTable) {
     items += qty;
     subtotal += item.price * qty;
   }
-  const total = subtotal + Math.round((subtotal * GST_PERCENT) / 100);
+  const { total } = computeTotals(subtotal, getSettings());
   return { items, total };
 }
 

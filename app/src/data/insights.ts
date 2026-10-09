@@ -39,7 +39,7 @@ export type Insights = {
   barsTitle: string;
   topItems: ItemTotal[];
   byMode: Record<PaymentMode, number>;
-  byType: { dineIn: number; takeaway: number };
+  byType: { dineIn: number; takeaway: number; delivery: number };
   summary: string[];
   bills: BillRow[];
 };
@@ -113,11 +113,12 @@ export function buildInsights(period: Period, now: Date = new Date()): Insights 
   }
 
   const topItems = getTopItems(dayKey(from), dayKey(now), 5);
-  const byMode: Record<PaymentMode, number> = { cash: 0, upi: 0, card: 0 };
-  const byType = { dineIn: 0, takeaway: 0 };
+  const byMode: Record<PaymentMode, number> = { cash: 0, upi: 0, card: 0, zomato: 0, swiggy: 0 };
+  const byType = { dineIn: 0, takeaway: 0, delivery: 0 };
   for (const b of bills) {
     byMode[b.payment_mode] = (byMode[b.payment_mode] ?? 0) + b.total;
     if (b.order_type === 'dine_in') byType.dineIn += b.total;
+    else if (b.order_type === 'delivery') byType.delivery += b.total;
     else byType.takeaway += b.total;
   }
 
@@ -143,6 +144,10 @@ export function buildInsights(period: Period, now: Date = new Date()): Insights 
     if (byType.dineIn > 0 && byType.takeaway > 0) {
       const share = Math.round((byType.takeaway / sales) * 100);
       summary.push(`Takeaway brought in ${share}% of sales.`);
+    }
+    if (byType.delivery > 0) {
+      const share = Math.round((byType.delivery / sales) * 100);
+      summary.push(`Zomato and Swiggy brought in ${share}% of sales.`);
     }
   }
 
