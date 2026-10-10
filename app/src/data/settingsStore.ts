@@ -26,6 +26,8 @@ export type Settings = {
   printerName: string;
   autoPrintBill: boolean; // print the customer bill right after saving
   autoPrintKot: boolean; // print the kitchen slip right after sending / saving
+  legalAcceptance: string; // JSON: which Terms / Privacy versions the owner accepted, and when
+  quickStartSeen: string; // comma-separated staff ids who have seen the quick start
 };
 
 function load(): Settings {
@@ -51,6 +53,8 @@ function load(): Settings {
     printerName: s.printerName ?? '',
     autoPrintBill: s.autoPrintBill === '1',
     autoPrintKot: s.autoPrintKot === '1',
+    legalAcceptance: s.legalAcceptance ?? '',
+    quickStartSeen: s.quickStartSeen ?? '',
   };
 }
 

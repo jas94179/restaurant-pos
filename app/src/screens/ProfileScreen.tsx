@@ -5,7 +5,7 @@ import { useMenu } from '../data/menuStore';
 import { can, ROLE_INFO, ROLE_LABEL, useCurrentUser, useStaffList } from '../data/staffStore';
 import { PLAN_LABEL } from '../data/plans';
 import { formatRupees } from '../utils/money';
-import { dayKey, getCashPaidOut, getDayClosing } from '../db/database';
+import { dayKey, getCashPaidOut, getDayClosing, getErrors } from '../db/database';
 import { colors, fonts } from '../theme';
 
 type Props = {
@@ -19,6 +19,9 @@ type Props = {
   onOpenExport: () => void;
   onOpenExpenses: () => void;
   onOpenPrinter: () => void;
+  onOpenQuickStart: () => void;
+  onOpenReports: () => void;
+  onOpenLegal: () => void;
   onLock: () => void;
 };
 
@@ -26,7 +29,7 @@ const OUTLET_LABEL = { counter: 'Counter', dine_in: 'Dine-in', both: 'Counter an
 
 // The restaurant's profile, plus everything used less often than billing,
 // so the bottom bar never grows past four tabs.
-export default function ProfileScreen({ onOpenMenu, onOpenStaff, onOpenStock, onOpenBackup, onOpenRestaurant, onOpenPlan, onOpenDayClose, onOpenExport, onOpenExpenses, onOpenPrinter, onLock }: Props) {
+export default function ProfileScreen({ onOpenMenu, onOpenStaff, onOpenStock, onOpenBackup, onOpenRestaurant, onOpenPlan, onOpenDayClose, onOpenExport, onOpenExpenses, onOpenPrinter, onOpenQuickStart, onOpenReports, onOpenLegal, onLock }: Props) {
   const settings = useSettings();
   const menu = useMenu();
   const user = useCurrentUser();
@@ -36,6 +39,7 @@ export default function ProfileScreen({ onOpenMenu, onOpenStaff, onOpenStock, on
   const outOfStock = menu.items.filter((i) => !i.archived && !i.available).length;
   const closedToday = getDayClosing(dayKey());
   const paidOutToday = getCashPaidOut(dayKey());
+  const reportCount = getErrors().length;
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
@@ -123,7 +127,6 @@ export default function ProfileScreen({ onOpenMenu, onOpenStaff, onOpenStock, on
           </Group>
 
           <Group title="Coming soon">
-
             <Row title="Import menu" detail="Load your menu from a photo" soon />
           </Group>
 
@@ -139,6 +142,16 @@ export default function ProfileScreen({ onOpenMenu, onOpenStaff, onOpenStock, on
           switch it off quickly.
         </Text>
       )}
+
+      <Group title="Help and privacy">
+        <Row title="Quick start" detail="How to bill, use tables and close the day" onPress={onOpenQuickStart} />
+        <Row
+          title="Problem reports"
+          detail={reportCount ? `${reportCount} saved on this phone. Send to galla` : 'No problems so far'}
+          onPress={onOpenReports}
+        />
+        <Row title="Terms and privacy" detail="Your data stays on this phone" onPress={onOpenLegal} />
+      </Group>
 
       <Pressable
         onPress={onLock}

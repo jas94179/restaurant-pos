@@ -105,6 +105,55 @@ function setMeta(key: string, value: string): void {
   );
 }
 
+accounts.execSync(`
+  CREATE TABLE IF NOT EXISTS error_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    at TEXT NOT NULL,
+    message TEXT NOT NULL,
+    stack TEXT,
+    fatal INTEGER NOT NULL DEFAULT 0,
+    seen INTEGER NOT NULL DEFAULT 0
+  );
+`);
+
+export type ErrorEntry = { id: number; at: string; message: string; stack: string; fatal: boolean; seen: boolean };
+
+// Problem reports stay on the phone; the owner can choose to send them to us.
+export function logError(message: string, stack: string, fatal: boolean): void {
+  try {
+    accounts.runSync('INSERT INTO error_log (at, message, stack, fatal) VALUES (?, ?, ?, ?)', [
+      new Date().toISOString(),
+      message.slice(0, 500),
+      stack.slice(0, 4000),
+      fatal ? 1 : 0,
+    ]);
+    // Keep the last 50 only.
+    accounts.runSync('DELETE FROM error_log WHERE id NOT IN (SELECT id FROM error_log ORDER BY id DESC LIMIT 50)');
+  } catch {
+    // never let logging itself crash the app
+  }
+}
+
+export function getErrors(): ErrorEntry[] {
+  return accounts
+    .getAllSync<{ id: number; at: string; message: string; stack: string | null; fatal: number; seen: number }>(
+      'SELECT * FROM error_log ORDER BY id DESC',
+    )
+    .map((r) => ({ id: r.id, at: r.at, message: r.message, stack: r.stack ?? '', fatal: r.fatal === 1, seen: r.seen === 1 }));
+}
+
+export function unseenFatalCount(): number {
+  return accounts.getFirstSync<{ n: number }>('SELECT COUNT(*) AS n FROM error_log WHERE fatal = 1 AND seen = 0')?.n ?? 0;
+}
+
+export function markErrorsSeen(): void {
+  accounts.runSync('UPDATE error_log SET seen = 1');
+}
+
+export function clearErrors(): void {
+  accounts.runSync('DELETE FROM error_log');
+}
+
 // The first version kept one restaurant in pos.db; it stays the default file.
 let activeFile = getMeta('activeFile') ?? 'pos.db';
 let db = SQLite.openDatabaseSync(activeFile);

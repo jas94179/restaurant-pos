@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from '@expo-google-fonts/bricolage-grotesque/useFonts';
 import { BricolageGrotesque_400Regular } from '@expo-google-fonts/bricolage-grotesque/400Regular';
@@ -16,11 +16,13 @@ import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-cont
 import WelcomeScreen from './src/screens/onboarding/WelcomeScreen';
 import SetupScreen from './src/screens/onboarding/SetupScreen';
 import LockScreen from './src/screens/onboarding/LockScreen';
+import AgreementScreen from './src/screens/onboarding/AgreementScreen';
+import { isCurrent, parseAcceptance } from './src/legal/legal';
 import ChooseRestaurantScreen from './src/screens/onboarding/ChooseRestaurantScreen';
 import { cancelNewRestaurant, listRestaurants, startNewRestaurant, switchRestaurant } from './src/data/restaurants';
 import AppHeader from './src/components/AppHeader';
 import ProfileSheet from './src/components/ProfileSheet';
-import { useSettings } from './src/data/settingsStore';
+import { saveSettings, useSettings } from './src/data/settingsStore';
 import { can, logout, ROLE_LABEL, useCurrentUser } from './src/data/staffStore';
 import StaffScreen from './src/screens/StaffScreen';
 import StockScreen from './src/screens/StockScreen';
@@ -30,15 +32,24 @@ import DayCloseScreen from './src/screens/DayCloseScreen';
 import ExportScreen from './src/screens/ExportScreen';
 import ExpensesScreen from './src/screens/ExpensesScreen';
 import PrinterScreen from './src/screens/PrinterScreen';
+import { LegalScreen, ProblemReportsScreen } from './src/screens/HelpLegalScreens';
+import QuickStartSheet from './src/components/QuickStartSheet';
+import ErrorBoundary from './src/components/ErrorBoundary';
+import { installCrashReporting, shareReport } from './src/data/crash';
+import { markErrorsSeen, unseenFatalCount } from './src/db/database';
 import { colors, fonts } from './src/theme';
 
 type Tab = 'orders' | 'bills' | 'insights' | 'profile';
 type OrderMode = 'counter' | 'tables';
 
+installCrashReporting();
+
 export default function App() {
   return (
     <SafeAreaProvider>
-      <Root />
+      <ErrorBoundary>
+        <Root />
+      </ErrorBoundary>
     </SafeAreaProvider>
   );
 }
@@ -52,7 +63,7 @@ function Root() {
   const settings = useSettings();
   const user = useCurrentUser();
   // Start page, choosing a restaurant, new restaurant setup, or PIN sign-in.
-  const [screen, setScreen] = useState<'welcome' | 'choose' | 'setup' | 'pin'>('welcome');
+  const [screen, setScreen] = useState<'welcome' | 'choose' | 'agree' | 'setup' | 'pin'>('welcome');
   // The restaurant that was open before Sign up, so Back can return to it.
   const [beforeSignUp, setBeforeSignUp] = useState<string | null>(null);
 
@@ -61,13 +72,30 @@ function Root() {
     if (!user) setScreen('welcome');
   }, [user]);
 
+  // Sign-up accepts the terms before the owner's name is known: fill it in once.
+  useEffect(() => {
+    const a = parseAcceptance(settings.legalAcceptance);
+    if (a && !a.by && user?.role === 'owner') saveSettings({ legalAcceptance: JSON.stringify({ ...a, by: user.name }) });
+  }, [user, settings.legalAcceptance]);
+
   if (!fontsLoaded) return <View style={{ flex: 1, backgroundColor: colors.brand }} />;
 
   if (!user) {
     const restaurants = listRestaurants();
     return (
       <>
-        {screen === 'setup' ? (
+        {screen === 'agree' ? (
+          <AgreementScreen
+            onBack={() => {
+              if (beforeSignUp) cancelNewRestaurant(beforeSignUp);
+              setScreen('welcome');
+            }}
+            onAccept={(a) => {
+              saveSettings({ legalAcceptance: JSON.stringify(a) });
+              setScreen('setup');
+            }}
+          />
+        ) : screen === 'setup' ? (
           <SetupScreen
             onBack={() => {
               if (beforeSignUp) cancelNewRestaurant(beforeSignUp);
@@ -91,7 +119,7 @@ function Root() {
             hasRestaurants={restaurants.length > 0}
             onSignUp={() => {
               setBeforeSignUp(startNewRestaurant());
-              setScreen('setup');
+              setScreen('agree');
             }}
             onSignIn={() => {
               if (restaurants.length === 1) {
@@ -104,11 +132,25 @@ function Root() {
             onRestored={() => setScreen('pin')}
           />
         )}
-        <StatusBar style={screen === 'setup' ? 'dark' : 'light'} />
+        <StatusBar style={screen === 'setup' || screen === 'agree' ? 'dark' : 'light'} />
       </>
     );
   }
 
+  // The owner must accept the current Terms and Privacy Notice (again if they changed).
+  const acceptance = parseAcceptance(settings.legalAcceptance);
+  if (user.role === 'owner' && !isCurrent(acceptance)) {
+    return (
+      <>
+        <AgreementScreen
+          ownerName={user.name}
+          updated={!!acceptance}
+          onAccept={(a) => saveSettings({ legalAcceptance: JSON.stringify(a) })}
+        />
+        <StatusBar style="dark" />
+      </>
+    );
+  }
   // key: a new person gets a fresh app (their own tabs, no one else's open screens).
   return <MainApp key={user.id} onLock={logout} />;
 }
@@ -125,8 +167,29 @@ function MainApp({ onLock }: { onLock: () => void }) {
   // Inside Orders: counter billing or the tables floor.
   const [mode, setMode] = useState<OrderMode>(settings.outletType === 'dine_in' ? 'tables' : 'counter');
   const [activeTable, setActiveTable] = useState<number | null>(null);
-  const [morePage, setMorePage] = useState<'list' | 'menu' | 'staff' | 'stock' | 'backup' | 'plan' | 'dayclose' | 'export' | 'expenses' | 'printer'>('list');
+  const [morePage, setMorePage] = useState<'list' | 'menu' | 'staff' | 'stock' | 'backup' | 'plan' | 'dayclose' | 'export' | 'expenses' | 'printer' | 'reports' | 'legal'>('list');
   const [profileOpen, setProfileOpen] = useState(false);
+  // Quick start shows once per person.
+  const seenQuickStart = !!user && settings.quickStartSeen.split(',').includes(user.id);
+  const [quickStart, setQuickStart] = useState(!seenQuickStart);
+  function closeQuickStart() {
+    setQuickStart(false);
+    if (user && !seenQuickStart) {
+      const ids = settings.quickStartSeen ? settings.quickStartSeen.split(',') : [];
+      saveSettings({ quickStartSeen: [...ids, user.id].join(',') });
+    }
+  }
+
+  // The app closed unexpectedly last time: offer to send a problem report.
+  useEffect(() => {
+    if (unseenFatalCount() > 0) {
+      markErrorsSeen();
+      Alert.alert('galla closed unexpectedly', 'Your bills are safe. Send a problem report so we can fix it?', [
+        { text: 'Not now', style: 'cancel' },
+        { text: 'Send report', onPress: () => shareReport() },
+      ]);
+    }
+  }, []);
 
   // Keep the order mode valid when the outlet type changes in Restaurant details.
   useEffect(() => {
@@ -169,7 +232,11 @@ function MainApp({ onLock }: { onLock: () => void }) {
                           ? 'Expenses'
                           : morePage === 'printer'
                             ? 'Printer'
-                            : 'Profile';
+                            : morePage === 'reports'
+                              ? 'Problem reports'
+                              : morePage === 'legal'
+                                ? 'Terms and privacy'
+                                : 'Profile';
 
   return (
     <View style={styles.root}>
@@ -245,6 +312,10 @@ function MainApp({ onLock }: { onLock: () => void }) {
           <ExpensesScreen onBack={() => setMorePage('list')} />
         ) : morePage === 'printer' && can(user, 'editRestaurant') ? (
           <PrinterScreen onBack={() => setMorePage('list')} />
+        ) : morePage === 'reports' ? (
+          <ProblemReportsScreen onBack={() => setMorePage('list')} />
+        ) : morePage === 'legal' ? (
+          <LegalScreen onBack={() => setMorePage('list')} />
         ) : (
           <ProfileScreen
             onOpenMenu={() => setMorePage('menu')}
@@ -257,6 +328,9 @@ function MainApp({ onLock }: { onLock: () => void }) {
             onOpenExport={() => setMorePage('export')}
             onOpenExpenses={() => setMorePage('expenses')}
             onOpenPrinter={() => setMorePage('printer')}
+            onOpenQuickStart={() => setQuickStart(true)}
+            onOpenReports={() => setMorePage('reports')}
+            onOpenLegal={() => setMorePage('legal')}
             onLock={onLock}
           />
         )}
@@ -282,6 +356,9 @@ function MainApp({ onLock }: { onLock: () => void }) {
       </View>
 
       {profileOpen && <ProfileSheet onClose={() => setProfileOpen(false)} />}
+      {quickStart && user && !profileOpen && (
+        <QuickStartSheet role={user.role} hasTables={settings.outletType !== 'counter'} onClose={closeQuickStart} />
+      )}
       <StatusBar style="light" />
     </View>
   );
