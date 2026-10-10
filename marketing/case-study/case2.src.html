@@ -1,0 +1,630 @@
+<title>galla case study draft</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: brochure-style full-width bands alternating curry-leaf green, white and rice-paper mint; content in a 1120px column. Single light look by design. */
+:root {
+  --green: #17382A; --green-2: #1F4A37; --deep: #0B1F17; --gold: #F2B01E; --gold-dark: #C98C07;
+  --white: #FFFFFF; --mint: #F1F5F2; --ink: #102018; --muted: #4A5B53; --line: #DCE4DF;
+  --on-green: #FFFFFF; --on-green-muted: #C9DBD0; --paid: #1B8A3A; --bad: #B3261E;
+  --sans: 'Poppins', 'Segoe UI', system-ui, sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--white); color: var(--ink); font-family: var(--sans); font-size: 16.5px; line-height: 1.7; }
+.wrap { max-width: 1120px; margin: 0 auto; padding-inline: 24px; }
+h1, h2, h3 { margin: 0; text-wrap: balance; letter-spacing: -0.02em; }
+p { margin: 0; text-wrap: pretty; }
+img { max-width: 100%; }
+:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+
+.band { padding-block: 96px; }
+.band.white { background: var(--white); }
+.band.mint { background: var(--mint); }
+.band.green { background: var(--green); color: var(--on-green); }
+.band.green h2, .band.green h3 { color: var(--on-green); }
+.band.green .lead, .band.green p { color: var(--on-green-muted); }
+.head { display: flex; flex-direction: column; gap: 14px; max-width: 760px; margin-bottom: 44px; }
+.kicker { font-size: 13px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #1F6B47; }
+.band.green .kicker { color: var(--gold); }
+h2 { font-size: clamp(32px, 4.6vw, 52px); line-height: 1.08; font-weight: 700; color: var(--green); }
+h3 { font-size: 20px; line-height: 1.3; font-weight: 700; color: var(--green); letter-spacing: -0.01em; }
+.lead { font-size: 18px; line-height: 1.65; color: var(--muted); }
+.gold { color: var(--gold); }
+
+/* hero */
+.hero { background: var(--green); color: var(--on-green); padding-block: 72px 0; overflow: hidden; position: relative; }
+.hero::before { content: ""; position: absolute; right: -220px; top: 160px; width: 760px; height: 760px; border-radius: 50%; background: var(--green-2); }
+.hero .wrap { position: relative; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 40px; align-items: end; }
+.hero-text { display: flex; flex-direction: column; gap: 24px; padding-bottom: 88px; }
+.logo { position: relative; width: 84px; height: 80px; }
+.logo .c { position: absolute; left: 16px; top: 0; width: 52px; height: 52px; border-radius: 50%; background: var(--gold); border: 5px solid var(--gold-dark); display: grid; place-items: center; font-weight: 800; font-size: 24px; color: #0F2A1F; }
+.logo .s { position: absolute; left: 0; top: 60px; width: 84px; height: 14px; border-radius: 7px; background: var(--deep); border: 2px solid rgba(255,255,255,0.25); }
+.hero h1 { font-size: clamp(72px, 13vw, 150px); line-height: 0.9; font-weight: 800; letter-spacing: -0.06em; }
+.hero .tag { font-size: clamp(24px, 3.2vw, 36px); line-height: 1.2; font-weight: 600; max-width: 18ch; }
+.hero .intro { color: var(--on-green-muted); max-width: 50ch; font-size: 17px; }
+.meta { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 28px; border-top: 1px solid rgba(255,255,255,0.18); padding-top: 22px; max-width: 520px; }
+.meta div { display: flex; flex-direction: column; gap: 2px; }
+.meta span { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); font-weight: 700; }
+.meta b { font-weight: 500; font-size: 15px; }
+.hero-art { position: relative; height: 640px; }
+.hero-art .p1 { position: absolute; right: 150px; bottom: -40px; width: 290px; border-radius: 40px; box-shadow: 0 40px 80px rgba(0,0,0,0.4); transform: rotate(-4deg); }
+.hero-art .p2 { position: absolute; right: -10px; bottom: 30px; width: 250px; border-radius: 36px; box-shadow: 0 40px 80px rgba(0,0,0,0.4); transform: rotate(6deg); }
+.chip { display: inline-flex; align-items: center; gap: 8px; background: var(--gold); color: #0F2A1F; font-weight: 700; font-size: 15px; padding: 10px 20px; border-radius: 40px; width: fit-content; }
+
+/* stats */
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; margin-top: 44px; }
+.stat { background: var(--mint); border-radius: 24px; padding: 26px 24px; display: flex; flex-direction: column; gap: 6px; }
+.stat b { font-size: clamp(34px, 4.4vw, 48px); line-height: 1; font-weight: 800; color: var(--green); letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.stat span { font-size: 14px; color: var(--muted); line-height: 1.45; }
+.split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 56px; align-items: center; }
+.prose { display: flex; flex-direction: column; gap: 16px; max-width: 62ch; }
+
+/* cards */
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.card { background: var(--white); border: 1.5px solid var(--line); border-radius: 22px; padding: 26px 24px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.card p { font-size: 15px; line-height: 1.6; color: var(--muted); }
+.band.white .card { background: var(--mint); border-color: transparent; }
+.band.green .card { background: var(--white); border: 0; }
+.band.green .card h3 { color: var(--green); }
+.band.green .card p { color: var(--muted); }
+.ico { width: 52px; height: 52px; border-radius: 16px; background: var(--green); display: grid; place-items: center; flex: 0 0 auto; }
+.band.green .ico { background: var(--gold); }
+.band.green .ico svg { stroke: #0F2A1F; }
+.ico svg { width: 26px; height: 26px; fill: none; stroke: var(--gold); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* problem list */
+.pains { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.pain { background: var(--white); border-radius: 22px; padding: 26px 24px; display: flex; flex-direction: column; gap: 10px; }
+.pain .n { width: 40px; height: 40px; border-radius: 50%; background: var(--gold); color: #0F2A1F; font-weight: 700; display: grid; place-items: center; font-size: 15px; }
+.pain p { font-size: 15px; color: var(--muted); line-height: 1.6; }
+.question { margin-top: 44px; background: var(--green); color: var(--on-green); border-radius: 28px; padding: 40px 44px; font-size: clamp(22px, 2.8vw, 30px); line-height: 1.35; font-weight: 600; letter-spacing: -0.01em; }
+.question span { color: var(--gold); }
+.question small { display: block; font-size: 13px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); margin-bottom: 12px; font-weight: 700; }
+
+/* tables */
+.tbl { overflow-x: auto; border-radius: 22px; border: 1.5px solid var(--line); background: var(--white); }
+table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 680px; }
+th, td { text-align: left; padding: 15px 18px; border-bottom: 1px solid var(--line); vertical-align: top; line-height: 1.5; }
+th { background: var(--green); color: var(--on-green); font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 600; }
+tr:last-child td { border-bottom: 0; }
+tr.us td { background: #FFF6DE; font-weight: 500; }
+td.y { color: var(--paid); font-weight: 600; }
+td.n { color: #8A9891; }
+td.k { color: #8A5B00; font-weight: 600; }
+.note { font-size: 13px; color: var(--muted); margin-top: 12px; }
+
+/* roles */
+.roles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin-bottom: 28px; }
+.role { background: var(--white); border-radius: 24px; padding: 28px 26px; display: flex; flex-direction: column; gap: 10px; color: var(--ink); }
+.role .av { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; font-size: 26px; font-weight: 700; }
+.band.green .role h3 { color: var(--green); }
+.role p { color: var(--muted) !important; font-size: 15px; }
+.role .pins { display: flex; gap: 8px; } .role .pins i { width: 12px; height: 12px; border-radius: 50%; background: var(--green); display: block; }
+.band.green .tbl { border: 0; }
+
+/* screens */
+.screens { display: flex; gap: 22px; overflow-x: auto; padding-bottom: 14px; scroll-snap-type: x mandatory; }
+.screens figure { margin: 0; flex: 0 0 220px; display: flex; flex-direction: column; gap: 12px; scroll-snap-align: start; }
+.screens img { width: 220px; aspect-ratio: 1 / 2; object-fit: cover; border-radius: 30px; display: block; box-shadow: 0 24px 48px rgba(0,0,0,0.35); }
+.screens figcaption { font-size: 14px; line-height: 1.5; color: var(--on-green-muted); }
+.screens figcaption b { display: block; color: var(--on-green); font-weight: 600; font-size: 15px; }
+.hint { font-size: 13px; color: var(--on-green-muted); margin-top: 6px; }
+
+/* flows */
+.flow { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 64px; align-items: center; }
+.flow.rev > .art { order: -1; }
+.flow .art { display: flex; gap: 20px; justify-content: center; }
+.flow .art img { width: min(240px, 46%); aspect-ratio: 1 / 2; object-fit: cover; border-radius: 30px; box-shadow: 0 30px 60px rgba(16,32,24,0.25); }
+.flow .art img:nth-child(2) { margin-top: 56px; }
+.flow .art.dc { align-items: flex-start; }
+.flow .art img.cardimg { width: min(320px, 56%); aspect-ratio: auto; border-radius: 26px; background: #0F2A1F; }
+.flow .art.dc img:nth-child(2) { width: min(200px, 38%); }
+.steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 18px; }
+.steps li { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 16px; align-items: start; }
+.steps li .n { width: 44px; height: 44px; border-radius: 50%; background: var(--gold); color: #0F2A1F; font-weight: 700; font-size: 18px; display: grid; place-items: center; }
+.steps li b { display: block; color: var(--green); font-size: 18px; }
+.steps li span { color: var(--muted); font-size: 15.5px; }
+.formula { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 8px; }
+.formula span { background: var(--white); border: 1.5px solid var(--line); border-radius: 12px; padding: 8px 14px; font-size: 14.5px; font-weight: 500; }
+.formula i { font-style: normal; font-weight: 700; color: var(--green); }
+.formula .res { background: var(--green); color: var(--on-green); border-color: var(--green); }
+
+/* decisions */
+.decs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.dec { background: var(--mint); border-radius: 24px; padding: 28px 26px; display: flex; flex-direction: column; gap: 10px; }
+.dec .what { font-size: 15.5px; color: var(--ink); }
+.dec .why { font-size: 14.5px; color: var(--muted); border-top: 1.5px dashed #C8D4CD; padding-top: 10px; }
+.dec .why b { color: var(--green); font-weight: 600; }
+
+/* features */
+.feats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.feat { background: var(--white); border-radius: 22px; padding: 22px 22px; display: flex; gap: 16px; align-items: flex-start; }
+.feat h3 { font-size: 17px; }
+.feat p { font-size: 14px; color: var(--muted); line-height: 1.55; margin-top: 2px; }
+
+/* tech */
+.techgrid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: 40px; align-items: start; }
+.versions { display: flex; flex-direction: column; gap: 0; }
+.ver { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 18px; padding: 20px 0; border-bottom: 1.5px dashed var(--line); }
+.ver:last-child { border-bottom: 0; }
+.ver .v { background: var(--green); color: var(--gold); font-weight: 700; font-size: 15px; border-radius: 30px; text-align: center; padding: 6px 0; height: fit-content; font-family: var(--mono); }
+.ver b { color: var(--green); }
+.ver p { font-size: 14.5px; color: var(--muted); }
+.stack { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.stack div { background: var(--mint); border-radius: 18px; padding: 18px 18px; display: flex; flex-direction: column; gap: 4px; }
+.stack span { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #1F6B47; font-weight: 700; }
+.stack b { color: var(--green); font-weight: 600; font-size: 15.5px; line-height: 1.4; }
+.stack p { font-size: 13.5px; color: var(--muted); line-height: 1.5; }
+
+/* trust */
+.trust { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 30px 34px; }
+.trust div { display: flex; flex-direction: column; gap: 8px; border-top: 1px solid rgba(255,255,255,0.18); padding-top: 18px; }
+.trust b { color: var(--on-green); font-weight: 600; font-size: 17px; }
+.trust p { font-size: 15px; }
+
+/* testing */
+.fixes { display: flex; flex-direction: column; gap: 14px; }
+.fix { display: grid; grid-template-columns: minmax(0, 1fr) 40px minmax(0, 1fr); gap: 14px; align-items: center; }
+.fix .bad, .fix .good { border-radius: 18px; padding: 16px 20px; font-size: 15px; line-height: 1.5; }
+.fix .bad { background: #FBEDEB; color: #5B1E19; }
+.fix .good { background: #E7F4EA; color: #134B24; }
+.fix .arrow { width: 40px; height: 40px; border-radius: 50%; background: var(--gold); display: grid; place-items: center; color: #0F2A1F; font-weight: 700; }
+.fixhead { display: grid; grid-template-columns: minmax(0, 1fr) 40px minmax(0, 1fr); gap: 14px; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 700; color: var(--muted); }
+
+/* brand */
+.swatches { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 48px; }
+.sw { border-radius: 22px; padding: 22px 20px; height: 150px; display: flex; flex-direction: column; justify-content: flex-end; gap: 2px; }
+.sw b { font-weight: 600; font-size: 16px; }
+.sw span { font-family: var(--mono); font-size: 13px; }
+.subhead { display: flex; flex-direction: column; gap: 6px; margin: 0 0 20px; max-width: 640px; }
+.subhead p { color: var(--muted); font-size: 15.5px; }
+.reels { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; margin-bottom: 56px; }
+.reels figure { margin: 0; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.reels img { width: 100%; aspect-ratio: 9 / 16; object-fit: cover; border-radius: 18px; display: block; box-shadow: 0 16px 34px rgba(16,32,24,0.18); }
+.reels figcaption { font-size: 14px; color: var(--muted); line-height: 1.4; }
+.reels figcaption b { color: var(--green); display: block; }
+.pages { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.pages img { width: 100%; aspect-ratio: 210 / 297; object-fit: cover; border-radius: 8px; display: block; box-shadow: 0 16px 34px rgba(16,32,24,0.16); }
+
+/* plans */
+.plans { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 18px; }
+.plan { border: 1.5px solid var(--line); border-radius: 24px; padding: 26px 22px; display: flex; flex-direction: column; gap: 6px; }
+.plan .n { font-weight: 700; color: var(--green); font-size: 18px; }
+.plan b { font-size: 38px; font-weight: 800; letter-spacing: -0.03em; color: var(--ink); line-height: 1.1; font-variant-numeric: tabular-nums; }
+.plan b small { font-size: 14px; font-weight: 500; color: var(--muted); letter-spacing: 0; }
+.plan p { font-size: 14px; color: var(--muted); line-height: 1.55; }
+.plan.pop { background: var(--green); border-color: var(--green); }
+.plan.pop .n, .plan.pop b { color: var(--on-green); }
+.plan.pop b { color: var(--gold); }
+.plan.pop p, .plan.pop b small { color: var(--on-green-muted); }
+
+/* learnings */
+.learn { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.learn div { border-radius: 24px; padding: 30px 28px; background: var(--green-2); display: flex; flex-direction: column; gap: 10px; }
+.learn b { color: var(--on-green); font-size: 19px; font-weight: 600; line-height: 1.35; }
+.learn p { font-size: 15px; }
+
+/* next */
+.road { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; position: relative; }
+.road div { background: var(--mint); border-radius: 22px; padding: 24px 22px; display: flex; flex-direction: column; gap: 8px; }
+.road .when { width: fit-content; background: var(--gold); color: #0F2A1F; font-weight: 700; font-size: 13px; border-radius: 20px; padding: 4px 14px; }
+.road div:first-child { background: var(--green); }
+.road div:first-child b { color: var(--on-green); }
+.road div:first-child p { color: var(--on-green-muted); }
+.road b { color: var(--green); font-size: 17px; line-height: 1.35; }
+.road p { font-size: 14.5px; color: var(--muted); }
+
+footer { background: var(--deep); color: var(--on-green-muted); padding-block: 56px; }
+footer .wrap { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; flex-wrap: wrap; }
+footer .brand { display: flex; align-items: center; gap: 18px; }
+footer b { color: var(--on-green); font-size: 48px; font-weight: 800; letter-spacing: -0.05em; line-height: 1; }
+footer p { font-size: 14px; }
+
+@media (max-width: 920px) {
+  .hero .wrap, .split, .flow, .techgrid { grid-template-columns: minmax(0, 1fr); }
+  .hero-text { padding-bottom: 20px; }
+  .hero-art { height: 520px; }
+  .hero-art .p1 { right: auto; left: 8%; }
+  .flow.rev > .art { order: 0; }
+  .stats, .road, .plans, .swatches { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grid3, .pains, .roles, .feats, .trust { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .reels { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .pages { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .band { padding-block: 72px; }
+}
+@media (max-width: 600px) {
+  .grid2, .grid3, .pains, .roles, .feats, .trust, .decs, .learn, .road, .plans, .stack { grid-template-columns: minmax(0, 1fr); }
+  .stats, .swatches { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .reels { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .hero-art { height: 440px; }
+  .hero-art .p1 { width: 210px; left: 2%; }
+  .hero-art .p2 { width: 180px; }
+  .fix, .fixhead { grid-template-columns: minmax(0, 1fr); }
+  .fix .arrow { transform: rotate(90deg); margin: 0 auto; }
+  .fixhead div:nth-child(n+2) { display: none; }
+  .question { padding: 30px 26px; }
+  .meta { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: no-preference) { .screens { scroll-behavior: smooth; } }
+</style>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="hero-text">
+      <div class="logo" aria-hidden="true"><div class="c">₹</div><div class="s"></div></div>
+      <h1>galla</h1>
+      <p class="tag">Billing for small Indian restaurants, <span class="gold">designed for the counter.</span></p>
+      <p class="intro">An offline-first billing app that runs on the Android phone a restaurant already owns and prints to a small Bluetooth printer. Designed, built and tested on real hardware, then launched with its own brand, reels and brochure.</p>
+      <div class="meta">
+        <div><span>Role</span><b>Product designer, product owner</b></div>
+        <div><span>Timeline</span><b>October 2026</b></div>
+        <div><span>Platform</span><b>Android · React Native</b></div>
+        <div><span>Status</span><b>Pilot at a restaurant</b></div>
+      </div>
+    </div>
+    <div class="hero-art" aria-hidden="true">
+      <img class="p1" src="IMG:bill_grid" alt="">
+      <img class="p2" src="IMG:bill_qr" alt="">
+    </div>
+  </div>
+</header>
+
+<main>
+
+<section class="band white" id="overview">
+  <div class="wrap">
+    <div class="split">
+      <div class="head" style="margin-bottom: 0;">
+        <div class="kicker">Overview</div>
+        <h2>A cash box that keeps itself honest.</h2>
+      </div>
+      <div class="prose">
+        <p class="lead"><b style="color: var(--green);">galla</b> is the Hindi word for a shop's cash box, the drawer every Indian shopkeeper guards. The app is about exactly that: billing fast at the counter, and making sure the money in the drawer at night is the money the day earned.</p>
+        <p class="lead">Popular restaurant POS systems are priced and built for bigger outlets. A small dosa counter, a cafe or a family dine-in needs something simpler: correct GST bills, a UPI QR, kitchen slips, and a way to stop cash from quietly going missing.</p>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat"><b>20+</b><span>features covering a full restaurant day</span></div>
+      <div class="stat"><b>₹0</b><span>spent on software, hosting and builds</span></div>
+      <div class="stat"><b>3 roles</b><span>owner, manager and cashier, each with a PIN</span></div>
+      <div class="stat"><b>0 bars</b><span>of signal needed to make a bill</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="band mint" id="problem">
+  <div class="wrap">
+    <div class="head">
+      <div class="kicker">The problem</div>
+      <h2>Small restaurants pay big-restaurant prices for software they half use.</h2>
+    </div>
+    <div class="pains">
+      <div class="pain"><div class="n">1</div><h3>Cost</h3><p>Several thousand rupees a year for software, plus add-ons and dedicated hardware.</p></div>
+      <div class="pain"><div class="n">2</div><h3>Leakage</h3><p>Cash goes missing between billing and closing, hidden behind discounts and cancelled bills.</p></div>
+      <div class="pain"><div class="n">3</div><h3>Internet cuts</h3><p>The connection drops during the lunch rush, and cloud-only billing stops.</p></div>
+      <div class="pain"><div class="n">4</div><h3>Complex screens</h3><p>Staff find dense screens slow and confusing, so they fall back to paper.</p></div>
+      <div class="pain"><div class="n">5</div><h3>GST rules</h3><p>Invoices need running numbers and CGST and SGST; delivery-app orders follow different rules.</p></div>
+      <div class="pain"><div class="n">6</div><h3>Month end</h3><p>The CA asks for GST numbers, and the owner hands over a bag of bills.</p></div>
+    </div>
+    <div class="question"><small>Design question</small>How might we give a small restaurant <span>honest, GST-correct billing</span> on a phone they already own, even when the internet doesn't work?</div>
+  </div>
+</section>
+
+<section class="band white" id="landscape">
+  <div class="wrap">
+    <div class="head">
+      <div class="kicker">Landscape</div>
+      <h2>Where galla fits.</h2>
+      <p class="lead">The big systems do far more, at a far higher cost. Generic GST billing apps are cheap but don't understand tables or kitchens.</p>
+    </div>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Product</th><th>Built for</th><th>Price (listed or estimated)</th><th>Runs on</th><th>Gap for a small restaurant</th></tr></thead>
+        <tbody>
+          <tr class="us"><td>galla</td><td>Counters, cafes, small dine-in</td><td>Free trial; ₹0–₹999 a month planned</td><td>Android phone + 57 mm Bluetooth printer</td><td>No inventory, CRM or online ordering yet</td></tr>
+          <tr><td>Petpooja</td><td>Single and multi-outlet restaurants</td><td>About ₹10,000–₹30,000 a year</td><td>Own devices, cloud with offline mode</td><td>Feature-rich, above a small counter's budget</td></tr>
+          <tr><td>Restroworks (POSist)</td><td>Growing chains</td><td>Custom quote; no free plan</td><td>Cloud POS</td><td>Enterprise focus; costly for single outlets</td></tr>
+          <tr><td>eZee Optimus</td><td>Restaurants of all sizes</td><td>Price on request</td><td>Cloud POS</td><td>Full POS, more than a counter needs</td></tr>
+          <tr><td>Vyapar</td><td>Small shops (general GST billing)</td><td>About ₹699–₹1,599 a plan</td><td>Phone and desktop</td><td>No tables or kitchen slips</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">Prices from public listings and third-party estimates at the time of research (Techjockey, DineOpen, PricingSaaS, G2); they change often.</p>
+  </div>
+</section>
+
+<section class="band green" id="users">
+  <div class="wrap">
+    <div class="head">
+      <div class="kicker">Who it's for</div>
+      <h2>Three people share one phone.</h2>
+      <p class="lead">Speed for the cashier and control for the owner pull in different directions. Roles and PINs let both win.</p>
+    </div>
+    <div class="roles">
+      <div class="role"><div class="av" style="background: var(--gold); color: #0F2A1F;">O</div><h3>Owner</h3><p>Not at the shop every hour. Needs to trust the cash count, approve discounts and hand clean files to the CA.</p><div class="pins" aria-hidden="true"><i></i><i></i><i></i><i></i></div></div>
+      <div class="role"><div class="av" style="background: var(--green); color: var(--gold);">M</div><h3>Manager</h3><p>Runs the floor at rush hour, approves a discount, and closes the day when the owner is away.</p><div class="pins" aria-hidden="true"><i></i><i></i><i></i><i></i></div></div>
+      <div class="role"><div class="av" style="background: #DCE4DF; color: var(--green);">C</div><h3>Cashier</h3><p>Bills all day. Needs big buttons, plain words, and nothing that slows the queue.</p><div class="pins" aria-hidden="true"><i></i><i></i><i></i><i></i></div></div>
+    </div>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>What</th><th>Owner</th><th>Manager</th><th>Cashier</th></tr></thead>
+        <tbody>
+          <tr><td>Billing, tables, kitchen slips</td><td class="y">Yes</td><td class="y">Yes</td><td class="y">Yes</td></tr>
+          <tr><td>Give a discount or cancel a bill</td><td class="y">Yes</td><td class="y">Yes</td><td class="k">Needs owner or manager PIN</td></tr>
+          <tr><td>Close the day</td><td class="y">Sees expected cash</td><td class="y">Sees expected cash</td><td class="k">Blind count</td></tr>
+          <tr><td>Insights</td><td class="y">All periods</td><td class="y">Today</td><td class="n">No</td></tr>
+          <tr><td>Remove an expense, see older bills</td><td class="y">Yes</td><td class="y">Yes</td><td class="n">No</td></tr>
+          <tr><td>Menu, staff, printer, export for CA, backup</td><td class="y">Yes</td><td class="n">No</td><td class="n">No</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="band mint" id="principles">
+  <div class="wrap">
+    <div class="head">
+      <div class="kicker">Design principles</div>
+      <h2>Six rules every screen had to pass.</h2>
+    </div>
+    <div class="grid3">
+      <div class="card"><div class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 8.5a15 15 0 0 1 20 0"/><path d="M5.5 12a10 10 0 0 1 13 0"/><path d="M9 15.5a5 5 0 0 1 6 0"/><circle cx="12" cy="19" r="1"/><path d="M3 3l18 18"/></svg></div><h3>Offline first</h3><p>Every bill is saved on the phone before anything else. The internet is never needed to bill.</p></div>
+      <div class="card"><div class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/></svg></div><h3>The phone they own</h3><p>No billing machine, tablet or computer. A cheap 57 mm Bluetooth printer is optional.</p></div>
+      <div class="card"><div class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div><h3>Built against leakage</h3><p>Personal PINs, approvals for discounts and cancellations, nothing deleted, blind cash counts.</p></div>
+      <div class="card"><div class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg></div><h3>GST done right</h3><p>Invoice numbers per financial year, CGST and SGST on every bill, delivery-app orders taxed correctly.</p></div>
+      <div class="card"><div class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div><h3>Simple by design</h3><p>Four bottom tabs, big touch targets, plain words. A new cashier learns it in five minutes.</p></div>
+      <div class="card"><div class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v20M17 6.5c0-1.9-2.2-3.5-5-3.5s-5 1.6-5 3.5S9.2 10 12 10s5 1.6 5 3.5S14.8 17 12 17s-5-1.6-5-3.5"/></svg></div><h3>Free to run</h3><p>Every service on a free plan. Low running cost means a low price for a small restaurant.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="band green" id="screens">
+  <div class="wrap">
+    <div class="head">
+      <div class="kicker">The app</div>
+      <h2>A day at the counter, screen by screen.</h2>
+    </div>
+    <div class="screens" tabindex="0" aria-label="App screens, scroll sideways">
+      <figure><img src="IMG:bill_grid" alt="Counter screen with dish tiles and an Offline chip"><figcaption><b>Counter</b>Tap a dish, tap again for two. The Offline chip says billing still works.</figcaption></figure>
+      <figure><img src="IMG:bill_sheet" alt="Bill sheet with GST and payment choices"><figcaption><b>Bill sheet</b>Totals and GST worked out. Cash, UPI or card.</figcaption></figure>
+      <figure><img src="IMG:bill_qr" alt="UPI QR with the amount filled in"><figcaption><b>UPI QR</b>The amount is already in the QR.</figcaption></figure>
+      <figure><img src="IMG:tables" alt="Tables with running totals"><figcaption><b>Tables</b>Busy and free tables, each with its running bill.</figcaption></figure>
+      <figure><img src="IMG:order" alt="Table order with new items marked"><figcaption><b>Table order</b>Only new items go to the kitchen.</figcaption></figure>
+      <figure><img src="IMG:pin" alt="PIN keypad for approving a discount"><figcaption><b>PIN approval</b>A cashier's discount waits for an owner or manager PIN.</figcaption></figure>
+      <figure><img src="IMG:approved" alt="Bill with an approved discount"><figcaption><b>On record</b>Who approved it, and why, stays on the bill.</figcaption></figure>
+      <figure><img src="IMG:chat" alt="Day close summary as a message"><figcaption><b>Day-end report</b>The summary goes to the owner on WhatsApp.</figcaption></figure>
+      <figure><img src="IMG:reports" alt="Insights with monthly sales and top items"><figcaption><b>Insights</b>Today, 7 or 30 days, with best sellers.</figcaption></figure>
+      <figure><img src="IMG:export" alt="Export for CA with five files"><figcaption><b>Export for CA</b>Five CSV files for Excel or Sheets.</figcaption></figure>
+    </div>
+    <p class="hint">Scroll sideways to see all ten screens.</p>
+  </div>
+</section>
+
+<section class="band white" id="billing">
+  <div class="wrap flow">
+    <div style="display: flex; flex-direction: column; gap: 24px;">
+      <div class="head" style="margin-bottom: 0;">
+        <div class="kicker">Core flow</div>
+        <h2>A bill in three taps.</h2>
+      </div>
+      <ol class="steps">
+        <li><div class="n">1</div><div><b>Tap the dish</b><span>Tiles show ADD, then turn into a −/+ stepper. Long-press marks a dish out of stock.</span></div></li>
+        <li><div class="n">2</div><div><b>Pick payment</b><span>UPI opens a QR with the exact amount, so the customer never types it.</span></div></li>
+        <li><div class="n">3</div><div><b>Print or WhatsApp</b><span>A tax invoice with GSTIN, FSSAI and a running invoice number, plus a daily token.</span></div></li>
+      </ol>
+    </div>
+    <div class="art"><img src="IMG:bill_grid" alt="Counter screen"><img src="IMG:bill_sheet" alt="Bill sheet"></div>
+  </div>
+</section>
+
+<section class="band mint" id="dayclose">
+  <div class="wrap flow rev">
+    <div style="display: flex; flex-direction: column; gap: 20px;">
+      <div class="head" style="margin-bottom: 0;">
+        <div class="kicker">Core flow</div>
+        <h2>Closing the day without accusing anyone.</h2>
+      </div>
+      <p class="lead">At night galla works out what should be in the drawer. A cashier counts without seeing that number, a blind count, so the result is honest. The app then says matches, short or extra, and the report can be printed or sent to the owner.</p>
+      <div class="formula" aria-label="Expected cash formula">
+        <span>Start cash</span><i>+</i><span>Cash bills</span><i>−</i><span>Paid out</span><i>=</i><span class="res">Expected in drawer</span>
+      </div>
+    </div>
+    <div class="art dc"><img class="cardimg" src="IMG:dayclose_card" alt="Day close card: expected cash, counted cash, and Cash matches"><img src="IMG:chat" alt="Day-end report sent to the owner"></div>
+  </div>
+</section>
+
+<section class="band white" id="decisions">
+  <div class="wrap">
+    <div class="head">
+      <div class="kicker">Key decisions</div>
+      <h2>The calls that shaped it.</h2>
+    </div>
+    <div class="decs">
+      <div class="dec"><h3>Save locally first, always</h3><p class="what">One database file per restaurant, on the phone. Billing never waits for a network.</p><p class="why"><b>Trade-off:</b> no live multi-phone sync in version one; backups are a file the owner shares.</p></div>
+      <div class="dec"><h3>A maximum of four tabs</h3><p class="what">Orders, Bills, Insights, Profile. Owner tools live in Profile.</p><p class="why"><b>Trade-off:</b> owner-only tools sit one level deeper, keeping the cashier's view clean.</p></div>
+      <div class="dec"><h3>Blind count for cashiers</h3><p class="what">Cashiers count the drawer without seeing the expected total.</p><p class="why"><b>Why:</b> when the target is visible, a short drawer gets "found" money.</p></div>
+      <div class="dec"><h3>Nothing is ever deleted</h3><p class="what">Cancelled bills stay visible, struck through, with who cancelled and why.</p><p class="why"><b>Why:</b> deletion is how leakage hides. A permanent record protects honest staff too.</p></div>
+      <div class="dec"><h3>Delivery-app orders carry no GST</h3><p class="what">Zomato and Swiggy orders are entered with their order ID; duplicates are blocked.</p><p class="why"><b>Why:</b> under Section 9(5) the platform pays GST on these orders, not the restaurant.</p></div>
+      <div class="dec"><h3>UPI QR only on the table bill</h3><p class="what">The printed QR appears on the bill a guest sees at the table, not on the final invoice.</p><p class="why"><b>Why:</b> the QR is for paying; once paid, the invoice just says how.</p></div>
+      <div class="dec"><h3>"Rs" on paper, "₹" on screen</h3><p class="what">Receipts print 32 characters a line, plain characters only.</p><p class="why"><b>Why:</b> many cheap thermal printers can't print ₹. Design for the real printer.</p></div>
+      <div class="dec"><h3>One owner, many restaurants</h3><p class="what">An early build blocked a second sign-up on one phone. I reversed it.</p><p class="why"><b>Why:</b> owners often run two outlets. Each restaurant now gets its own file.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="band mint" id="features">
+  <div class="wrap">
+    <div class="head">
+      <div class="kicker">Scope</div>
+      <h2>What shipped in version 0.3.</h2>
+    </div>
+    <div class="feats">
+      <div class="feat"><div class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg></div><div><h3>Counter billing</h3><p>Search, categories, tokens, Cash / UPI / Card, out-of-stock by long-press.</p></div></div>
+      <div class="feat"><div class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div><div><h3>Tables and kitchen</h3><p>Floor view, kitchen slips with notes, only new items, CANCEL lines.</p></div></div>
+      <div class="feat"><div class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h13M12 6l6 6-6 6"/><circle cx="20" cy="12" r="1.5"/></svg></div><div><h3>Delivery apps</h3><p>Zomato and Swiggy entry with order ID; duplicates blocked.</p></div></div>
+      <div class="feat"><div class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg></div><div><h3>GST invoices</h3><p>0, 5 or 18%; prices with or without GST; INV-year-serial numbers.</p></div></div>
+      <div class="feat"><div class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12l-8 8-9-9V3h8z"/><circle cx="7.5" cy="7.5" r="1.2"/></svg></div><div><h3>Discounts</h3><p>Percent or rupees with a reason; PIN needed for cashiers.</p></div></div>
+      <div class="feat"><div class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></div><div><h3>Bills history</h3><p>Search, receipt view, reprint, WhatsApp, cancel with reason.</p></div></div>
+      <div class="feat"><div class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg></div><div><h3>Insights</h3><p>Today, 7 or 30 days, with comparison, top items and payment split.</p></div></div>
+      <div class="feat"><div class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg></div><div><h3>Day closing</h3><p>Expected cash, count by notes, short or extra, print and share.</p></div></div>
+      <div class="feat"><div class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 21h16"/></svg></div><div><h3>Export for CA</h3><p>Bill register, GST summary, day-wise, item-wise and expenses as CSV.</p></div></div>
+      <div class="feat"><div class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/></svg></div><div><h3>Bluetooth printing</h3><p>Bills, kitchen slips, table bill with QR, day close, test page.</p></div></div>
+      <div class="feat"><div class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M17 7.5a3 3 0 0 1 0 5.5M19.5 20a5.5 5.5 0 0 0-3-5"/></svg></div><div><h3>Staff and roles</h3><p>Owner, manager, cashier; unique PINs; "billed by" on every bill.</p></div></div>
+      <div class="feat"><div class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18M5 21V9l7-5 7 5v12"/><path d="M10 21v-6h4v6"/></svg></div><div><h3>Many restaurants</h3><p>One phone holds several restaurants; backup and restore anywhere.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="band white" id="build">
+  <div class="wrap">
+    <div class="head">
+      <div class="kicker">Build</div>
+      <h2>From prototype to an installed app.</h2>
+      <p class="lead">Screens were tested live on an iPhone during development, then built as a signed Android app and installed from a QR code, no app store needed. A small native module lets the phone talk to the printer directly.</p>
+    </div>
+    <div class="techgrid">
+      <div class="versions">
+        <div class="ver"><div class="v">v0.1</div><div><b>First Android app</b><p>Billing, tables, kitchen slips, bills and insights on a real phone.</p></div></div>
+        <div class="ver"><div class="v">v0.2</div><div><b>Bluetooth printing</b><p>Bills print on a 57 mm BluPrints printer, 32 characters a line.</p></div></div>
+        <div class="ver"><div class="v">v0.3</div><div><b>Trust release</b><p>Encryption, terms and privacy, quick start and crash reports.</p></div></div>
+      </div>
+      <div class="stack">
+        <div><span>Framework</span><b>React Native + Expo</b><p>One codebase; Android now, iPhone later.</p></div>
+        <div><span>Language</span><b>TypeScript</b><p>Catches mistakes before the app runs.</p></div>
+        <div><span>Data</span><b>SQLite + SQLCipher</b><p>Offline, fast and encrypted on the phone.</p></div>
+        <div><span>Printing</span><b>Kotlin module + ESC/POS</b><p>Straight to cheap Bluetooth printers.</p></div>
+        <div><span>Security</span><b>Android Keystore, hashed PINs</b><p>Data unreadable if copied off the phone.</p></div>
+        <div><span>Delivery</span><b>EAS Build and Update</b><p>Signed APKs and updates without reinstalling.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band green" id="trust">
+  <div class="wrap">
+    <div class="head">
+      <div class="kicker">Trust and privacy</div>
+      <h2>A restaurant's sales are theirs.</h2>
+      <p class="lead">Billing data is sensitive business information, so privacy was designed in, not written up afterwards.</p>
+    </div>
+    <div class="trust">
+      <div><b>Encrypted on the phone</b><p>Each restaurant's data is encrypted. Old files are converted with a row-count check, and left untouched if anything fails.</p></div>
+      <div><b>PINs, hashed</b><p>Every person has a unique PIN, stored only as a salted hash. Phone backups are off, so data can't be restored without its key.</p></div>
+      <div><b>Consent that means something</b><p>Terms and a Privacy Notice written to India's DPDP Act, with a Hindi summary. Contact permission is optional.</p></div>
+      <div><b>Customer numbers not kept</b><p>A guest's WhatsApp number only opens WhatsApp. It is never saved.</p></div>
+      <div><b>Crash reports stay local</b><p>Saved on the phone without bills or customer details, and sent only if the owner chooses.</p></div>
+      <div><b>Rules for our own dashboard</b><p>The planned dashboard shows service health only; restaurant numbers only with opt-in, combined across five or more.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="band white" id="testing">
+  <div class="wrap">
+    <div class="head">
+      <div class="kicker">Testing</div>
+      <h2>What real phones taught me.</h2>
+      <p class="lead">Tested on an iPhone and an Android phone with a BluPrints 57 mm printer, against a written test list.</p>
+    </div>
+    <div class="fixes">
+      <div class="fixhead"><div>Found in testing</div><div></div><div>Fix</div></div>
+      <div class="fix"><div class="bad">The Offline chip never appeared on iPhone in airplane mode.</div><div class="arrow" aria-hidden="true">→</div><div class="good">Airplane mode can keep Wi-Fi on; the app now checks real network state on a timer.</div></div>
+      <div class="fix"><div class="bad">Bottom sheets were cut off and couldn't be dragged; one opened mid-screen.</div><div class="arrow" aria-hidden="true">→</div><div class="good">One shared bottom sheet: slides up from the bottom, swipe down to close.</div></div>
+      <div class="fix"><div class="bad">Receipts lost their indentation; "₹" and "·" printed as junk.</div><div class="arrow" aria-hidden="true">→</div><div class="good">Spacing kept; printed text limited to plain characters, with "Rs" for rupees.</div></div>
+      <div class="fix"><div class="bad">In grids of three, the last tile stretched to full width.</div><div class="arrow" aria-hidden="true">→</div><div class="good">Invisible spacer tiles keep every tile the same size.</div></div>
+      <div class="fix"><div class="bad">A second restaurant on one phone was blocked as "already signed up".</div><div class="arrow" aria-hidden="true">→</div><div class="good">Several restaurants per phone, one encrypted file each.</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="band mint" id="brand">
+  <div class="wrap">
+    <div class="head">
+      <div class="kicker">Brand and launch</div>
+      <h2>A name from the counter, colours from the kitchen.</h2>
+      <p class="lead">The icon is a gold coin dropping into a cash-box slot. Curry-leaf green stands for trust, turmeric for action.</p>
+    </div>
+    <div class="swatches">
+      <div class="sw" style="background: #17382A; color: #FFFFFF;"><b>Curry leaf</b><span>#17382A</span></div>
+      <div class="sw" style="background: #F2B01E; color: #0F2A1F;"><b>Turmeric</b><span>#F2B01E</span></div>
+      <div class="sw" style="background: #FFFFFF; color: #102018; border: 1.5px solid #DCE4DF;"><b>Rice paper</b><span>#FFFFFF / #F1F5F2</span></div>
+      <div class="sw" style="background: #1B8A3A; color: #FFFFFF;"><b>Paid green</b><span>#1B8A3A</span></div>
+    </div>
+    <div class="subhead"><h3>Five Instagram reels</h3><p>Captions for sound-off viewing and a soundtrack composed from scratch, so there are no music licences.</p></div>
+    <div class="reels">
+      <figure><img src="IMG:r_main" alt="Reel: Internet gone?"><figcaption><b>Main reel</b>25 s · the full story</figcaption></figure>
+      <figure><img src="IMG:r_rush" alt="Reel: Every table full"><figcaption><b>Rush hour</b>22 s · tables, kitchen</figcaption></figure>
+      <figure><img src="IMG:r_owner" alt="Reel: Not at your shop?"><figcaption><b>Owner away</b>23 s · PINs, reports</figcaption></figure>
+      <figure><img src="IMG:r_month" alt="Reel: Month end"><figcaption><b>Month end</b>22 s · CA exports</figcaption></figure>
+      <figure><img src="IMG:r_soon" alt="Reel: Coming soon"><figcaption><b>Coming soon</b>15 s · teaser</figcaption></figure>
+    </div>
+    <div class="subhead"><h3>An 8-page brochure</h3><p>For owners who prefer paper: why switch, how billing works, a day with galla, features, sample bills, FAQs and plans.</p></div>
+    <div class="pages">
+      <img src="IMG:bro-1" alt="Brochure cover">
+      <img src="IMG:bro-2" alt="Brochure: still billing on paper?">
+      <img src="IMG:bro-4" alt="Brochure: a day with galla">
+      <img src="IMG:bro-8" alt="Brochure: plans and contact">
+    </div>
+  </div>
+</section>
+
+<section class="band white" id="business">
+  <div class="wrap">
+    <div class="head">
+      <div class="kicker">Business model</div>
+      <h2>A flat monthly price. No contract.</h2>
+    </div>
+    <div class="plans">
+      <div class="plan"><span class="n">Free</span><b>₹0</b><p>Counter billing on one phone, today's sales, backup file.</p></div>
+      <div class="plan"><span class="n">Starter</span><b>₹499<small> /month</small></b><p>Tables, staff PINs and roles, UPI QR and WhatsApp bills.</p></div>
+      <div class="plan pop"><span class="n">Pro</span><b>₹999<small> /month</small></b><p>Printing and kitchen slips, Zomato and Swiggy, daily sales on WhatsApp.</p></div>
+      <div class="plan"><span class="n">Business</span><b>₹1,499<small> /month</small></b><p>Planned: more phones together and priority support.</p></div>
+    </div>
+    <div class="grid2">
+      <div class="card"><h3>Upgrading without a payment gateway</h3><p>The owner picks a plan, pays a UPI ID with a reference and enters the UPI transaction number. Once checked and approved, the plan switches on. Data is never deleted when a plan lapses.</p></div>
+      <div class="card"><h3>Running costs today: ₹0</h3><p>Code hosting, test builds, Android builds (15 a month free) and over-the-air updates (1,000 phones free) all run on free plans.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="band green" id="learnings">
+  <div class="wrap">
+    <div class="head">
+      <div class="kicker">Reflection</div>
+      <h2>What I learned.</h2>
+    </div>
+    <div class="learn">
+      <div><b>Design for the drawer, not just the screen</b><p>The hardest problems were about trust: who can give a discount, who sees the expected cash, what can never be deleted. Permission design is UX.</p></div>
+      <div><b>The real device is the real spec</b><p>A ₹ sign that looks perfect on screen prints as junk on a thermal printer. Airplane mode behaves differently on iPhone. Real hardware changed decisions I thought were final.</p></div>
+      <div><b>One early principle decides a hundred later ones</b><p>"Save on the phone first" shaped backups, multi-restaurant support, encryption and the cloud plan. Getting it right early made later choices easy.</p></div>
+      <div><b>Real testing beats polishing in the dark</b><p>Testing a working app on real phones and a real printer surfaced problems no mockup review would have found.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="band white" id="next">
+  <div class="wrap">
+    <div class="head">
+      <div class="kicker">What's next</div>
+      <h2>From prototype to a real counter.</h2>
+    </div>
+    <div class="road">
+      <div><span class="when">Now</span><b>Pilot at a restaurant</b><p>Real orders, real rush hours, and a real night-time cash count.</p></div>
+      <div><span class="when">Next</span><b>Cloud backup and plan requests</b><p>After a new Privacy Notice version is accepted by owners.</p></div>
+      <div><span class="when">Then</span><b>Owner dashboard</b><p>Trials, plan approvals and service health, with no access to sales.</p></div>
+      <div><span class="when">Later</span><b>Trial with 3–4 restaurants</b><p>After a legal review. Then mobile-number sign-in and the Play Store.</p></div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="brand"><div class="logo" aria-hidden="true"><div class="c">₹</div><div class="s"></div></div><b>galla</b></div>
+    <div><p>Case study by Jasdeep Singh · Product design · October 2026</p><p>Sample shop names and figures in screens are illustrative.</p></div>
+  </div>
+</footer>
