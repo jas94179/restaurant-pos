@@ -42,6 +42,8 @@ import PreBillSheet from '../components/PreBillSheet';
 import DiscountSheet, { discountAmount, discountLabel, type Discount } from '../components/DiscountSheet';
 import NoteSheet from '../components/NoteSheet';
 import KotSheet from '../components/KotSheet';
+import { printReceipt } from '../print/print';
+import { billReceipt, kotReceipt, preBillReceipt } from '../print/receipts';
 import { billText } from '../utils/billText';
 import { colors, fonts } from '../theme';
 
@@ -178,7 +180,20 @@ export default function BillingScreen({ tableNo, onBackToTables, onTableSettled 
     if (tableNo == null || pendingKot.length === 0) return;
     const kot = createKot({ tableNo, items: pendingKot, staffName: getCurrentUser()?.name });
     setSentQty(getSentQty(tableNo));
-    setKotView(kot);
+    if (settings.autoPrintKot) printKot(kot);
+    else setKotView(kot);
+  }
+
+  async function printBill(billId: string) {
+    const detail = getBillDetail(billId);
+    if (!detail) return;
+    const err = await printReceipt(billReceipt({ name: settings.restaurantName, gstin: settings.gstin }, detail));
+    if (err) Alert.alert('Print', err);
+  }
+
+  async function printKot(kot: Kot) {
+    const err = await printReceipt(kotReceipt(kot));
+    if (err) Alert.alert('Kitchen slip', err);
   }
 
   // Save / settle button. Warn before settling a table with items the kitchen never got.
@@ -258,18 +273,21 @@ export default function BillingScreen({ tableNo, onBackToTables, onTableSettled 
         : (PAYMENT_MODES.find((m) => m.key === paymentMode)?.label ?? '');
       setLastBill({ id: saved.id, token: saved.token, invoiceNo: saved.invoiceNo, total, mode: modeLabel, tableNo });
       // Counter and delivery orders go to the kitchen when the bill is saved.
+      let kot: Kot | null = null;
       if (!isTable) {
-        setLastKot(
-          createKot({
-            token: saved.token,
-            billId: saved.id,
-            staffName: getCurrentUser()?.name,
-            items: cartLines.map(({ item, qty }) => ({ itemId: item.id, name: item.name, qty, note: notes[item.id] })),
-          }),
-        );
-      } else {
-        setLastKot(null);
+        kot = createKot({
+          token: saved.token,
+          billId: saved.id,
+          staffName: getCurrentUser()?.name,
+          items: cartLines.map(({ item, qty }) => ({ itemId: item.id, name: item.name, qty, note: notes[item.id] })),
+        });
       }
+      setLastKot(kot);
+      // One print job after another: the printer takes one connection at a time.
+      (async () => {
+        if (settings.autoPrintBill) await printBill(saved.id);
+        if (settings.autoPrintKot && kot) await printKot(kot);
+      })();
       setDiscount(null);
       setToken(getNextToken());
       setPaymentMode('cash');
@@ -309,10 +327,14 @@ export default function BillingScreen({ tableNo, onBackToTables, onTableSettled 
 
       {lastBill && (
         <View style={styles.banner}>
-          <Text style={[styles.bannerText, { flex: 1 }]}>
+          <Text style={styles.bannerText}>
             {lastBill.tableNo != null ? `Table ${lastBill.tableNo} settled` : `Bill saved · Token #${lastBill.token}`} ·{' '}
             {formatRupees(lastBill.total)} · {lastBill.mode}
           </Text>
+          <View style={styles.bannerActions}>
+          <Pressable onPress={() => printBill(lastBill.id)} style={styles.printBtn} accessibilityRole="button">
+            <Text style={styles.printText}>Print bill</Text>
+          </Pressable>
           <Pressable
             onPress={() => {
               const detail = getBillDetail(lastBill.id);
@@ -328,6 +350,7 @@ export default function BillingScreen({ tableNo, onBackToTables, onTableSettled 
               <Text style={styles.kitchenText}>Kitchen slip</Text>
             </Pressable>
           )}
+          </View>
         </View>
       )}
 
@@ -589,6 +612,17 @@ export default function BillingScreen({ tableNo, onBackToTables, onTableSettled 
           total={total}
           upiId={settings.upiId}
           onClose={() => setShowPreBill(false)}
+          onPrint={async () => {
+            const err = await printReceipt(
+              preBillReceipt(
+                { name: settings.restaurantName, gstin: settings.gstin, upiId: settings.upiId },
+                tableNo,
+                cartLines.map(({ item, qty, amount }) => ({ name: item.name, qty, amount })),
+                { subtotal, gst, gstRate: tax.gstRate, discount: discountAmt, itemsSum, total },
+              ),
+            );
+            if (err) Alert.alert('Print', err);
+          }}
           onShare={() => {
             setShowPreBill(false);
             setShareText(
@@ -720,8 +754,11 @@ const styles = StyleSheet.create({
   header: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   title: { fontSize: 22, fontFamily: fonts.bold, color: INK },
   subtitle: { fontFamily: fonts.regular, fontSize: 14, color: MUTED },
-  banner: { marginHorizontal: 16, marginBottom: 8, padding: 10, borderRadius: 10, backgroundColor: '#E6F4EA', flexDirection: 'row', alignItems: 'center', gap: 10 },
-  kitchenBtn: { paddingHorizontal: 12, height: 32, borderRadius: 8, backgroundColor: colors.turmeric, justifyContent: 'center', marginLeft: 8 },
+  banner: { marginHorizontal: 16, marginBottom: 8, padding: 10, borderRadius: 10, backgroundColor: '#E6F4EA', gap: 8 },
+  bannerActions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  printBtn: { paddingHorizontal: 12, height: 32, borderRadius: 8, backgroundColor: colors.brand, justifyContent: 'center' },
+  printText: { fontFamily: fonts.semibold, fontSize: 13, color: colors.paper },
+  kitchenBtn: { paddingHorizontal: 12, height: 32, borderRadius: 8, backgroundColor: colors.turmeric, justifyContent: 'center' },
   kitchenText: { fontFamily: fonts.semibold, fontSize: 13, color: colors.brandDeep },
   waBtn: { paddingHorizontal: 12, height: 32, borderRadius: 8, backgroundColor: '#1F8F4E', justifyContent: 'center' },
   waText: { fontFamily: fonts.bold, fontSize: 13, color: colors.paper },

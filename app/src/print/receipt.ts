@@ -4,7 +4,13 @@
 
 export const WIDTH = 32;
 
-export type ReceiptLine = { text: string; bold?: boolean; big?: boolean; align?: 'left' | 'center' };
+export type ReceiptLine = {
+  text: string;
+  bold?: boolean;
+  big?: boolean;
+  align?: 'left' | 'center';
+  qr?: string; // print a QR code with this content (text is shown when QR can't print)
+};
 
 // Plain "Rs 1,234.50" (thermal printers often can't print the ₹ symbol).
 export function rs(paise: number): string {
@@ -39,6 +45,11 @@ export class Receipt {
       parts.forEach((p) => this.lines.push({ text: p, bold }));
       this.lines.push({ text: last + ' '.repeat(WIDTH - last.length - value.length) + value, bold });
     }
+    return this;
+  }
+
+  qr(data: string, fallbackText: string) {
+    this.lines.push({ text: fallbackText, align: 'center', qr: data });
     return this;
   }
 

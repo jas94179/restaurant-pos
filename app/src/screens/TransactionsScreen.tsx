@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, SectionList, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Pressable, ScrollView, SectionList, StyleSheet, Text, TextInput, View } from 'react-native';
 import { BillDetail, BillListRow, dayKey, getBillDetail, getBillList, modeLabel as labelForMode } from '../db/database';
 import { useSettings } from '../data/settingsStore';
 import { can, useCurrentUser } from '../data/staffStore';
 import { formatRupees } from '../utils/money';
 import { billText } from '../utils/billText';
 import BottomSheet from '../components/BottomSheet';
+import { printReceipt } from '../print/print';
+import { billReceipt } from '../print/receipts';
 import WhatsAppShareSheet from '../components/WhatsAppShareSheet';
 import CancelBillSheet from '../components/CancelBillSheet';
 import { colors, fonts } from '../theme';
@@ -323,6 +325,16 @@ function BillSheet({ bill, onClose, onChanged }: { bill: BillDetail; onClose: ()
               <Text style={styles.waText}>Send on WhatsApp</Text>
             </Pressable>
           )}
+          <Pressable
+            style={styles.closeBtn}
+            onPress={async () => {
+              const err = await printReceipt(billReceipt({ name: settings.restaurantName, gstin: settings.gstin }, bill));
+              if (err) Alert.alert('Print', err);
+            }}
+            accessibilityRole="button"
+          >
+            <Text style={styles.closeText}>Print bill</Text>
+          </Pressable>
           <Pressable style={styles.closeBtn} onPress={onClose} accessibilityRole="button">
             <Text style={styles.closeText}>Close</Text>
           </Pressable>

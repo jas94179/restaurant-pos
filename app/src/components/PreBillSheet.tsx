@@ -21,6 +21,7 @@ type Props = {
   total: number;
   upiId: string;
   onShare: () => void;
+  onPrint: () => void;
   onClose: () => void;
 };
 
@@ -40,6 +41,7 @@ export default function PreBillSheet({
   total,
   upiId,
   onShare,
+  onPrint,
   onClose,
 }: Props) {
   const insets = useSafeAreaInsets();
@@ -51,7 +53,10 @@ export default function PreBillSheet({
       footer={
         <View style={styles.actions}>
           <Pressable style={[styles.btn, styles.btnGhost]} onPress={onShare} accessibilityRole="button">
-            <Text style={styles.btnGhostText}>Send on WhatsApp</Text>
+            <Text style={styles.btnGhostText}>WhatsApp</Text>
+          </Pressable>
+          <Pressable style={[styles.btn, styles.btnGhost]} onPress={onPrint} accessibilityRole="button">
+            <Text style={styles.btnGhostText}>Print</Text>
           </Pressable>
           <Pressable style={[styles.btn, styles.btnPrimary]} onPress={onClose} accessibilityRole="button">
             <Text style={styles.btnPrimaryText}>Done</Text>

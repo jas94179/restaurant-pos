@@ -18,6 +18,7 @@ type Props = {
   onOpenDayClose: () => void;
   onOpenExport: () => void;
   onOpenExpenses: () => void;
+  onOpenPrinter: () => void;
   onLock: () => void;
 };
 
@@ -25,7 +26,7 @@ const OUTLET_LABEL = { counter: 'Counter', dine_in: 'Dine-in', both: 'Counter an
 
 // The restaurant's profile, plus everything used less often than billing,
 // so the bottom bar never grows past four tabs.
-export default function ProfileScreen({ onOpenMenu, onOpenStaff, onOpenStock, onOpenBackup, onOpenRestaurant, onOpenPlan, onOpenDayClose, onOpenExport, onOpenExpenses, onLock }: Props) {
+export default function ProfileScreen({ onOpenMenu, onOpenStaff, onOpenStock, onOpenBackup, onOpenRestaurant, onOpenPlan, onOpenDayClose, onOpenExport, onOpenExpenses, onOpenPrinter, onLock }: Props) {
   const settings = useSettings();
   const menu = useMenu();
   const user = useCurrentUser();
@@ -101,6 +102,11 @@ export default function ProfileScreen({ onOpenMenu, onOpenStaff, onOpenStock, on
               onPress={onOpenRestaurant}
             />
             <Row
+              title="Printer"
+              detail={settings.printerName ? `${settings.printerName}${settings.autoPrintBill ? ', auto-print on' : ''}` : 'Bluetooth receipt printer, 57 mm'}
+              onPress={onOpenPrinter}
+            />
+            <Row
               title="Export sales for CA"
               detail="Bill register, GST summary, day-wise, items, expenses"
               onPress={onOpenExport}
@@ -117,7 +123,7 @@ export default function ProfileScreen({ onOpenMenu, onOpenStaff, onOpenStock, on
           </Group>
 
           <Group title="Coming soon">
-            <Row title="Printers" detail="Bill and kitchen slips" soon />
+
             <Row title="Import menu" detail="Load your menu from a photo" soon />
           </Group>
 

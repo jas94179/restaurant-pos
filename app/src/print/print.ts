@@ -1,8 +1,11 @@
-// Printing. For now this opens the phone's print screen (any printer, or save as PDF)
-// with a 57 mm wide page. In the custom Android build, the same receipt lines will be
-// sent directly to the Bluetooth thermal printer.
+// Printing. In the installed Android app with a printer chosen (Profile → Printer),
+// receipts go straight to the Bluetooth thermal printer. Otherwise (Expo Go, iPhone,
+// no printer chosen) the phone's print screen opens with a 57 mm page (print or PDF).
 import * as Print from 'expo-print';
 import type { ReceiptLine } from './receipt';
+import { encodeReceipt } from './escpos';
+import { bluetoothPrintingAvailable, sendToPrinter } from './bluetooth';
+import { getSettings } from '../data/settingsStore';
 
 // 57 mm paper is about 162 points wide at 72 points per inch.
 const PAGE_WIDTH = 162;
@@ -21,6 +24,7 @@ function toHtml(lines: ReceiptLine[]): string {
       ]
         .filter(Boolean)
         .join(';');
+      if (l.qr) return `<div style="text-align:center;margin:6px 0">[QR] ${escape(l.text)}</div>`;
       return `<div style="${style}">${escape(l.text) || '&nbsp;'}</div>`;
     })
     .join('');
@@ -30,8 +34,12 @@ function toHtml(lines: ReceiptLine[]): string {
   </style></head><body>${body}</body></html>`;
 }
 
-// Returns an error message, or null when the print screen opened.
+// Returns an error message to show, or null when printed (or the print screen opened).
 export async function printReceipt(lines: ReceiptLine[]): Promise<string | null> {
+  const { printerAddress } = getSettings();
+  if (bluetoothPrintingAvailable && printerAddress) {
+    return sendToPrinter(printerAddress, encodeReceipt(lines));
+  }
   try {
     await Print.printAsync({ html: toHtml(lines), width: PAGE_WIDTH, height: Math.max(200, lines.length * 12 + 30) });
     return null;

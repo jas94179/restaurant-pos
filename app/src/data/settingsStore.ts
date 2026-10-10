@@ -19,6 +19,10 @@ export type Settings = {
   pricesIncludeGst: boolean;
   upiId: string; // e.g. sharmasweets@okaxis, for the UPI QR on bills
   lastBackupAt: string; // ISO time of the last backup file
+  printerAddress: string; // Bluetooth address of the receipt printer
+  printerName: string;
+  autoPrintBill: boolean; // print the customer bill right after saving
+  autoPrintKot: boolean; // print the kitchen slip right after sending / saving
 };
 
 function load(): Settings {
@@ -37,6 +41,10 @@ function load(): Settings {
     pricesIncludeGst: s.pricesIncludeGst === '1',
     upiId: s.upiId ?? '',
     lastBackupAt: s.lastBackupAt ?? '',
+    printerAddress: s.printerAddress ?? '',
+    printerName: s.printerName ?? '',
+    autoPrintBill: s.autoPrintBill === '1',
+    autoPrintKot: s.autoPrintKot === '1',
   };
 }
 

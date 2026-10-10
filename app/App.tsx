@@ -29,6 +29,7 @@ import PlanScreen from './src/screens/PlanScreen';
 import DayCloseScreen from './src/screens/DayCloseScreen';
 import ExportScreen from './src/screens/ExportScreen';
 import ExpensesScreen from './src/screens/ExpensesScreen';
+import PrinterScreen from './src/screens/PrinterScreen';
 import { colors, fonts } from './src/theme';
 
 type Tab = 'orders' | 'bills' | 'insights' | 'profile';
@@ -124,7 +125,7 @@ function MainApp({ onLock }: { onLock: () => void }) {
   // Inside Orders: counter billing or the tables floor.
   const [mode, setMode] = useState<OrderMode>(settings.outletType === 'dine_in' ? 'tables' : 'counter');
   const [activeTable, setActiveTable] = useState<number | null>(null);
-  const [morePage, setMorePage] = useState<'list' | 'menu' | 'staff' | 'stock' | 'backup' | 'plan' | 'dayclose' | 'export' | 'expenses'>('list');
+  const [morePage, setMorePage] = useState<'list' | 'menu' | 'staff' | 'stock' | 'backup' | 'plan' | 'dayclose' | 'export' | 'expenses' | 'printer'>('list');
   const [profileOpen, setProfileOpen] = useState(false);
 
   // Keep the order mode valid when the outlet type changes in Restaurant details.
@@ -166,7 +167,9 @@ function MainApp({ onLock }: { onLock: () => void }) {
                         ? 'Export sales'
                         : morePage === 'expenses'
                           ? 'Expenses'
-                          : 'Profile';
+                          : morePage === 'printer'
+                            ? 'Printer'
+                            : 'Profile';
 
   return (
     <View style={styles.root}>
@@ -240,6 +243,8 @@ function MainApp({ onLock }: { onLock: () => void }) {
           <ExportScreen onBack={() => setMorePage('list')} />
         ) : morePage === 'expenses' && can(user, 'addExpense') ? (
           <ExpensesScreen onBack={() => setMorePage('list')} />
+        ) : morePage === 'printer' && can(user, 'editRestaurant') ? (
+          <PrinterScreen onBack={() => setMorePage('list')} />
         ) : (
           <ProfileScreen
             onOpenMenu={() => setMorePage('menu')}
@@ -251,6 +256,7 @@ function MainApp({ onLock }: { onLock: () => void }) {
             onOpenDayClose={() => setMorePage('dayclose')}
             onOpenExport={() => setMorePage('export')}
             onOpenExpenses={() => setMorePage('expenses')}
+            onOpenPrinter={() => setMorePage('printer')}
             onLock={onLock}
           />
         )}
