@@ -1,7 +1,7 @@
 // Restaurant settings shared by every screen, saved on the phone.
 import { useSyncExternalStore } from 'react';
 import * as Crypto from 'expo-crypto';
-import { getAllSettings, setSettings } from '../db/database';
+import { getAllSettings, registerRestaurant, setSettings } from '../db/database';
 
 export type OutletType = 'counter' | 'dine_in' | 'both';
 export type Plan = 'pilot' | 'free' | 'starter' | 'pro' | 'business';
@@ -53,6 +53,14 @@ export function saveSettings(values: Partial<Settings>): void {
     out[k] = typeof v === 'boolean' ? (v ? '1' : '0') : String(v);
   }
   setSettings(out);
+  state = load();
+  // Keep the restaurant list (sign-in) up to date with the name.
+  if (state.setupDone) registerRestaurant();
+  listeners.forEach((l) => l());
+}
+
+// After switching to another restaurant's data.
+export function reloadSettings(): void {
   state = load();
   listeners.forEach((l) => l());
 }

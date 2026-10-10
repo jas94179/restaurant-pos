@@ -67,68 +67,201 @@ export type DaySummary = {
   bills: SavedBill[];
 };
 
-const db = SQLite.openDatabaseSync('pos.db');
+// ---------- Restaurants on this phone ----------
+// Each restaurant has its own database file, so one phone can hold several
+// restaurants (one owner can run more than one). A small accounts file lists them.
+// In the real app, signing in with the owner's mobile number picks the restaurant.
 
-db.execSync(`
-  PRAGMA journal_mode = WAL;
-  CREATE TABLE IF NOT EXISTS bills (
-    id TEXT PRIMARY KEY NOT NULL,
-    token INTEGER NOT NULL,
-    created_at TEXT NOT NULL,
-    day TEXT NOT NULL,
-    order_type TEXT NOT NULL,
-    payment_mode TEXT NOT NULL,
-    subtotal INTEGER NOT NULL,
-    gst INTEGER NOT NULL,
-    total INTEGER NOT NULL,
-    status TEXT NOT NULL DEFAULT 'paid'
-  );
-  CREATE INDEX IF NOT EXISTS idx_bills_day ON bills(day);
-  CREATE TABLE IF NOT EXISTS bill_items (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    bill_id TEXT NOT NULL REFERENCES bills(id),
-    item_id TEXT NOT NULL,
+export type RestaurantEntry = { file: string; name: string; lastUsedAt: string };
+
+const accounts = SQLite.openDatabaseSync('galla-accounts.db');
+accounts.execSync(`
+  CREATE TABLE IF NOT EXISTS restaurants (
+    file TEXT PRIMARY KEY NOT NULL,
     name TEXT NOT NULL,
-    price INTEGER NOT NULL,
-    qty INTEGER NOT NULL,
-    amount INTEGER NOT NULL
+    created_at TEXT NOT NULL,
+    last_used_at TEXT NOT NULL
   );
-  CREATE INDEX IF NOT EXISTS idx_bill_items_bill ON bill_items(bill_id);
-  CREATE TABLE IF NOT EXISTS open_tables (
-    table_no INTEGER PRIMARY KEY NOT NULL,
-    cart TEXT NOT NULL,
-    opened_at TEXT NOT NULL,
-    updated_at TEXT NOT NULL
+  CREATE TABLE IF NOT EXISTS meta (
+    key TEXT PRIMARY KEY NOT NULL,
+    value TEXT NOT NULL
   );
 `);
 
-// Upgrade older databases on the phone: add columns that newer versions need.
-const billColumns = db.getAllSync<{ name: string }>('PRAGMA table_info(bills)').map((c) => c.name);
-if (!billColumns.includes('table_no')) {
-  db.execSync('ALTER TABLE bills ADD COLUMN table_no INTEGER');
+function getMeta(key: string): string | null {
+  return accounts.getFirstSync<{ value: string }>('SELECT value FROM meta WHERE key = ?', [key])?.value ?? null;
 }
-if (!billColumns.includes('invoice_no')) {
-  db.execSync('ALTER TABLE bills ADD COLUMN invoice_no TEXT');
-  db.execSync('ALTER TABLE bills ADD COLUMN invoice_fy TEXT');
-  db.execSync('ALTER TABLE bills ADD COLUMN invoice_serial INTEGER');
-  backfillInvoiceNumbers();
+
+function setMeta(key: string, value: string): void {
+  accounts.runSync(
+    'INSERT INTO meta (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value',
+    [key, value],
+  );
 }
-if (!billColumns.includes('cancelled_at')) {
-  db.execSync('ALTER TABLE bills ADD COLUMN cancelled_at TEXT');
-  db.execSync('ALTER TABLE bills ADD COLUMN cancelled_by TEXT');
-  db.execSync('ALTER TABLE bills ADD COLUMN cancel_reason TEXT');
+
+// The first version kept one restaurant in pos.db; it stays the default file.
+let activeFile = getMeta('activeFile') ?? 'pos.db';
+let db = SQLite.openDatabaseSync(activeFile);
+prepareSchema();
+
+// Create tables, and upgrade older databases with columns newer versions need.
+function prepareSchema(): void {
+  db.execSync(`
+    PRAGMA journal_mode = WAL;
+    CREATE TABLE IF NOT EXISTS bills (
+      id TEXT PRIMARY KEY NOT NULL,
+      token INTEGER NOT NULL,
+      created_at TEXT NOT NULL,
+      day TEXT NOT NULL,
+      order_type TEXT NOT NULL,
+      payment_mode TEXT NOT NULL,
+      subtotal INTEGER NOT NULL,
+      gst INTEGER NOT NULL,
+      total INTEGER NOT NULL,
+      status TEXT NOT NULL DEFAULT 'paid'
+    );
+    CREATE INDEX IF NOT EXISTS idx_bills_day ON bills(day);
+    CREATE TABLE IF NOT EXISTS bill_items (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      bill_id TEXT NOT NULL REFERENCES bills(id),
+      item_id TEXT NOT NULL,
+      name TEXT NOT NULL,
+      price INTEGER NOT NULL,
+      qty INTEGER NOT NULL,
+      amount INTEGER NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_bill_items_bill ON bill_items(bill_id);
+    CREATE TABLE IF NOT EXISTS open_tables (
+      table_no INTEGER PRIMARY KEY NOT NULL,
+      cart TEXT NOT NULL,
+      opened_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+  `);
+
+  db.execSync(`
+    CREATE TABLE IF NOT EXISTS categories (
+      id TEXT PRIMARY KEY NOT NULL,
+      name TEXT NOT NULL,
+      sort INTEGER NOT NULL DEFAULT 0
+    );
+    CREATE TABLE IF NOT EXISTS menu_items (
+      id TEXT PRIMARY KEY NOT NULL,
+      name TEXT NOT NULL,
+      category_id TEXT NOT NULL REFERENCES categories(id),
+      price INTEGER NOT NULL,
+      veg INTEGER NOT NULL DEFAULT 1,
+      available INTEGER NOT NULL DEFAULT 1,
+      archived INTEGER NOT NULL DEFAULT 0,
+      sort INTEGER NOT NULL DEFAULT 0
+    );
+  `);
+
+  db.execSync(`
+    CREATE TABLE IF NOT EXISTS settings (
+      key TEXT PRIMARY KEY NOT NULL,
+      value TEXT NOT NULL
+    );
+  `);
+
+  db.execSync(`
+    CREATE TABLE IF NOT EXISTS staff (
+      id TEXT PRIMARY KEY NOT NULL,
+      name TEXT NOT NULL,
+      role TEXT NOT NULL,
+      pin_hash TEXT NOT NULL,
+      pin_salt TEXT NOT NULL,
+      active INTEGER NOT NULL DEFAULT 1,
+      created_at TEXT NOT NULL
+    );
+  `);
+
+  // Upgrade older databases on the phone: add columns that newer versions need.
+  const billColumns = db.getAllSync<{ name: string }>('PRAGMA table_info(bills)').map((c) => c.name);
+  if (!billColumns.includes('table_no')) {
+    db.execSync('ALTER TABLE bills ADD COLUMN table_no INTEGER');
+  }
+  if (!billColumns.includes('invoice_no')) {
+    db.execSync('ALTER TABLE bills ADD COLUMN invoice_no TEXT');
+    db.execSync('ALTER TABLE bills ADD COLUMN invoice_fy TEXT');
+    db.execSync('ALTER TABLE bills ADD COLUMN invoice_serial INTEGER');
+    backfillInvoiceNumbers();
+  }
+  if (!billColumns.includes('cancelled_at')) {
+    db.execSync('ALTER TABLE bills ADD COLUMN cancelled_at TEXT');
+    db.execSync('ALTER TABLE bills ADD COLUMN cancelled_by TEXT');
+    db.execSync('ALTER TABLE bills ADD COLUMN cancel_reason TEXT');
+  }
+  if (!billColumns.includes('platform_order_id')) {
+    db.execSync('ALTER TABLE bills ADD COLUMN platform_order_id TEXT');
+  }
+  if (!billColumns.includes('gst_rate')) {
+    // Earlier bills were all 5%.
+    db.execSync('ALTER TABLE bills ADD COLUMN gst_rate REAL NOT NULL DEFAULT 5');
+  }
+  if (!billColumns.includes('staff_id')) {
+    db.execSync('ALTER TABLE bills ADD COLUMN staff_id TEXT');
+    db.execSync('ALTER TABLE bills ADD COLUMN staff_name TEXT');
+  }
 }
-if (!billColumns.includes('platform_order_id')) {
-  db.execSync('ALTER TABLE bills ADD COLUMN platform_order_id TEXT');
+
+// Phones set up before multi-restaurant support: list the existing restaurant once.
+if (getMeta('registryReady') !== '1') {
+  const row = db.getFirstSync<{ value: string }>("SELECT value FROM settings WHERE key = 'setupDone'");
+  if (row?.value === '1') registerRestaurant();
+  setMeta('registryReady', '1');
 }
-if (!billColumns.includes('gst_rate')) {
-  // Earlier bills were all 5%.
-  db.execSync('ALTER TABLE bills ADD COLUMN gst_rate REAL NOT NULL DEFAULT 5');
+
+export function currentRestaurantFile(): string {
+  return activeFile;
 }
-if (!billColumns.includes('staff_id')) {
-  db.execSync('ALTER TABLE bills ADD COLUMN staff_id TEXT');
-  db.execSync('ALTER TABLE bills ADD COLUMN staff_name TEXT');
+
+// Restaurants that finished setup, most recently used first.
+export function listRestaurants(): RestaurantEntry[] {
+  return accounts
+    .getAllSync<{ file: string; name: string; last_used_at: string }>(
+      'SELECT file, name, last_used_at FROM restaurants ORDER BY last_used_at DESC',
+    )
+    .map((r) => ({ file: r.file, name: r.name, lastUsedAt: r.last_used_at }));
 }
+
+export function isRegistered(file: string): boolean {
+  return !!accounts.getFirstSync('SELECT file FROM restaurants WHERE file = ?', [file]);
+}
+
+// Switch every query in the app to another restaurant's file.
+export function openRestaurantFile(file: string): void {
+  if (file !== activeFile) {
+    try {
+      db.closeSync();
+    } catch {
+      // already closed
+    }
+    db = SQLite.openDatabaseSync(file);
+    activeFile = file;
+    prepareSchema();
+  }
+  setMeta('activeFile', file);
+  accounts.runSync('UPDATE restaurants SET last_used_at = ? WHERE file = ?', [new Date().toISOString(), file]);
+}
+
+// A fresh, empty file for a new restaurant (sign up, or restoring a backup).
+export function newRestaurantFile(): string {
+  return `restaurant-${newId()}.db`;
+}
+
+// Add or update the open restaurant in the list (after setup, restore or a rename).
+export function registerRestaurant(): void {
+  const name =
+    db.getFirstSync<{ value: string }>("SELECT value FROM settings WHERE key = 'restaurantName'")?.value ?? 'Restaurant';
+  const now = new Date().toISOString();
+  accounts.runSync(
+    `INSERT INTO restaurants (file, name, created_at, last_used_at) VALUES (?, ?, ?, ?)
+     ON CONFLICT(file) DO UPDATE SET name = excluded.name, last_used_at = excluded.last_used_at`,
+    [activeFile, name, now, now],
+  );
+}
+
 
 // "2026-10-09" in the phone's local time (not UTC), so the day changes at local midnight.
 export function dayKey(date: Date = new Date()): string {
@@ -320,23 +453,6 @@ export type DbMenuItem = {
   archived: boolean;
 };
 
-db.execSync(`
-  CREATE TABLE IF NOT EXISTS categories (
-    id TEXT PRIMARY KEY NOT NULL,
-    name TEXT NOT NULL,
-    sort INTEGER NOT NULL DEFAULT 0
-  );
-  CREATE TABLE IF NOT EXISTS menu_items (
-    id TEXT PRIMARY KEY NOT NULL,
-    name TEXT NOT NULL,
-    category_id TEXT NOT NULL REFERENCES categories(id),
-    price INTEGER NOT NULL,
-    veg INTEGER NOT NULL DEFAULT 1,
-    available INTEGER NOT NULL DEFAULT 1,
-    archived INTEGER NOT NULL DEFAULT 0,
-    sort INTEGER NOT NULL DEFAULT 0
-  );
-`);
 
 type ItemRow = {
   id: string;
@@ -452,12 +568,6 @@ export function archiveMenuItem(id: string): void {
 // ---------- Settings ----------
 // Simple key/value settings for this restaurant (name, outlet type, PIN, plan...).
 
-db.execSync(`
-  CREATE TABLE IF NOT EXISTS settings (
-    key TEXT PRIMARY KEY NOT NULL,
-    value TEXT NOT NULL
-  );
-`);
 
 export function getAllSettings(): Record<string, string> {
   const rows = db.getAllSync<{ key: string; value: string }>('SELECT key, value FROM settings');
@@ -570,17 +680,6 @@ export function getBillDetail(id: string): BillDetail | null {
 export type Role = 'owner' | 'manager' | 'cashier';
 export type Staff = { id: string; name: string; role: Role; pinHash: string; pinSalt: string; active: boolean };
 
-db.execSync(`
-  CREATE TABLE IF NOT EXISTS staff (
-    id TEXT PRIMARY KEY NOT NULL,
-    name TEXT NOT NULL,
-    role TEXT NOT NULL,
-    pin_hash TEXT NOT NULL,
-    pin_salt TEXT NOT NULL,
-    active INTEGER NOT NULL DEFAULT 1,
-    created_at TEXT NOT NULL
-  );
-`);
 
 type StaffRow = { id: string; name: string; role: Role; pin_hash: string; pin_salt: string; active: number };
 

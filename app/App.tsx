@@ -16,6 +16,8 @@ import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-cont
 import WelcomeScreen from './src/screens/onboarding/WelcomeScreen';
 import SetupScreen from './src/screens/onboarding/SetupScreen';
 import LockScreen from './src/screens/onboarding/LockScreen';
+import ChooseRestaurantScreen from './src/screens/onboarding/ChooseRestaurantScreen';
+import { cancelNewRestaurant, listRestaurants, startNewRestaurant, switchRestaurant } from './src/data/restaurants';
 import AppHeader from './src/components/AppHeader';
 import ProfileSheet from './src/components/ProfileSheet';
 import { useSettings } from './src/data/settingsStore';
@@ -45,8 +47,10 @@ function Root() {
   });
   const settings = useSettings();
   const user = useCurrentUser();
-  // Start page (sign in / sign up), new restaurant setup, or PIN sign-in.
-  const [screen, setScreen] = useState<'welcome' | 'setup' | 'pin'>('welcome');
+  // Start page, choosing a restaurant, new restaurant setup, or PIN sign-in.
+  const [screen, setScreen] = useState<'welcome' | 'choose' | 'setup' | 'pin'>('welcome');
+  // The restaurant that was open before Sign up, so Back can return to it.
+  const [beforeSignUp, setBeforeSignUp] = useState<string | null>(null);
 
   // Logging out always lands on the start page.
   useEffect(() => {
@@ -56,20 +60,47 @@ function Root() {
   if (!fontsLoaded) return <View style={{ flex: 1, backgroundColor: colors.brand }} />;
 
   if (!user) {
+    const restaurants = listRestaurants();
     return (
       <>
-        {screen === 'setup' && !settings.setupDone ? (
-          <SetupScreen onBack={() => setScreen('welcome')} onDone={() => {}} />
+        {screen === 'setup' ? (
+          <SetupScreen
+            onBack={() => {
+              if (beforeSignUp) cancelNewRestaurant(beforeSignUp);
+              setScreen('welcome');
+            }}
+            onDone={() => setBeforeSignUp(null)}
+          />
+        ) : screen === 'choose' ? (
+          <ChooseRestaurantScreen
+            restaurants={restaurants}
+            onBack={() => setScreen('welcome')}
+            onPick={(file) => {
+              switchRestaurant(file);
+              setScreen('pin');
+            }}
+          />
         ) : screen === 'pin' && settings.setupDone ? (
-          <LockScreen onBack={() => setScreen('welcome')} />
+          <LockScreen onBack={() => setScreen(restaurants.length > 1 ? 'choose' : 'welcome')} />
         ) : (
           <WelcomeScreen
-            restaurantName={settings.setupDone ? settings.restaurantName : undefined}
-            onSignUp={() => setScreen('setup')}
-            onSignIn={() => setScreen('pin')}
+            hasRestaurants={restaurants.length > 0}
+            onSignUp={() => {
+              setBeforeSignUp(startNewRestaurant());
+              setScreen('setup');
+            }}
+            onSignIn={() => {
+              if (restaurants.length === 1) {
+                switchRestaurant(restaurants[0].file);
+                setScreen('pin');
+              } else {
+                setScreen('choose');
+              }
+            }}
+            onRestored={() => setScreen('pin')}
           />
         )}
-        <StatusBar style={screen === 'setup' && !settings.setupDone ? 'dark' : 'light'} />
+        <StatusBar style={screen === 'setup' ? 'dark' : 'light'} />
       </>
     );
   }

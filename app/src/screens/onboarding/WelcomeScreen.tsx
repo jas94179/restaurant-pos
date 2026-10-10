@@ -1,26 +1,27 @@
 import { useEffect, useRef } from 'react';
 import { AccessibilityInfo, Alert, Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native';
-import { pickAndRestore } from '../../data/backup';
+import { restoreAsNewRestaurant } from '../../data/backup';
+import { getSettings } from '../../data/settingsStore';
 import { APP_NAME, colors, fonts } from '../../theme';
 
 type Props = {
+  hasRestaurants: boolean; // any restaurant already saved on this phone
   onSignUp: () => void; // set up a new restaurant
-  onSignIn: () => void; // PIN for now; phone number then PIN in the real app
-  restaurantName?: string; // set when this phone already has a restaurant
+  onSignIn: () => void; // choose restaurant, then PIN (mobile number then PIN in the real app)
+  onRestored: () => void; // a backup was restored as a new restaurant
 };
 
 // Start page: on a new phone, and after logging out.
 // One moment of motion: a coin drops into the cash-box slot.
-export default function WelcomeScreen({ onSignUp, onSignIn, restaurantName }: Props) {
-  const isSetUp = !!restaurantName;
-
+export default function WelcomeScreen({ hasRestaurants, onSignUp, onSignIn, onRestored }: Props) {
   async function restore() {
-    const error = await pickAndRestore();
+    const error = await restoreAsNewRestaurant();
     if (error) Alert.alert('Restore', error);
+    else if (getSettings().setupDone) onRestored();
   }
 
   function signIn() {
-    if (isSetUp) return onSignIn();
+    if (hasRestaurants) return onSignIn();
     // No accounts on a server yet, so a fresh phone has nobody to sign in as.
     Alert.alert(
       'Sign in',
@@ -29,14 +30,6 @@ export default function WelcomeScreen({ onSignUp, onSignIn, restaurantName }: Pr
         { text: 'Cancel', style: 'cancel' },
         { text: 'Restore from backup', onPress: restore },
       ],
-    );
-  }
-
-  function signUp() {
-    if (!isSetUp) return onSignUp();
-    Alert.alert(
-      'Sign up',
-      `This phone is already set up for ${restaurantName}. To start another restaurant, sign up on a different phone.`,
     );
   }
 
@@ -89,21 +82,21 @@ export default function WelcomeScreen({ onSignUp, onSignIn, restaurantName }: Pr
         </View>
         <Pressable
           style={({ pressed }) => [styles.cta, pressed && { backgroundColor: colors.turmericDeep }]}
-          onPress={isSetUp ? signIn : signUp}
+          onPress={hasRestaurants ? signIn : onSignUp}
           accessibilityRole="button"
         >
-          <Text style={styles.ctaText}>{isSetUp ? 'Sign in' : 'Sign up'}</Text>
+          <Text style={styles.ctaText}>{hasRestaurants ? 'Sign in' : 'Sign up'}</Text>
         </Pressable>
         <Pressable
           style={({ pressed }) => [styles.secondary, pressed && { backgroundColor: 'rgba(255,255,255,0.08)' }]}
-          onPress={isSetUp ? signUp : signIn}
+          onPress={hasRestaurants ? onSignUp : signIn}
           accessibilityRole="button"
         >
-          <Text style={styles.secondaryText}>{isSetUp ? 'New restaurant? Sign up' : 'Already using galla? Sign in'}</Text>
+          <Text style={styles.secondaryText}>{hasRestaurants ? 'New restaurant? Sign up' : 'Already using galla? Sign in'}</Text>
         </Pressable>
-        <Text style={styles.small}>
-          {isSetUp ? restaurantName : 'Setting up takes about 2 minutes.'}
-        </Text>
+        <Pressable onPress={restore} hitSlop={8} accessibilityRole="button" style={styles.restore}>
+          <Text style={styles.restoreText}>Moving from another phone? Restore from a backup</Text>
+        </Pressable>
       </View>
     </View>
   );
@@ -134,6 +127,8 @@ const styles = StyleSheet.create({
   pointText: { fontFamily: fonts.regular, fontSize: 16, color: colors.paper },
   cta: { height: 58, borderRadius: 16, backgroundColor: colors.turmeric, alignItems: 'center', justifyContent: 'center' },
   ctaText: { fontFamily: fonts.bold, fontSize: 18, color: colors.brandDeep },
+  restore: { marginTop: 16, alignItems: 'center' },
+  restoreText: { fontFamily: fonts.semibold, fontSize: 14, color: colors.turmeric, textDecorationLine: 'underline' },
   secondary: { height: 54, borderRadius: 16, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.35)', alignItems: 'center', justifyContent: 'center', marginTop: 12 },
   secondaryText: { fontFamily: fonts.semibold, fontSize: 16, color: colors.paper },
   small: { fontFamily: fonts.regular, fontSize: 13, color: '#9DB8AA', textAlign: 'center', marginTop: 12 },
