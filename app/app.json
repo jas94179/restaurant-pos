@@ -29,6 +29,18 @@
       "expo-font",
       "expo-sharing"
     ],
-    "scheme": "galla"
+    "scheme": "galla",
+    "extra": {
+      "eas": {
+        "projectId": "28bfbf42-e241-4fde-aee2-c4b9ac311df3"
+      }
+    },
+    "owner": "jas94179",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/28bfbf42-e241-4fde-aee2-c4b9ac311df3"
+    }
   }
 }
