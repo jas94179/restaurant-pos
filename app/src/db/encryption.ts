@@ -47,7 +47,7 @@ function getKey(): string | null {
   } catch {
     cachedKey = null;
   }
-  return cachedKey;
+  return cachedKey ?? null;
 }
 
 function fileUri(path: string): string {
