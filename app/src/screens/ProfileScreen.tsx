@@ -3,6 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSettings } from '../data/settingsStore';
 import { useMenu } from '../data/menuStore';
 import { can, ROLE_INFO, ROLE_LABEL, useCurrentUser, useStaffList } from '../data/staffStore';
+import { PLAN_LABEL } from '../data/plans';
 import { colors, fonts } from '../theme';
 
 type Props = {
@@ -11,22 +12,15 @@ type Props = {
   onOpenStock: () => void;
   onOpenBackup: () => void;
   onOpenRestaurant: () => void;
+  onOpenPlan: () => void;
   onLock: () => void;
 };
 
 const OUTLET_LABEL = { counter: 'Counter', dine_in: 'Dine-in', both: 'Counter and tables' } as const;
 
-const PLAN_LABEL: Record<string, string> = {
-  pilot: 'Pilot plan, all features free',
-  free: 'Free plan',
-  starter: 'Starter plan',
-  pro: 'Pro plan',
-  business: 'Business plan',
-};
-
 // The restaurant's profile, plus everything used less often than billing,
 // so the bottom bar never grows past four tabs.
-export default function ProfileScreen({ onOpenMenu, onOpenStaff, onOpenStock, onOpenBackup, onOpenRestaurant, onLock }: Props) {
+export default function ProfileScreen({ onOpenMenu, onOpenStaff, onOpenStock, onOpenBackup, onOpenRestaurant, onOpenPlan, onLock }: Props) {
   const settings = useSettings();
   const menu = useMenu();
   const user = useCurrentUser();
@@ -55,7 +49,6 @@ export default function ProfileScreen({ onOpenMenu, onOpenStaff, onOpenStock, on
           title={user?.name ?? ''}
           detail={user ? `${ROLE_LABEL[user.role]}. ${ROLE_INFO[user.role]}` : ''}
         />
-        <Row title="Switch user" detail="Lock the app for the next person" onPress={onLock} danger />
       </Group>
 
       {isOwner && (
@@ -93,7 +86,7 @@ export default function ProfileScreen({ onOpenMenu, onOpenStaff, onOpenStock, on
           </Group>
 
           <Group title="Account">
-            <Row title="Plan" detail={PLAN_LABEL[settings.plan] ?? settings.plan} />
+            <Row title="Plan" detail={`${PLAN_LABEL[settings.plan] ?? settings.plan}. Upgrade or change`} onPress={onOpenPlan} />
           </Group>
         </>
       )}
@@ -114,6 +107,15 @@ export default function ProfileScreen({ onOpenMenu, onOpenStaff, onOpenStock, on
           switch it off quickly.
         </Text>
       )}
+
+      <Pressable
+        onPress={onLock}
+        style={({ pressed }) => [styles.logout, pressed && { backgroundColor: '#FBE9E7' }]}
+        accessibilityRole="button"
+      >
+        <Text style={styles.logoutText}>Log out</Text>
+      </Pressable>
+      <Text style={styles.logoutNote}>Goes back to the PIN screen. Bills and data stay safe on this phone.</Text>
     </ScrollView>
   );
 }
@@ -187,6 +189,9 @@ const styles = StyleSheet.create({
   soonText: { color: colors.muted },
   dangerText: { color: colors.danger },
   note: { fontFamily: fonts.regular, fontSize: 14, lineHeight: 20, color: colors.muted, marginTop: 20, marginHorizontal: 4 },
+  logout: { marginTop: 28, height: 52, borderRadius: 14, borderWidth: 1.5, borderColor: colors.danger, backgroundColor: colors.paper, alignItems: 'center', justifyContent: 'center' },
+  logoutText: { fontFamily: fonts.semibold, fontSize: 16, color: colors.danger },
+  logoutNote: { fontFamily: fonts.regular, fontSize: 13, color: colors.muted, textAlign: 'center', marginTop: 8 },
   soonPill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, backgroundColor: '#FBF0D2' },
   soonPillText: { fontFamily: fonts.semibold, fontSize: 12, color: colors.turmericDeep },
 });

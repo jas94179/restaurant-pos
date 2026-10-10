@@ -23,6 +23,7 @@ import { can, logout, ROLE_LABEL, useCurrentUser } from './src/data/staffStore';
 import StaffScreen from './src/screens/StaffScreen';
 import StockScreen from './src/screens/StockScreen';
 import BackupScreen from './src/screens/BackupScreen';
+import PlanScreen from './src/screens/PlanScreen';
 import { colors, fonts } from './src/theme';
 
 type Tab = 'orders' | 'bills' | 'insights' | 'profile';
@@ -88,7 +89,7 @@ function MainApp({ onLock }: { onLock: () => void }) {
   // Inside Orders: counter billing or the tables floor.
   const [mode, setMode] = useState<OrderMode>(settings.outletType === 'dine_in' ? 'tables' : 'counter');
   const [activeTable, setActiveTable] = useState<number | null>(null);
-  const [morePage, setMorePage] = useState<'list' | 'menu' | 'staff' | 'stock' | 'backup'>('list');
+  const [morePage, setMorePage] = useState<'list' | 'menu' | 'staff' | 'stock' | 'backup' | 'plan'>('list');
   const [profileOpen, setProfileOpen] = useState(false);
 
   // Keep the order mode valid when the outlet type changes in Restaurant details.
@@ -122,7 +123,9 @@ function MainApp({ onLock }: { onLock: () => void }) {
                 ? 'Stock'
                 : morePage === 'backup'
                   ? 'Backup'
-                  : 'Profile';
+                  : morePage === 'plan'
+                    ? 'Plan'
+                    : 'Profile';
 
   return (
     <View style={styles.root}>
@@ -187,6 +190,8 @@ function MainApp({ onLock }: { onLock: () => void }) {
           <StockScreen onBack={() => setMorePage('list')} />
         ) : morePage === 'backup' && can(user, 'editRestaurant') ? (
           <BackupScreen onBack={() => setMorePage('list')} />
+        ) : morePage === 'plan' && can(user, 'editRestaurant') ? (
+          <PlanScreen onBack={() => setMorePage('list')} />
         ) : (
           <ProfileScreen
             onOpenMenu={() => setMorePage('menu')}
@@ -194,6 +199,7 @@ function MainApp({ onLock }: { onLock: () => void }) {
             onOpenStock={() => setMorePage('stock')}
             onOpenBackup={() => setMorePage('backup')}
             onOpenRestaurant={() => setProfileOpen(true)}
+            onOpenPlan={() => setMorePage('plan')}
             onLock={onLock}
           />
         )}
