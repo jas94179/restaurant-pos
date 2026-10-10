@@ -1,6 +1,7 @@
 // Local database on the phone. Every bill is saved here first, so billing works
 // with no internet. Later this file will also handle encrypted storage and cloud backup.
 import * as SQLite from 'expo-sqlite';
+import { openRestaurantDb } from './encryption';
 
 export type PaymentMode = 'cash' | 'upi' | 'card' | 'zomato' | 'swiggy';
 // What the cashier can choose at the counter.
@@ -156,8 +157,22 @@ export function clearErrors(): void {
 
 // The first version kept one restaurant in pos.db; it stays the default file.
 let activeFile = getMeta('activeFile') ?? 'pos.db';
-let db = SQLite.openDatabaseSync(activeFile);
+let db = openDb(activeFile);
 prepareSchema();
+
+// Each restaurant file is encrypted on the phone where possible (see encryption.ts).
+function openDb(file: string): SQLite.SQLiteDatabase {
+  return openRestaurantDb(
+    file,
+    (f) => getMeta(`enc:${f}`) === '1',
+    (f) => setMeta(`enc:${f}`, '1'),
+    (msg) => logError(msg, '', false),
+  ).db;
+}
+
+export function isActiveFileEncrypted(): boolean {
+  return getMeta(`enc:${activeFile}`) === '1';
+}
 
 // Create tables, and upgrade older databases with columns newer versions need.
 function prepareSchema(): void {
@@ -352,7 +367,7 @@ export function openRestaurantFile(file: string): void {
     } catch {
       // already closed
     }
-    db = SQLite.openDatabaseSync(file);
+    db = openDb(file);
     activeFile = file;
     prepareSchema();
   }

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import LegalDocView from '../components/LegalDocView';
-import { clearErrors, getErrors } from '../db/database';
+import { clearErrors, getErrors, isActiveFileEncrypted } from '../db/database';
 import { appVersion, shareReport } from '../data/crash';
 import { saveSettings, useSettings } from '../data/settingsStore';
 import { useCurrentUser } from '../data/staffStore';
@@ -21,6 +21,15 @@ export function LegalScreen({ onBack }: { onBack: () => void }) {
       <Pressable onPress={onBack} hitSlop={10} accessibilityRole="button">
         <Text style={styles.backLink}>‹ Profile</Text>
       </Pressable>
+
+      <View style={[styles.card, { backgroundColor: isActiveFileEncrypted() ? '#E6F4EA' : '#FBF0D2', borderWidth: 0 }]}>
+        <Text style={styles.cardTitle}>{isActiveFileEncrypted() ? 'Data on this phone is encrypted' : 'Data on this phone is not encrypted'}</Text>
+        <Text style={styles.cardText}>
+          {isActiveFileEncrypted()
+            ? 'Bills and settings are locked with a key kept in the phone\'s secure storage.'
+            : 'Encryption works in the installed galla app (not in Expo Go). Keep a screen lock on this phone.'}
+        </Text>
+      </View>
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Accepted</Text>
