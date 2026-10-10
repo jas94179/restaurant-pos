@@ -1,4 +1,5 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import BottomSheet from './BottomSheet';
 import QRCode from 'react-native-qrcode-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { upiLink } from './UpiQrSheet';
@@ -44,9 +45,21 @@ export default function PreBillSheet({
   const insets = useSafeAreaInsets();
   const half = Math.floor(gst / 2);
   return (
-    <View style={styles.backdrop}>
-      <View style={[styles.sheet, { paddingBottom: insets.bottom + 16 }]}>
-        <ScrollView contentContainerStyle={{ paddingBottom: 8 }}>
+    <BottomSheet
+      onClose={onClose}
+      background={colors.mist}
+      footer={
+        <View style={styles.actions}>
+          <Pressable style={[styles.btn, styles.btnGhost]} onPress={onShare} accessibilityRole="button">
+            <Text style={styles.btnGhostText}>Send on WhatsApp</Text>
+          </Pressable>
+          <Pressable style={[styles.btn, styles.btnPrimary]} onPress={onClose} accessibilityRole="button">
+            <Text style={styles.btnPrimaryText}>Done</Text>
+          </Pressable>
+        </View>
+      }
+    >
+        <ScrollView contentContainerStyle={{ paddingBottom: 12 }}>
           <View style={styles.paper}>
             <Text style={styles.restaurant}>{restaurantName}</Text>
             <Text style={styles.sub}>Table {tableNo} · Bill</Text>
@@ -94,17 +107,7 @@ export default function PreBillSheet({
             <Text style={styles.foot}>This is not a tax invoice. Your invoice is given after payment.</Text>
           </View>
         </ScrollView>
-
-        <View style={styles.actions}>
-          <Pressable style={[styles.btn, styles.btnGhost]} onPress={onShare} accessibilityRole="button">
-            <Text style={styles.btnGhostText}>Send on WhatsApp</Text>
-          </Pressable>
-          <Pressable style={[styles.btn, styles.btnPrimary]} onPress={onClose} accessibilityRole="button">
-            <Text style={styles.btnPrimaryText}>Done</Text>
-          </Pressable>
-        </View>
-      </View>
-    </View>
+    </BottomSheet>
   );
 }
 
@@ -136,7 +139,7 @@ const styles = StyleSheet.create({
   qrHint: { fontFamily: fonts.semibold, fontSize: 14, color: colors.ink, marginTop: 10, textAlign: 'center' },
   upi: { fontFamily: fonts.regular, fontSize: 13, color: colors.muted, marginTop: 2 },
   foot: { fontFamily: fonts.regular, fontSize: 12, color: colors.muted, textAlign: 'center', marginTop: 14 },
-  actions: { flexDirection: 'row', gap: 10, marginTop: 12 },
+  actions: { flexDirection: 'row', gap: 10 },
   btn: { flex: 1, height: 52, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   btnGhost: { borderWidth: 1.5, borderColor: colors.line, backgroundColor: colors.paper },
   btnGhostText: { fontFamily: fonts.semibold, fontSize: 15, color: colors.ink },

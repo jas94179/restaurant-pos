@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import BottomSheet from './BottomSheet';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, fonts } from '../theme';
 
@@ -19,10 +20,7 @@ export default function NoteSheet({ itemName, note, onSave, onClose }: Props) {
   }
 
   return (
-    <View style={styles.backdrop}>
-      <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Close" />
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <View style={[styles.sheet, { paddingBottom: insets.bottom + 20 }]}>
+    <BottomSheet onClose={onClose}>
           <Text style={styles.title}>Note for kitchen</Text>
           <Text style={styles.sub}>{itemName}</Text>
           <View style={styles.chips}>
@@ -57,9 +55,7 @@ export default function NoteSheet({ itemName, note, onSave, onClose }: Props) {
               <Text style={[styles.textBtnText, { color: colors.danger }]}>Remove note</Text>
             </Pressable>
           )}
-        </View>
-      </KeyboardAvoidingView>
-    </View>
+    </BottomSheet>
   );
 }
 

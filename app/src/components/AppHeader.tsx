@@ -1,6 +1,7 @@
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Alert, AppState, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNetworkState } from 'expo-network';
+import * as Network from 'expo-network';
 import { colors, fonts } from '../theme';
 
 type Props = {
@@ -14,9 +15,8 @@ type Props = {
 // Slim one-line header: where you are on the left; live status and who is logged in on the right.
 export default function AppHeader({ title, restaurantName, userName, userRole, onLock }: Props) {
   const insets = useSafeAreaInsets();
-  const net = useNetworkState();
   // Only speak up when something needs attention. Bills are always saved on the phone.
-  const offline = net.isConnected === false || net.isInternetReachable === false;
+  const offline = useOffline();
 
   function openUserMenu() {
     Alert.alert(`${userName}, ${userRole}`, `Signed in to ${restaurantName}. Log out to let the next person sign in with their PIN.`, [
@@ -60,6 +60,33 @@ export default function AppHeader({ title, restaurantName, userName, userRole, o
       </View>
     </View>
   );
+}
+
+// Live network status. The change listener alone can miss changes on some phones
+// (and in Expo Go), so we also re-check every few seconds and when the app comes back.
+function useOffline(): boolean {
+  const live = Network.useNetworkState();
+  const [checked, setChecked] = useState<Network.NetworkState | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    const check = () =>
+      Network.getNetworkStateAsync()
+        .then((st) => alive && setChecked(st))
+        .catch(() => {});
+    check();
+    const timer = setInterval(check, 5000);
+    const sub = AppState.addEventListener('change', (st) => st === 'active' && check());
+    return () => {
+      alive = false;
+      clearInterval(timer);
+      sub.remove();
+    };
+    // Re-check right away whenever the live listener reports a change.
+  }, [live.isConnected, live.isInternetReachable, live.type]);
+
+  const st = checked ?? live;
+  return st.isConnected === false || st.isInternetReachable === false || st.type === Network.NetworkStateType.NONE;
 }
 
 const styles = StyleSheet.create({

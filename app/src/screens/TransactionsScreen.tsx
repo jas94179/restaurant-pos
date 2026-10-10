@@ -5,6 +5,7 @@ import { useSettings } from '../data/settingsStore';
 import { can, useCurrentUser } from '../data/staffStore';
 import { formatRupees } from '../utils/money';
 import { billText } from '../utils/billText';
+import BottomSheet from '../components/BottomSheet';
 import WhatsAppShareSheet from '../components/WhatsAppShareSheet';
 import CancelBillSheet from '../components/CancelBillSheet';
 import { colors, fonts } from '../theme';
@@ -212,10 +213,7 @@ function BillSheet({ bill, onClose, onChanged }: { bill: BillDetail; onClose: ()
   const d = new Date(bill.created_at);
 
   return (
-    <View style={styles.backdrop}>
-      <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Close bill" />
-      <View style={styles.sheet}>
-        <View style={styles.handle} />
+    <BottomSheet onClose={onClose} background={colors.mist}>
         <ScrollView contentContainerStyle={{ paddingBottom: 8 }}>
           {cancelled && (
             <View style={styles.cancelBanner}>
@@ -334,7 +332,6 @@ function BillSheet({ bill, onClose, onChanged }: { bill: BillDetail; onClose: ()
             </Pressable>
           )}
         </ScrollView>
-      </View>
       {shareText && <WhatsAppShareSheet message={shareText} onClose={() => setShareText(null)} />}
       {cancelOpen && (
         <CancelBillSheet
@@ -348,7 +345,7 @@ function BillSheet({ bill, onClose, onChanged }: { bill: BillDetail; onClose: ()
           }}
         />
       )}
-    </View>
+    </BottomSheet>
   );
 }
 

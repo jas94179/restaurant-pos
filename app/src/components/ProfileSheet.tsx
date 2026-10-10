@@ -10,6 +10,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import BottomSheet from './BottomSheet';
 import { GST_RATES } from '../utils/tax';
 import { OutletType, saveSettings, useSettings } from '../data/settingsStore';
 import { getOpenTables } from '../db/database';
@@ -79,10 +80,7 @@ export default function ProfileSheet({ onClose }: Props) {
   }
 
   return (
-    <View style={styles.backdrop}>
-      <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Close profile" />
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <View style={[styles.sheet, { paddingBottom: insets.bottom + 20 }]}>
+    <BottomSheet onClose={onClose}>
           <View style={styles.handle} />
           <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 8 }}>
             <View style={styles.head}>
@@ -197,9 +195,7 @@ export default function ProfileSheet({ onClose }: Props) {
             </Pressable>
 
           </ScrollView>
-        </View>
-      </KeyboardAvoidingView>
-    </View>
+    </BottomSheet>
   );
 }
 

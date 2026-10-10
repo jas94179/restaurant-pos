@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import BottomSheet from './BottomSheet';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PinPad from './PinPad';
 import { canApprove, findApprover, useCurrentUser } from '../data/staffStore';
@@ -88,10 +89,7 @@ export default function DiscountSheet({ itemsSum, current, onApply, onClose }: P
   }
 
   return (
-    <View style={styles.backdrop}>
-      <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Close" />
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <View style={[styles.sheet, { paddingBottom: insets.bottom + 20 }]}>
+    <BottomSheet onClose={onClose}>
           <ScrollView keyboardShouldPersistTaps="handled">
             <Text style={styles.title}>Discount</Text>
             <Text style={styles.sub}>Items total {formatRupees(itemsSum)}. GST is worked out after the discount.</Text>
@@ -204,9 +202,7 @@ export default function DiscountSheet({ itemsSum, current, onApply, onClose }: P
               </>
             )}
           </ScrollView>
-        </View>
-      </KeyboardAvoidingView>
-    </View>
+    </BottomSheet>
   );
 }
 

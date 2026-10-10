@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import BottomSheet from './BottomSheet';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PinPad from './PinPad';
 import { cancelBill } from '../db/database';
@@ -54,10 +55,7 @@ export default function CancelBillSheet({ billId, token, total, onDone, onClose 
   }
 
   return (
-    <View style={styles.backdrop}>
-      <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Close" />
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <View style={[styles.sheet, { paddingBottom: insets.bottom + 20 }]}>
+    <BottomSheet onClose={onClose}>
           <ScrollView keyboardShouldPersistTaps="handled">
             <Text style={styles.title}>Cancel bill #{token}?</Text>
             <Text style={styles.sub}>
@@ -114,9 +112,7 @@ export default function CancelBillSheet({ billId, token, total, onDone, onClose 
               </>
             )}
           </ScrollView>
-        </View>
-      </KeyboardAvoidingView>
-    </View>
+    </BottomSheet>
   );
 }
 

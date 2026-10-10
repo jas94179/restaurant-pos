@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import BottomSheet from './BottomSheet';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Kot } from '../db/database';
 import { printReceipt } from '../print/print';
@@ -15,9 +16,28 @@ export default function KotSheet({ kot, onClose }: { kot: Kot; onClose: () => vo
   const time = new Date(kot.createdAt).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' });
 
   return (
-    <View style={styles.backdrop}>
-      <View style={[styles.sheet, { paddingBottom: insets.bottom + 16 }]}>
-        <ScrollView>
+    <BottomSheet
+      onClose={onClose}
+      background={colors.mist}
+      footer={
+        <>
+          {error && <Text style={styles.error}>{error}</Text>}
+          <View style={styles.actions}>
+            <Pressable
+              style={[styles.btn, styles.ghost]}
+              onPress={async () => setError(await printReceipt(kotReceipt(kot)))}
+              accessibilityRole="button"
+            >
+              <Text style={styles.ghostText}>Print</Text>
+            </Pressable>
+            <Pressable style={[styles.btn, styles.primary]} onPress={onClose} accessibilityRole="button">
+              <Text style={styles.primaryText}>Done</Text>
+            </Pressable>
+          </View>
+        </>
+      }
+    >
+        <ScrollView contentContainerStyle={{ paddingBottom: 12 }}>
           <View style={styles.paper}>
             <Text style={styles.kotNo}>KOT #{kot.kotNo}</Text>
             <Text style={styles.where}>{kot.tableNo != null ? `Table ${kot.tableNo}` : `Token #${kot.token ?? '-'}`}</Text>
@@ -48,21 +68,7 @@ export default function KotSheet({ kot, onClose }: { kot: Kot; onClose: () => vo
             )}
           </View>
         </ScrollView>
-        {error && <Text style={styles.error}>{error}</Text>}
-        <View style={styles.actions}>
-          <Pressable
-            style={[styles.btn, styles.ghost]}
-            onPress={async () => setError(await printReceipt(kotReceipt(kot)))}
-            accessibilityRole="button"
-          >
-            <Text style={styles.ghostText}>Print</Text>
-          </Pressable>
-          <Pressable style={[styles.btn, styles.primary]} onPress={onClose} accessibilityRole="button">
-            <Text style={styles.primaryText}>Done</Text>
-          </Pressable>
-        </View>
-      </View>
-    </View>
+    </BottomSheet>
   );
 }
 
@@ -80,8 +86,8 @@ const styles = StyleSheet.create({
   note: { fontFamily: fonts.semibold, fontSize: 16, color: colors.turmericDeep, marginTop: 2 },
   cancelTitle: { fontFamily: fonts.bold, fontSize: 16, color: colors.danger, marginTop: 12, textTransform: 'uppercase' },
   cancelled: { color: colors.danger, textDecorationLine: 'line-through' },
-  error: { fontFamily: fonts.semibold, fontSize: 14, color: colors.danger, marginTop: 8 },
-  actions: { flexDirection: 'row', gap: 10, marginTop: 12 },
+  error: { fontFamily: fonts.semibold, fontSize: 14, color: colors.danger, marginBottom: 8 },
+  actions: { flexDirection: 'row', gap: 10 },
   btn: { flex: 1, height: 52, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   ghost: { borderWidth: 1.5, borderColor: colors.line, backgroundColor: colors.paper },
   ghostText: { fontFamily: fonts.semibold, fontSize: 15, color: colors.ink },

@@ -10,6 +10,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import BottomSheet from './BottomSheet';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, fonts } from '../theme';
 
@@ -42,10 +43,7 @@ export default function WhatsAppShareSheet({ message, onClose }: Props) {
   }
 
   return (
-    <View style={styles.backdrop}>
-      <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Close" />
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <View style={[styles.sheet, { paddingBottom: insets.bottom + 20 }]}>
+    <BottomSheet onClose={onClose}>
           <Text style={styles.title}>Send bill on WhatsApp</Text>
           <Text style={styles.label}>Customer's mobile number (optional)</Text>
           <View style={styles.inputRow}>
@@ -75,9 +73,7 @@ export default function WhatsAppShareSheet({ message, onClose }: Props) {
               <Text style={styles.sendText}>Open WhatsApp</Text>
             </Pressable>
           </View>
-        </View>
-      </KeyboardAvoidingView>
-    </View>
+    </BottomSheet>
   );
 }
 

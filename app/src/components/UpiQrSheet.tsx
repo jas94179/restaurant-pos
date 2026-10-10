@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import BottomSheet from './BottomSheet';
 import QRCode from 'react-native-qrcode-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { formatRupees } from '../utils/money';
@@ -30,8 +31,20 @@ export function upiLink(upiId: string, payeeName: string, amount: number, note: 
 export default function UpiQrSheet({ upiId, payeeName, amount, note, onPaid, onBack }: Props) {
   const insets = useSafeAreaInsets();
   return (
-    <View style={styles.backdrop}>
-      <View style={[styles.sheet, { paddingBottom: insets.bottom + 20 }]}>
+    <BottomSheet
+      onClose={onBack}
+      footer={
+        <>
+          <Pressable style={styles.paidBtn} onPress={onPaid} accessibilityRole="button">
+            <Text style={styles.paidText}>Payment received</Text>
+          </Pressable>
+          <Pressable style={styles.backBtn} onPress={onBack} accessibilityRole="button">
+            <Text style={styles.backText}>Back to bill</Text>
+          </Pressable>
+        </>
+      }
+    >
+      <ScrollView contentContainerStyle={{ alignItems: 'center', paddingBottom: 8 }}>
         <Text style={styles.payee} numberOfLines={1}>
           {payeeName}
         </Text>
@@ -48,15 +61,8 @@ export default function UpiQrSheet({ upiId, payeeName, amount, note, onPaid, onB
             Before tapping below, check the payment arrived in your UPI app or soundbox.
           </Text>
         </View>
-
-        <Pressable style={styles.paidBtn} onPress={onPaid} accessibilityRole="button">
-          <Text style={styles.paidText}>Payment received</Text>
-        </Pressable>
-        <Pressable style={styles.backBtn} onPress={onBack} accessibilityRole="button">
-          <Text style={styles.backText}>Back to bill</Text>
-        </Pressable>
-      </View>
-    </View>
+      </ScrollView>
+    </BottomSheet>
   );
 }
 
@@ -70,7 +76,7 @@ const styles = StyleSheet.create({
   upiId: { fontFamily: fonts.regular, fontSize: 13, color: colors.muted, marginTop: 10 },
   check: { alignSelf: 'stretch', marginTop: 14, padding: 12, borderRadius: 12, backgroundColor: '#FBF0D2' },
   checkText: { fontFamily: fonts.regular, fontSize: 13, lineHeight: 18, color: colors.brandDeep },
-  paidBtn: { alignSelf: 'stretch', height: 54, borderRadius: 14, backgroundColor: colors.brand, alignItems: 'center', justifyContent: 'center', marginTop: 14 },
+  paidBtn: { alignSelf: 'stretch', height: 54, borderRadius: 14, backgroundColor: colors.brand, alignItems: 'center', justifyContent: 'center' },
   paidText: { fontFamily: fonts.bold, fontSize: 17, color: colors.paper },
   backBtn: { alignSelf: 'stretch', height: 46, alignItems: 'center', justifyContent: 'center', marginTop: 4 },
   backText: { fontFamily: fonts.semibold, fontSize: 15, color: colors.brand },
