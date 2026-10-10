@@ -44,31 +44,32 @@ function Root() {
     BricolageGrotesque_800ExtraBold,
   });
   const settings = useSettings();
-  const [onboarding, setOnboarding] = useState<'welcome' | 'setup'>('welcome');
   const user = useCurrentUser();
+  // Start page (sign in / sign up), new restaurant setup, or PIN sign-in.
+  const [screen, setScreen] = useState<'welcome' | 'setup' | 'pin'>('welcome');
+
+  // Logging out always lands on the start page.
+  useEffect(() => {
+    if (!user) setScreen('welcome');
+  }, [user]);
 
   if (!fontsLoaded) return <View style={{ flex: 1, backgroundColor: colors.brand }} />;
 
-  // First time on this phone: welcome, then setup.
-  if (!settings.setupDone) {
-    return (
-      <>
-        {onboarding === 'welcome' ? (
-          <WelcomeScreen onStart={() => setOnboarding('setup')} />
-        ) : (
-          <SetupScreen onBack={() => setOnboarding('welcome')} onDone={() => {}} />
-        )}
-        <StatusBar style={onboarding === 'welcome' ? 'light' : 'dark'} />
-      </>
-    );
-  }
-
-  // Every time the app opens, and on switching user: PIN first.
   if (!user) {
     return (
       <>
-        <LockScreen />
-        <StatusBar style="light" />
+        {screen === 'setup' && !settings.setupDone ? (
+          <SetupScreen onBack={() => setScreen('welcome')} onDone={() => {}} />
+        ) : screen === 'pin' && settings.setupDone ? (
+          <LockScreen onBack={() => setScreen('welcome')} />
+        ) : (
+          <WelcomeScreen
+            restaurantName={settings.setupDone ? settings.restaurantName : undefined}
+            onSignUp={() => setScreen('setup')}
+            onSignIn={() => setScreen('pin')}
+          />
+        )}
+        <StatusBar style={screen === 'setup' && !settings.setupDone ? 'dark' : 'light'} />
       </>
     );
   }

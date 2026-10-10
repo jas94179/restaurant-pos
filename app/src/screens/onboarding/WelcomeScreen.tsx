@@ -3,8 +3,43 @@ import { AccessibilityInfo, Alert, Animated, Easing, Pressable, StyleSheet, Text
 import { pickAndRestore } from '../../data/backup';
 import { APP_NAME, colors, fonts } from '../../theme';
 
-// First screen on a new phone. One moment of motion: a coin drops into the cash-box slot.
-export default function WelcomeScreen({ onStart }: { onStart: () => void }) {
+type Props = {
+  onSignUp: () => void; // set up a new restaurant
+  onSignIn: () => void; // PIN for now; phone number then PIN in the real app
+  restaurantName?: string; // set when this phone already has a restaurant
+};
+
+// Start page: on a new phone, and after logging out.
+// One moment of motion: a coin drops into the cash-box slot.
+export default function WelcomeScreen({ onSignUp, onSignIn, restaurantName }: Props) {
+  const isSetUp = !!restaurantName;
+
+  async function restore() {
+    const error = await pickAndRestore();
+    if (error) Alert.alert('Restore', error);
+  }
+
+  function signIn() {
+    if (isSetUp) return onSignIn();
+    // No accounts on a server yet, so a fresh phone has nobody to sign in as.
+    Alert.alert(
+      'Sign in',
+      'Sign in with your mobile number is coming soon. Moving from another phone? Restore your backup file to sign in here.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Restore from backup', onPress: restore },
+      ],
+    );
+  }
+
+  function signUp() {
+    if (!isSetUp) return onSignUp();
+    Alert.alert(
+      'Sign up',
+      `This phone is already set up for ${restaurantName}. To start another restaurant, sign up on a different phone.`,
+    );
+  }
+
   const drop = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -54,23 +89,21 @@ export default function WelcomeScreen({ onStart }: { onStart: () => void }) {
         </View>
         <Pressable
           style={({ pressed }) => [styles.cta, pressed && { backgroundColor: colors.turmericDeep }]}
-          onPress={onStart}
+          onPress={isSetUp ? signIn : signUp}
           accessibilityRole="button"
         >
-          <Text style={styles.ctaText}>Set up my restaurant</Text>
+          <Text style={styles.ctaText}>{isSetUp ? 'Sign in' : 'Sign up'}</Text>
         </Pressable>
-        <Text style={styles.small}>Takes about 2 minutes.</Text>
         <Pressable
-          onPress={async () => {
-            const error = await pickAndRestore();
-            if (error) Alert.alert('Restore', error);
-          }}
-          hitSlop={8}
+          style={({ pressed }) => [styles.secondary, pressed && { backgroundColor: 'rgba(255,255,255,0.08)' }]}
+          onPress={isSetUp ? signUp : signIn}
           accessibilityRole="button"
-          style={styles.restore}
         >
-          <Text style={styles.restoreText}>Moving from another phone? Restore from a backup</Text>
+          <Text style={styles.secondaryText}>{isSetUp ? 'New restaurant? Sign up' : 'Already using galla? Sign in'}</Text>
         </Pressable>
+        <Text style={styles.small}>
+          {isSetUp ? restaurantName : 'Setting up takes about 2 minutes.'}
+        </Text>
       </View>
     </View>
   );
@@ -101,7 +134,7 @@ const styles = StyleSheet.create({
   pointText: { fontFamily: fonts.regular, fontSize: 16, color: colors.paper },
   cta: { height: 58, borderRadius: 16, backgroundColor: colors.turmeric, alignItems: 'center', justifyContent: 'center' },
   ctaText: { fontFamily: fonts.bold, fontSize: 18, color: colors.brandDeep },
-  restore: { marginTop: 14, alignItems: 'center' },
-  restoreText: { fontFamily: fonts.semibold, fontSize: 14, color: colors.turmeric, textDecorationLine: 'underline' },
+  secondary: { height: 54, borderRadius: 16, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.35)', alignItems: 'center', justifyContent: 'center', marginTop: 12 },
+  secondaryText: { fontFamily: fonts.semibold, fontSize: 16, color: colors.paper },
   small: { fontFamily: fonts.regular, fontSize: 13, color: '#9DB8AA', textAlign: 'center', marginTop: 12 },
 });

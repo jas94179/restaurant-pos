@@ -115,7 +115,7 @@ export default function ProfileScreen({ onOpenMenu, onOpenStaff, onOpenStock, on
       >
         <Text style={styles.logoutText}>Log out</Text>
       </Pressable>
-      <Text style={styles.logoutNote}>Goes back to the PIN screen. Bills and data stay safe on this phone.</Text>
+      <Text style={styles.logoutNote}>Goes back to the start page. Bills and data stay safe on this phone.</Text>
     </ScrollView>
   );
 }

@@ -1,12 +1,13 @@
 import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import PinPad from '../../components/PinPad';
 import { useSettings } from '../../data/settingsStore';
 import { loginWithPin } from '../../data/staffStore';
 import { APP_NAME, colors, fonts } from '../../theme';
 
-// Shown every time the app opens, and when switching user. Each person types their own PIN.
-export default function LockScreen() {
+// Sign in: each person types their own PIN. In the real app this comes after
+// signing in with the mobile number.
+export default function LockScreen({ onBack }: { onBack: () => void }) {
   const settings = useSettings();
   const [pin, setPin] = useState('');
   const [error, setError] = useState(false);
@@ -30,6 +31,9 @@ export default function LockScreen() {
   return (
     <View style={styles.screen}>
       <View>
+        <Pressable onPress={onBack} hitSlop={12} accessibilityRole="button" style={styles.back}>
+          <Text style={styles.backText}>‹ Back</Text>
+        </Pressable>
         <Text style={styles.wordmark}>{APP_NAME}</Text>
         <Text style={styles.name}>{settings.restaurantName}</Text>
         <Text style={[styles.hint, error && styles.hintError]}>
@@ -42,7 +46,9 @@ export default function LockScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.brand, paddingHorizontal: 28, paddingTop: 96, paddingBottom: 48, justifyContent: 'space-between' },
+  screen: { flex: 1, backgroundColor: colors.brand, paddingHorizontal: 28, paddingTop: 64, paddingBottom: 48, justifyContent: 'space-between' },
+  back: { alignSelf: 'flex-start', marginBottom: 20 },
+  backText: { fontFamily: fonts.semibold, fontSize: 16, color: '#CFE0D6' },
   wordmark: { fontFamily: fonts.bold, fontSize: 40, color: colors.turmeric, letterSpacing: -1.2 },
   name: { fontFamily: fonts.bold, fontSize: 30, lineHeight: 36, color: colors.paper, marginTop: 12 },
   hint: { fontFamily: fonts.regular, fontSize: 17, color: '#CFE0D6', marginTop: 10 },
