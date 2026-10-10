@@ -1,0 +1,223 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; width: 1080px; height: 1920px; overflow: hidden; background: #17382A; }
+  body { font-family: 'Poppins', sans-serif; color: #fff; position: relative; }
+  .abs { position: absolute; }
+  .scene { position: absolute; inset: 0; }
+  .h1 { font-weight: 700; letter-spacing: -2px; }
+  .phone { width: 520px; height: 1060px; border-radius: 74px; background: #0B1F17; padding: 18px; box-shadow: 0 50px 100px rgba(0,0,0,0.4); }
+  .screen { width: 100%; height: 100%; border-radius: 58px; overflow: hidden; background: #F3F6F4; color: #102018; position: relative; }
+  .tile { background: #fff; border-radius: 18px; border: 1.5px solid #DDE3E0; padding: 16px; height: 150px; display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden; }
+  .tname { font-size: 20px; font-weight: 600; }
+  .tprice { font-size: 18px; color: #5E6E66; }
+  .add { height: 44px; border-radius: 12px; border: 2px solid #17382A; color: #17382A; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; }
+  .step { height: 44px; border-radius: 12px; background: #17382A; color: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; font-weight: 700; font-size: 20px; }
+  .ripple { position: absolute; width: 160px; height: 160px; border-radius: 80px; background: rgba(242,176,30,0.45); left: 50%; top: 50%; margin: -80px 0 0 -80px; transform: scale(0); opacity: 0; }
+  .row { display: flex; justify-content: space-between; }
+  .mono { font-family: 'DejaVu Sans Mono', monospace; }
+</style>
+</head>
+<body>
+  <!-- Scene 1: logo -->
+  <div id="s1" class="scene">
+    <div class="abs" style="left: 390px; top: 640px; width: 300px; height: 260px;">
+      <div id="coin" class="abs" style="left: 75px; top: 0; width: 150px; height: 150px; border-radius: 75px; background: #F2B01E; border: 10px solid #C98C07; display: flex; align-items: center; justify-content: center; font-size: 76px; font-weight: 700; color: #0F2A1F; font-family: 'DejaVu Sans', sans-serif;">₹</div>
+      <div class="abs" style="left: 0; bottom: 40px; width: 300px; height: 38px; border-radius: 19px; background: #0B1F17; border: 3px solid rgba(255,255,255,0.18);"></div>
+    </div>
+    <div id="word" class="abs h1" style="left: 0; right: 0; top: 930px; text-align: center; font-size: 190px; line-height: 190px; letter-spacing: -8px;">galla</div>
+    <div id="tag" class="abs" style="left: 120px; right: 120px; top: 1150px; text-align: center; font-size: 46px; line-height: 62px; color: #CFE0D6;">Restaurant billing that works<br>even when the internet doesn't.</div>
+  </div>
+
+  <!-- Scene 2: billing on the phone -->
+  <div id="s2" class="scene" style="background: #17382A;">
+    <div id="h2" class="abs h1" style="left: 80px; right: 80px; top: 150px; font-size: 84px; line-height: 92px;">Bill in three taps.</div>
+    <div id="h2b" class="abs" style="left: 80px; right: 80px; top: 260px; font-size: 40px; color: #CFE0D6;">Tap the dish.</div>
+    <div id="phone" class="abs phone" style="left: 280px; top: 420px;">
+      <div class="screen">
+        <div style="background: #17382A; padding: 54px 28px 20px 28px; display: flex; justify-content: space-between; align-items: flex-end;">
+          <div><div style="font-size: 17px; font-weight: 600; color: #9DB8AA;">Sharma Sweets</div><div style="font-size: 32px; font-weight: 700; color: #fff;">Counter</div></div>
+          <div style="font-size: 17px; font-weight: 600; color: #fff; background: rgba(255,255,255,0.12); padding: 8px 14px; border-radius: 20px;">Ravi</div>
+        </div>
+        <div style="padding: 18px 20px 0 20px;">
+          <div style="height: 56px; border-radius: 14px; background: #fff; border: 1.5px solid #DDE3E0; display: flex; align-items: center; padding: 0 18px; font-size: 19px; color: #5E6E66;">Search items</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 18px;">
+            <div class="tile" id="t1"><div class="ripple" id="r1"></div><div><div class="tname">Masala Dosa</div><div class="tprice">₹90</div></div><div id="b1" class="add">ADD</div></div>
+            <div class="tile"><div><div class="tname">Idli Sambar</div><div class="tprice">₹60</div></div><div class="add">ADD</div></div>
+            <div class="tile" id="t3"><div class="ripple" id="r3"></div><div><div class="tname">Vada</div><div class="tprice">₹40</div></div><div id="b3" class="add">ADD</div></div>
+            <div class="tile"><div><div class="tname">Filter Coffee</div><div class="tprice">₹30</div></div><div class="add">ADD</div></div>
+            <div class="tile"><div><div class="tname">Upma</div><div class="tprice">₹50</div></div><div class="add">ADD</div></div>
+            <div class="tile"><div><div class="tname">Masala Chai</div><div class="tprice">₹20</div></div><div class="add">ADD</div></div>
+          </div>
+        </div>
+        <div id="cart" class="abs" style="left: 20px; right: 20px; bottom: 30px; height: 70px; border-radius: 18px; background: #17382A; color: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 22px; font-size: 20px; font-weight: 600; opacity: 0;"><span id="carttext">1 item · ₹90</span><span>View bill ›</span></div>
+        <div id="dim" class="abs" style="inset: 0; background: rgba(15,42,31,0.55); opacity: 0;"></div>
+        <div id="sheet" class="abs" style="left: 0; right: 0; bottom: 0; height: 690px; background: #fff; border-radius: 34px 34px 0 0; padding: 32px 28px; transform: translateY(700px);">
+          <div style="font-size: 28px; font-weight: 700;">Bill · Token #42</div>
+          <div style="margin-top: 22px; display: flex; flex-direction: column; gap: 16px; font-size: 22px;">
+            <div class="row"><span>2 × Masala Dosa</span><span>₹180</span></div>
+            <div class="row"><span>1 × Vada</span><span>₹40</span></div>
+          </div>
+          <div style="margin-top: 22px; padding-top: 18px; border-top: 2px dashed #DDE3E0; display: flex; flex-direction: column; gap: 10px; font-size: 20px; color: #5E6E66;">
+            <div class="row"><span>Subtotal</span><span>₹220</span></div>
+            <div class="row"><span>GST 5%</span><span>₹11</span></div>
+            <div class="row" style="font-size: 30px; font-weight: 700; color: #102018;"><span>Total</span><span>₹231</span></div>
+          </div>
+          <div style="margin-top: 26px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+            <div style="height: 60px; border-radius: 14px; border: 2px solid #DDE3E0; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 20px; color: #5E6E66;">Cash</div>
+            <div id="upi" style="height: 60px; border-radius: 14px; border: 2px solid #DDE3E0; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 20px; color: #5E6E66;">UPI</div>
+            <div style="height: 60px; border-radius: 14px; border: 2px solid #DDE3E0; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 20px; color: #5E6E66;">Card</div>
+          </div>
+          <div style="margin-top: 24px; height: 72px; border-radius: 18px; background: #F2B01E; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; color: #0F2A1F;">Show UPI QR · ₹231</div>
+        </div>
+        <div id="qr" class="abs" style="left: 0; right: 0; bottom: 0; height: 840px; background: #fff; border-radius: 34px 34px 0 0; padding: 40px 28px; text-align: center; opacity: 0;">
+          <div style="font-size: 22px; font-weight: 600; color: #5E6E66;">Sharma Sweets</div>
+          <div style="font-size: 64px; font-weight: 700; margin-top: 4px;">₹231</div>
+          <div style="font-size: 19px; color: #5E6E66;">Scan with any UPI app. The amount is filled in.</div>
+          <div style="margin: 28px auto 0 auto; width: 300px; height: 300px; padding: 18px; border: 2px solid #DDE3E0; border-radius: 20px;">
+            <svg width="260" height="260" viewBox="0 0 21 21">
+              <rect x="0" y="0" width="7" height="7" fill="#111"/><rect x="1" y="1" width="5" height="5" fill="#fff"/><rect x="2" y="2" width="3" height="3" fill="#111"/>
+              <rect x="14" y="0" width="7" height="7" fill="#111"/><rect x="15" y="1" width="5" height="5" fill="#fff"/><rect x="16" y="2" width="3" height="3" fill="#111"/>
+              <rect x="0" y="14" width="7" height="7" fill="#111"/><rect x="1" y="15" width="5" height="5" fill="#fff"/><rect x="2" y="16" width="3" height="3" fill="#111"/>
+              <rect x="8" y="0" width="1" height="2" fill="#111"/><rect x="10" y="1" width="2" height="1" fill="#111"/><rect x="9" y="3" width="1" height="3" fill="#111"/><rect x="11" y="4" width="2" height="2" fill="#111"/>
+              <rect x="0" y="8" width="2" height="1" fill="#111"/><rect x="3" y="9" width="2" height="2" fill="#111"/><rect x="6" y="8" width="1" height="3" fill="#111"/><rect x="8" y="8" width="3" height="1" fill="#111"/>
+              <rect x="12" y="8" width="1" height="2" fill="#111"/><rect x="14" y="8" width="2" height="2" fill="#111"/><rect x="17" y="9" width="3" height="1" fill="#111"/><rect x="9" y="10" width="2" height="2" fill="#111"/>
+              <rect x="1" y="12" width="3" height="1" fill="#111"/><rect x="13" y="11" width="1" height="3" fill="#111"/><rect x="15" y="12" width="2" height="1" fill="#111"/><rect x="19" y="11" width="2" height="2" fill="#111"/>
+              <rect x="8" y="13" width="2" height="1" fill="#111"/><rect x="9" y="15" width="1" height="2" fill="#111"/><rect x="11" y="14" width="2" height="2" fill="#111"/><rect x="14" y="15" width="3" height="1" fill="#111"/>
+              <rect x="18" y="14" width="1" height="3" fill="#111"/><rect x="8" y="18" width="3" height="1" fill="#111"/><rect x="12" y="17" width="1" height="3" fill="#111"/><rect x="15" y="18" width="2" height="2" fill="#111"/><rect x="19" y="19" width="2" height="1" fill="#111"/>
+            </svg>
+          </div>
+          <div id="paid" style="margin-top: 30px; height: 76px; border-radius: 18px; background: #17382A; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700;">Payment received</div>
+        </div>
+        <div id="toast" class="abs" style="left: 40px; right: 40px; top: 40px; border-radius: 22px; background: #1B8A3A; color: #fff; padding: 24px; text-align: center; font-size: 26px; font-weight: 700; opacity: 0;">Bill saved · Token #42</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scene 3: printer -->
+  <div id="s3" class="scene" style=" background: #F2B01E; color: #0F2A1F;">
+    <div class="abs h1" style="left: 80px; right: 80px; top: 150px; font-size: 92px; line-height: 98px;">Prints straight from your phone.</div>
+    <div class="abs" style="left: 80px; right: 80px; top: 370px; font-size: 40px; line-height: 54px;">Bills, kitchen slips and a UPI QR on a small Bluetooth printer.</div>
+    <div class="abs" style="left: 290px; top: 560px; width: 500px; height: 940px; overflow: hidden;">
+      <div id="receipt" class="abs mono" style="left: 0; width: 500px; top: 940px; background: #fff; padding: 34px 34px 40px 34px; font-size: 19px; line-height: 30px; color: #111; box-shadow: 0 20px 40px rgba(0,0,0,0.12);">
+        <div style="text-align: center; font-size: 30px; line-height: 40px; font-weight: 700;">SHARMA SWEETS</div>
+        <div style="text-align: center;">GSTIN 07ABCDE1234F1Z5</div>
+        <div style="text-align: center; font-weight: 700;">TAX INVOICE</div>
+        <div>--------------------------------</div>
+        <div class="row"><span>Invoice</span><span>INV-2627-000123</span></div>
+        <div class="row"><span>Token #42</span><span>Counter</span></div>
+        <div>--------------------------------</div>
+        <div class="row"><span>Masala Dosa   x2</span><span>180</span></div>
+        <div class="row"><span>Vada          x1</span><span>40</span></div>
+        <div>--------------------------------</div>
+        <div class="row"><span>CGST 2.5%</span><span>5.50</span></div>
+        <div class="row"><span>SGST 2.5%</span><span>5.50</span></div>
+        <div class="row" style="font-weight: 700; font-size: 24px;"><span>TOTAL</span><span>Rs 231</span></div>
+        <div>--------------------------------</div>
+        <div>Paid by UPI</div>
+        <div style="text-align: center; margin-top: 10px;">Thank you! Visit again.</div>
+      </div>
+    </div>
+    <div class="abs" style="left: 240px; top: 1480px; width: 600px; height: 300px; border-radius: 50px; background: #17382A; box-shadow: 0 30px 60px rgba(15,42,31,0.35);">
+      <div class="abs" style="left: 50px; top: 24px; width: 500px; height: 18px; border-radius: 9px; background: #0B1F17;"></div>
+      <div class="abs" style="left: 50px; bottom: 50px; display: flex; gap: 16px; align-items: center;">
+        <div id="led" style="width: 18px; height: 18px; border-radius: 9px; background: #3DDC84;"></div>
+        <div style="font-size: 28px; font-weight: 600; color: #CFE0D6;">Bluetooth printer · 57 mm</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scene 4: day close -->
+  <div id="s4" class="scene" style=" background: #0F2A1F;">
+    <div class="abs h1" style="left: 80px; right: 80px; top: 150px; font-size: 92px; line-height: 98px;">Close the day.<br><span style="color: #F2B01E;">Count the cash.</span></div>
+    <div class="abs" style="left: 80px; right: 80px; top: 380px; font-size: 40px; line-height: 54px; color: #CFE0D6;">galla shows if the drawer matches. Cashiers count without seeing the answer.</div>
+    <div id="card" class="abs" style="left: 110px; right: 110px; top: 640px; border-radius: 44px; background: #fff; color: #102018; padding: 56px 56px;">
+      <div style="font-size: 40px; font-weight: 700;">Cash in the drawer</div>
+      <div style="margin-top: 30px; display: flex; flex-direction: column; gap: 20px; font-size: 34px;">
+        <div class="row"><span>Start of day</span><span>₹2,000</span></div>
+        <div class="row"><span>+ Cash bills</span><span>₹12,545</span></div>
+        <div class="row" style="color: #5E6E66;"><span>− Paid to vendor</span><span>₹200</span></div>
+        <div class="row" style="font-weight: 700; padding-top: 20px; border-top: 2px solid #DDE3E0;"><span>Should be</span><span>₹14,345</span></div>
+        <div class="row" style="font-weight: 700;"><span>Counted</span><span id="counted">₹0</span></div>
+      </div>
+      <div id="match" style="margin-top: 36px; height: 120px; border-radius: 26px; background: #E6F4EA; color: #1B8A3A; display: flex; align-items: center; justify-content: center; font-size: 52px; font-weight: 700; opacity: 0;">Cash matches</div>
+    </div>
+  </div>
+
+  <!-- Scene 5: end card -->
+  <div id="s5" class="scene" style=" background: #17382A;">
+    <div class="abs" style="left: 420px; top: 470px; width: 240px; height: 230px;">
+      <div class="abs" style="left: 55px; top: 0; width: 130px; height: 130px; border-radius: 65px; background: #F2B01E; border: 9px solid #C98C07; display: flex; align-items: center; justify-content: center; font-size: 66px; font-weight: 700; color: #0F2A1F; font-family: 'DejaVu Sans', sans-serif;">₹</div>
+      <div class="abs" style="left: 0; bottom: 40px; width: 240px; height: 32px; border-radius: 16px; background: #0B1F17; border: 3px solid rgba(255,255,255,0.18);"></div>
+    </div>
+    <div class="abs h1" style="left: 0; right: 0; top: 730px; text-align: center; font-size: 170px; line-height: 170px; letter-spacing: -7px;">galla</div>
+    <div class="abs" style="left: 100px; right: 100px; top: 940px; text-align: center; font-size: 44px; line-height: 60px; color: #CFE0D6;">Billing for small restaurants.<br>Made in India, priced for India.</div>
+    <div id="cta" class="abs" style="left: 110px; right: 110px; top: 1190px; border-radius: 36px; background: #F2B01E; color: #0F2A1F; padding: 44px; text-align: center;">
+      <div style="font-size: 60px; line-height: 66px; font-weight: 700; letter-spacing: -1.5px;">Free trial for restaurants</div>
+      <div style="margin-top: 14px; font-size: 36px; font-weight: 600;">DM us · [@your_handle]</div>
+    </div>
+  </div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const clamp = (x) => Math.max(0, Math.min(1, x));
+  const prog = (t, a, b) => clamp((t - a) / (b - a));
+  const out = (p) => 1 - Math.pow(1 - p, 3);
+  const inOut = (p) => p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+  const bounce = (p) => { const n = 7.5625, d = 2.75; if (p < 1 / d) return n * p * p; if (p < 2 / d) return n * (p -= 1.5 / d) * p + 0.75; if (p < 2.5 / d) return n * (p -= 2.25 / d) * p + 0.9375; return n * (p -= 2.625 / d) * p + 0.984375; };
+  const fade = (t, a, b, c, d) => Math.min(prog(t, a, b), 1 - prog(t, c, d));
+  const inr = (n) => '₹' + Math.round(n).toLocaleString('en-IN');
+
+  function stepper(el, n) { el.className = 'step'; el.innerHTML = '<span>−</span><span>' + n + '</span><span>+</span>'; }
+  function addBtn(el) { el.className = 'add'; el.textContent = 'ADD'; }
+  function ripple(el, t, at) { const p = prog(t, at, at + 0.45); el.style.transform = 'scale(' + (0.2 + p * 1.6) + ')'; el.style.opacity = p > 0 && p < 1 ? String(0.9 * (1 - p)) : '0'; }
+
+  function slide(id, t, at) { const p = inOut(prog(t, at, at + 0.6)); const el = $(id); el.style.opacity = '1'; el.style.transform = 'translateY(' + (1920 * (1 - p)) + 'px)'; }
+  window.render = function (t) {
+    // Scene 1 (0–3.2s)
+    const cp = bounce(prog(t, 0.3, 1.4));
+    $('coin').style.transform = 'translateY(' + (-700 * (1 - cp)) + 'px)';
+    $('word').style.opacity = prog(t, 1.2, 1.8); $('word').style.transform = 'translateY(' + (40 * (1 - out(prog(t, 1.2, 1.8)))) + 'px)';
+    $('tag').style.opacity = prog(t, 1.6, 2.2);
+    
+
+    // Scene 2 (3.0–11.4s)
+    slide('s2', t, 3.0);
+    $('phone').style.transform = 'translateY(' + (300 * (1 - out(prog(t, 3.3, 4.0)))) + 'px)';
+    ripple($('r1'), t, t < 4.8 ? 4.2 : 4.85); ripple($('r3'), t, 5.6);
+    const n1 = t >= 4.85 ? 2 : t >= 4.25 ? 1 : 0, n3 = t >= 5.65 ? 1 : 0;
+    n1 ? stepper($('b1'), n1) : addBtn($('b1'));
+    n3 ? stepper($('b3'), n3) : addBtn($('b3'));
+    const items = n1 + n3, total = n1 * 90 + n3 * 40;
+    $('cart').style.opacity = items ? 1 : 0;
+    $('carttext').textContent = items + (items === 1 ? ' item · ' : ' items · ') + '₹' + total;
+    $('h2b').textContent = t < 6.6 ? 'Tap the dish.' : t < 9.2 ? 'Choose Cash, UPI or card.' : 'Payment received. Bill saved.';
+    $('dim').style.opacity = 0.9 * prog(t, 6.5, 6.9);
+    $('sheet').style.transform = 'translateY(' + (700 * (1 - out(prog(t, 6.5, 7.1)))) + 'px)';
+    const upiOn = t >= 7.6; $('upi').style.background = upiOn ? '#17382A' : '#fff'; $('upi').style.color = upiOn ? '#fff' : '#5E6E66'; $('upi').style.borderColor = upiOn ? '#17382A' : '#DDE3E0';
+    $('qr').style.opacity = prog(t, 8.2, 8.6); $('qr').style.transform = 'translateY(' + (60 * (1 - out(prog(t, 8.2, 8.6)))) + 'px)';
+    $('paid').style.background = t >= 9.5 ? '#1B8A3A' : '#17382A';
+    $('toast').style.opacity = fade(t, 9.8, 10.1, 11.0, 11.2); $('toast').style.transform = 'translateY(' + (-30 * (1 - out(prog(t, 9.8, 10.1)))) + 'px)';
+
+    // Scene 3 (11.2–15.4s)
+    slide('s3', t, 11.0);
+    $('receipt').style.top = (940 - 900 * inOut(prog(t, 11.9, 14.2))) + 'px';
+    $('led').style.opacity = t > 11.9 && t < 14.2 ? (Math.floor(t * 6) % 2 ? 1 : 0.3) : 1;
+
+    // Scene 4 (15.2–19.0s)
+    slide('s4', t, 15.0);
+    $('card').style.transform = 'translateY(' + (120 * (1 - out(prog(t, 15.3, 15.9)))) + 'px)';
+    $('counted').textContent = inr(14345 * out(prog(t, 16.0, 17.4)));
+    $('match').style.opacity = prog(t, 17.5, 17.8); $('match').style.transform = 'scale(' + (0.9 + 0.1 * out(prog(t, 17.5, 17.9))) + ')';
+
+    // Scene 5 (18.8–22s)
+    slide('s5', t, 18.6);
+    $('cta').style.transform = 'translateY(' + (80 * (1 - out(prog(t, 19.5, 20.1)))) + 'px)'; $('cta').style.opacity = prog(t, 19.5, 20.0);
+  };
+  window.render(0);
+</script>
+</body>
+</html>
