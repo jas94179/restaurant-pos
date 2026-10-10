@@ -1,0 +1,536 @@
+<title>galla case study</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a long-read column (max 1080px) with thermal-receipt details: mono labels, dashed tear lines, a bill-style summary. */
+:root {
+  --bg: #F4F7F5; --surface: #FFFFFF; --ink: #102018; --muted: #4A5B53; --line: #D6E0DA;
+  --panel: #17382A; --on-panel: #FFFFFF; --on-panel-muted: #C4D6CB; --leaf: #1F6B47;
+  --gold: #F2B01E; --gold-ink: #8A5B00; --chip: #E6EEE9; --bad: #9C2B22; --good: #156B2E;
+  --display: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif;
+  --body: 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0D1A14; --surface: #13251C; --ink: #E7F0EA; --muted: #A9BFB2; --line: #26402F;
+  --panel: #18392A; --on-panel: #FFFFFF; --on-panel-muted: #C4D6CB; --leaf: #74CC9E;
+  --gold: #F2B01E; --gold-ink: #F2C04A; --chip: #1C3328; --bad: #F08A80; --good: #7ED39A; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0D1A14; --surface: #13251C; --ink: #E7F0EA; --muted: #A9BFB2; --line: #26402F;
+  --panel: #18392A; --on-panel: #FFFFFF; --on-panel-muted: #C4D6CB; --leaf: #74CC9E;
+  --gold: #F2B01E; --gold-ink: #F2C04A; --chip: #1C3328; --bad: #F08A80; --good: #7ED39A; color-scheme: dark; }
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 17px; line-height: 1.65; }
+.wrap { max-width: 1080px; margin: 0 auto; padding-inline: 24px; }
+h1, h2, h3, h4 { font-family: var(--display); margin: 0; text-wrap: balance; color: var(--ink); }
+p { margin: 0; text-wrap: pretty; }
+.prose { max-width: 68ch; display: flex; flex-direction: column; gap: 14px; color: var(--ink); }
+.muted { color: var(--muted); }
+.eyebrow { font-family: var(--mono); font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--leaf); font-weight: 600; }
+.tear { border: 0; border-top: 2px dashed var(--line); margin: 0; }
+section.block { padding-block: 72px; display: flex; flex-direction: column; gap: 28px; }
+section.block > header { display: flex; flex-direction: column; gap: 10px; }
+h2 { font-size: clamp(30px, 4.2vw, 46px); line-height: 1.08; letter-spacing: -0.02em; font-weight: 800; }
+h3 { font-size: 22px; line-height: 1.25; font-weight: 700; letter-spacing: -0.01em; }
+a { color: var(--leaf); }
+:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+
+/* hero */
+.hero { background: var(--panel); color: var(--on-panel); padding-block: 64px 72px; }
+.hero h1 { color: var(--on-panel); font-size: clamp(64px, 12vw, 132px); line-height: 0.92; letter-spacing: -0.05em; font-weight: 800; }
+.hero .sub { font-family: var(--display); font-size: clamp(22px, 3vw, 32px); line-height: 1.2; font-weight: 500; max-width: 22ch; color: var(--on-panel); }
+.hero .sub em { font-style: normal; color: var(--gold); }
+.hero .lede { color: var(--on-panel-muted); max-width: 52ch; }
+.hero-grid { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 48px; align-items: start; }
+.hero-left { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
+.mark { display: flex; align-items: center; gap: 14px; }
+.coin { width: 46px; height: 46px; border-radius: 50%; background: var(--gold); border: 4px solid #C98C07; display: grid; place-items: center; color: #0F2A1F; font-weight: 800; font-size: 22px; font-family: var(--display); }
+.mark span { font-family: var(--mono); font-size: 13px; color: var(--on-panel-muted); letter-spacing: 0.06em; text-transform: uppercase; }
+.receipt { background: #FFFFFF; color: #111; font-family: var(--mono); font-size: 14px; line-height: 1.6; padding: 26px 24px 30px; box-shadow: 0 24px 48px rgba(0,0,0,0.3); position: relative; transform: rotate(1.5deg); min-width: 0; }
+.receipt::after { content: ""; position: absolute; left: 0; right: 0; bottom: -10px; height: 10px; background: linear-gradient(-45deg, transparent 6px, #fff 0) 0 0 / 12px 10px repeat-x, linear-gradient(45deg, transparent 6px, #fff 0) 0 0 / 12px 10px repeat-x; }
+.receipt .c { text-align: center; }
+.receipt .b { font-weight: 600; }
+.receipt .rule { border-top: 1.5px dashed #999; margin: 10px 0; }
+.receipt .r { display: flex; justify-content: space-between; gap: 12px; }
+.receipt .r span:last-child { text-align: right; }
+
+/* numbers */
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; border-top: 2px solid var(--ink); }
+.stat { padding: 20px 18px 6px 0; display: flex; flex-direction: column; gap: 4px; }
+.stat b { font-family: var(--display); font-size: clamp(34px, 5vw, 52px); line-height: 1; font-weight: 800; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.stat span { font-size: 14px; color: var(--muted); line-height: 1.4; }
+
+/* cards & grids */
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.card { background: var(--surface); border: 1.5px solid var(--line); border-radius: 18px; padding: 22px 22px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.card p { font-size: 15.5px; color: var(--muted); line-height: 1.55; }
+.pain { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 40px; }
+.pain div { padding: 16px 0; border-bottom: 1.5px solid var(--line); display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 12px; }
+.pain b { font-family: var(--mono); color: var(--gold-ink); font-size: 15px; }
+.quote { font-family: var(--display); font-size: clamp(24px, 3.2vw, 34px); line-height: 1.25; font-weight: 500; letter-spacing: -0.01em; max-width: 30ch; border-left: 0; }
+.quote em { font-style: normal; background: linear-gradient(transparent 62%, color-mix(in srgb, var(--gold) 45%, transparent) 0); }
+
+/* tables */
+.tbl { overflow-x: auto; border: 1.5px solid var(--line); border-radius: 16px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 640px; }
+th, td { text-align: left; padding: 13px 16px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); font-weight: 600; background: var(--chip); }
+tr:last-child td { border-bottom: 0; }
+td.y { color: var(--good); font-weight: 600; }
+td.n { color: var(--muted); }
+td.pin { color: var(--gold-ink); font-weight: 600; }
+tr.us td { background: color-mix(in srgb, var(--gold) 12%, transparent); }
+td .tag { font-family: var(--mono); font-size: 12px; }
+
+/* screens */
+.screens { display: flex; gap: 18px; overflow-x: auto; padding-bottom: 10px; scroll-snap-type: x mandatory; }
+.screens figure { margin: 0; flex: 0 0 200px; display: flex; flex-direction: column; gap: 10px; scroll-snap-align: start; }
+.screens img { width: 200px; height: 400px; object-fit: cover; border-radius: 26px; display: block; background: var(--panel); }
+figcaption { font-size: 14px; line-height: 1.45; color: var(--muted); }
+figcaption b { color: var(--ink); font-weight: 600; display: block; }
+.flow { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px; align-items: center; }
+.flow .pair { display: flex; gap: 16px; justify-content: center; }
+.flow .pair img { width: min(200px, 44%); height: auto; aspect-ratio: 1 / 2; object-fit: cover; border-radius: 24px; max-width: 100%; }
+.flow.rev .text { order: 2; }
+.steps { display: flex; flex-direction: column; gap: 14px; margin: 0; padding: 0; list-style: none; }
+.steps li { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 12px; font-size: 16px; }
+.steps li::before { content: attr(data-n); width: 30px; height: 30px; border-radius: 50%; background: var(--gold); color: #0F2A1F; font-weight: 700; display: grid; place-items: center; font-size: 14px; font-family: var(--mono); }
+
+/* decisions */
+.decision { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.4fr); gap: 28px; padding-block: 22px; border-top: 1.5px solid var(--line); }
+.decision h3 { font-size: 20px; }
+.decision .why { display: flex; flex-direction: column; gap: 8px; font-size: 16px; }
+.decision .why .tr { font-size: 14.5px; color: var(--muted); }
+.decision .why .tr b { color: var(--ink); font-weight: 600; }
+
+/* panel band */
+.band { background: var(--panel); color: var(--on-panel); border-radius: 26px; padding: 34px 34px; display: flex; flex-direction: column; gap: 18px; }
+.band h3, .band h2 { color: var(--on-panel); }
+.band p, .band li { color: var(--on-panel-muted); }
+.band .grid3 .item { display: flex; flex-direction: column; gap: 6px; }
+.band .grid3 .item b { color: var(--on-panel); font-weight: 600; }
+
+/* timeline */
+.timeline { display: flex; flex-direction: column; gap: 0; border-left: 3px solid var(--line); margin-left: 8px; }
+.timeline > div { position: relative; padding: 0 0 26px 28px; display: flex; flex-direction: column; gap: 4px; }
+.timeline > div::before { content: ""; position: absolute; left: -10px; top: 6px; width: 17px; height: 17px; border-radius: 50%; background: var(--gold); border: 3px solid var(--bg); }
+.timeline .when { font-family: var(--mono); font-size: 13px; color: var(--leaf); font-weight: 600; }
+.timeline p { color: var(--muted); font-size: 15.5px; }
+
+/* fixes */
+.fix { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0; border: 1.5px solid var(--line); border-radius: 16px; overflow: hidden; background: var(--surface); }
+.fix > div { padding: 14px 18px; border-bottom: 1px solid var(--line); font-size: 15px; line-height: 1.5; }
+.fix > div:nth-last-child(-n+2) { border-bottom: 0; }
+.fix .h { font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); font-weight: 600; background: var(--chip); }
+.fix .p { color: var(--muted); }
+
+/* gallery */
+.reels { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
+.reels figure { margin: 0; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.reels img { width: 100%; aspect-ratio: 9 / 16; object-fit: cover; border-radius: 14px; display: block; max-width: 100%; }
+.pages { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.pages img { width: 100%; aspect-ratio: 210 / 297; object-fit: cover; border-radius: 6px; border: 1px solid var(--line); display: block; box-shadow: 0 8px 20px rgba(16,32,24,0.10); max-width: 100%; }
+.swatches { display: flex; gap: 14px; flex-wrap: wrap; }
+.sw { display: flex; gap: 12px; align-items: center; background: var(--surface); border: 1.5px solid var(--line); border-radius: 14px; padding: 10px 16px 10px 10px; }
+.sw i { width: 42px; height: 42px; border-radius: 10px; display: block; }
+.sw span { font-family: var(--mono); font-size: 13px; line-height: 1.4; }
+
+.plans { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.plan { background: var(--surface); border: 1.5px solid var(--line); border-radius: 18px; padding: 20px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.plan b { font-family: var(--display); font-size: 30px; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.plan .n { font-weight: 600; }
+.plan p { font-size: 14px; color: var(--muted); line-height: 1.5; }
+
+.learn { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.learn .card h3 { font-size: 19px; }
+
+footer { background: var(--panel); color: var(--on-panel-muted); padding-block: 48px; margin-top: 40px; }
+footer .wrap { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; align-items: flex-end; }
+footer b { font-family: var(--display); color: var(--on-panel); font-size: 44px; letter-spacing: -0.04em; font-weight: 800; line-height: 1; }
+footer p { font-size: 14px; }
+
+@media (max-width: 860px) {
+  .hero-grid, .flow, .decision, .grid2, .learn, .pain { grid-template-columns: minmax(0, 1fr); }
+  .flow.rev .text { order: 0; }
+  .grid3, .plans { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .reels { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .pages { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .receipt { transform: none; }
+  section.block { padding-block: 52px; }
+}
+@media (max-width: 520px) {
+  .grid3, .plans { grid-template-columns: minmax(0, 1fr); }
+  .reels { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .fix { grid-template-columns: minmax(0, 1fr); }
+  .fix .h:nth-child(2) { display: none; }
+  .band { padding: 26px 22px; }
+}
+@media (prefers-reduced-motion: no-preference) { .screens { scroll-behavior: smooth; } }
+</style>
+
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div class="hero-left">
+      <div class="mark"><div class="coin" aria-hidden="true">₹</div><span>Case study · Product design</span></div>
+      <h1>galla</h1>
+      <p class="sub">Billing for small Indian restaurants, <em>designed for the counter.</em></p>
+      <p class="lede">An offline-first billing app that runs on the Android phone a restaurant already owns and prints to a cheap Bluetooth printer. I took it from idea to a working, installed app in three days, then built the brand and launch kit around it.</p>
+    </div>
+    <div class="receipt" aria-label="Project summary">
+      <div class="c b" style="font-size: 17px;">PROJECT SUMMARY</div>
+      <div class="c">galla · v0.3.0</div>
+      <div class="rule"></div>
+      <div class="r"><span>Role</span><span>Product designer, product owner</span></div>
+      <div class="r"><span>Built with</span><span>Claude (all code)</span></div>
+      <div class="r"><span>Timeline</span><span>8–11 Oct 2026</span></div>
+      <div class="r"><span>Platform</span><span>Android (React Native, Expo)</span></div>
+      <div class="r"><span>Hardware</span><span>57 mm Bluetooth printer</span></div>
+      <div class="rule"></div>
+      <div class="r"><span>Features shipped</span><span>20+</span></div>
+      <div class="r"><span>Marketing assets</span><span>5 reels, 5 posts, brochure</span></div>
+      <div class="r b"><span>TOTAL SPENT</span><span>Rs 0</span></div>
+      <div class="rule"></div>
+      <div class="c">Status: pilot at a friend's restaurant</div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="block" id="overview">
+    <div class="stats">
+      <div class="stat"><b>3 days</b><span>from first line of code to an installed Android app</span></div>
+      <div class="stat"><b>₹0</b><span>spent on software, hosting and builds so far</span></div>
+      <div class="stat"><b>3 roles</b><span>owner, manager and cashier, each with their own PIN</span></div>
+      <div class="stat"><b>0 bars</b><span>of signal needed to make a bill</span></div>
+    </div>
+    <div class="prose">
+      <p><b>galla</b> is the Hindi word for a shop's cash box, the drawer every Indian shopkeeper guards. That is what this app is about: billing fast at the counter, and making sure the money in the drawer at night is the money the day earned.</p>
+      <p>Popular restaurant POS systems in India are priced and built for bigger outlets, with yearly contracts and their own hardware. A small dosa counter, a cafe or a family dine-in needs something simpler: correct GST bills, a UPI QR, kitchen slips, and a way to stop cash from quietly going missing.</p>
+    </div>
+  </section>
+
+  <hr class="tear">
+
+  <section class="block" id="problem">
+    <header><div class="eyebrow">The problem</div><h2>Small restaurants pay big-restaurant prices for software they half use.</h2></header>
+    <div class="pain">
+      <div><b>01</b><p><b>Cost.</b> Several thousand rupees a year for software, plus add-ons and dedicated hardware.</p></div>
+      <div><b>02</b><p><b>Leakage.</b> Cash goes missing between billing and closing, hidden behind discounts and cancelled bills.</p></div>
+      <div><b>03</b><p><b>Internet.</b> The connection drops in the middle of the lunch rush, and cloud-only billing stops.</p></div>
+      <div><b>04</b><p><b>Complexity.</b> Staff find dense screens slow and confusing, so they fall back to paper.</p></div>
+      <div><b>05</b><p><b>GST rules.</b> Invoices need running numbers, CGST and SGST, and delivery-app orders follow different tax rules.</p></div>
+      <div><b>06</b><p><b>Month end.</b> The CA asks for GST numbers, and the owner hands over a bag of bills.</p></div>
+    </div>
+    <p class="quote">The design question: how might we give a small restaurant <em>honest, GST-correct billing</em> on a phone they already own, even when the internet doesn't work?</p>
+  </section>
+
+  <hr class="tear">
+
+  <section class="block" id="research">
+    <header><div class="eyebrow">Landscape</div><h2>Where galla fits.</h2>
+      <p class="prose muted">I compared the products small restaurants usually hear about. The big systems do far more, at a far higher cost. Generic GST billing apps are cheap but don't understand tables or kitchens.</p></header>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Product</th><th>Built for</th><th>Price (listed or estimated)</th><th>Runs on</th><th>Gap for a small restaurant</th></tr></thead>
+        <tbody>
+          <tr class="us"><td><b>galla</b></td><td>Counters, cafes, small dine-in</td><td>Free trial; ₹0–₹999 a month planned</td><td>Android phone + 57 mm Bluetooth printer</td><td>No inventory, CRM or online ordering yet</td></tr>
+          <tr><td>Petpooja</td><td>Single and multi-outlet restaurants</td><td>About ₹10,000–₹30,000 a year (listings); annual billing</td><td>Own devices, cloud with offline mode</td><td>Feature-rich, priced above a small counter's budget</td></tr>
+          <tr><td>Restroworks (POSist)</td><td>Growing chains</td><td>Custom quote; no free plan</td><td>Cloud POS</td><td>Enterprise focus; costly for single outlets</td></tr>
+          <tr><td>eZee Optimus</td><td>Restaurants of all sizes</td><td>Price on request</td><td>Cloud POS</td><td>Full POS, more than a counter needs</td></tr>
+          <tr><td>Vyapar</td><td>Small shops (general GST billing)</td><td>About ₹699–₹1,599 (listed plans)</td><td>Phone and desktop</td><td>Not made for restaurants: no tables or kitchen slips</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="muted" style="font-size: 14px;">Competitor prices are from public listings and third-party estimates at the time of research (Techjockey, DineOpen, PricingSaaS, G2) and change often.</p>
+    <div class="grid2">
+      <div class="card"><h3>Where galla wins</h3><p>Lowest cost to start, no new hardware beyond a cheap printer, offline by design, and anti-leakage controls built in from day one.</p></div>
+      <div class="card"><h3>Where it loses today</h3><p>No inventory, recipes, loyalty, online ordering, multi-phone sync or Play Store presence. These are deliberate cuts for version one.</p></div>
+    </div>
+  </section>
+
+  <hr class="tear">
+
+  <section class="block" id="users">
+    <header><div class="eyebrow">Who it's for</div><h2>Three people share one phone.</h2>
+      <p class="prose muted">A small restaurant has an owner who isn't always there, sometimes a manager, and a cashier who bills all day. Their needs pull in different directions: speed for the cashier, control for the owner.</p></header>
+    <div class="grid3">
+      <div class="card"><div class="eyebrow">Owner</div><h3>Wants to trust the numbers</h3><p>Not at the shop every hour. Needs to know the cash matches, approve discounts, and hand clean files to the CA.</p></div>
+      <div class="card"><div class="eyebrow">Manager</div><h3>Runs the floor</h3><p>Handles tables and rush hour, can approve a discount, and closes the day when the owner is away.</p></div>
+      <div class="card"><div class="eyebrow">Cashier</div><h3>Needs speed above all</h3><p>Bills hundreds of orders a day. Needs big buttons, plain words, and nothing that slows a queue.</p></div>
+    </div>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>What</th><th>Owner</th><th>Manager</th><th>Cashier</th></tr></thead>
+        <tbody>
+          <tr><td>Billing, tables, kitchen slips</td><td class="y">Yes</td><td class="y">Yes</td><td class="y">Yes</td></tr>
+          <tr><td>Older bills</td><td class="y">Yes</td><td class="y">Yes</td><td class="n">No</td></tr>
+          <tr><td>Insights</td><td class="y">All periods</td><td class="y">Today</td><td class="n">No</td></tr>
+          <tr><td>Give a discount / cancel a bill</td><td class="y">Yes</td><td class="y">Yes</td><td class="pin">Needs owner or manager PIN</td></tr>
+          <tr><td>Add an expense</td><td class="y">Yes</td><td class="y">Yes</td><td class="y">Yes</td></tr>
+          <tr><td>Remove an expense</td><td class="y">Yes</td><td class="y">Yes</td><td class="n">No</td></tr>
+          <tr><td>Close the day</td><td class="y">Sees expected cash</td><td class="y">Sees expected cash</td><td class="pin">Blind count</td></tr>
+          <tr><td>Menu, staff, printer, restaurant details</td><td class="y">Yes</td><td class="n">No</td><td class="n">No</td></tr>
+          <tr><td>Export for CA, backup, plan</td><td class="y">Yes</td><td class="n">No</td><td class="n">No</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <hr class="tear">
+
+  <section class="block" id="principles">
+    <header><div class="eyebrow">Design principles</div><h2>Six rules every screen had to pass.</h2></header>
+    <div class="grid3">
+      <div class="card"><h3>Offline first</h3><p>Every bill is saved on the phone before anything else. The internet is never needed to bill.</p></div>
+      <div class="card"><h3>The phone they own</h3><p>No billing machine, no tablet, no computer. A cheap 57 mm Bluetooth printer is optional.</p></div>
+      <div class="card"><h3>Built against leakage</h3><p>Personal PINs, approvals for discounts and cancellations, nothing deleted, blind cash counts.</p></div>
+      <div class="card"><h3>GST done right</h3><p>Invoice numbers per financial year, CGST and SGST on every bill, delivery-app orders taxed correctly.</p></div>
+      <div class="card"><h3>Simple by design</h3><p>Four bottom tabs, big touch targets, plain words. A new cashier should learn it in five minutes.</p></div>
+      <div class="card"><h3>Free to run</h3><p>Every service on a free plan. Low cost for us means a low price for a small restaurant.</p></div>
+    </div>
+  </section>
+
+  <hr class="tear">
+
+  <section class="block" id="experience">
+    <header><div class="eyebrow">The experience</div><h2>A day at the counter, screen by screen.</h2>
+      <p class="prose muted">Scroll sideways through the core screens. The sample shop is fictional.</p></header>
+    <div class="screens" tabindex="0" aria-label="App screens, scroll sideways">
+      <figure><img src="IMG:bill_grid" alt="Counter screen with dish tiles, an Offline chip and a cart bar"><figcaption><b>Counter</b>Tap a dish, tap again for two. The Offline chip tells staff billing still works.</figcaption></figure>
+      <figure><img src="IMG:bill_sheet" alt="Bill sheet with items, GST and payment choices"><figcaption><b>Bill sheet</b>Totals and GST worked out. Cash, UPI or card.</figcaption></figure>
+      <figure><img src="IMG:bill_qr" alt="UPI QR screen with the amount and a payment received button"><figcaption><b>UPI QR</b>The amount is already in the QR. Saved on the phone.</figcaption></figure>
+      <figure><img src="IMG:tables" alt="Tables screen showing busy and free tables with running totals"><figcaption><b>Tables</b>Busy and free tables, each with its running bill.</figcaption></figure>
+      <figure><img src="IMG:order" alt="Table order screen with items already in the kitchen and new items"><figcaption><b>Table order</b>New items are marked, and only they go to the kitchen.</figcaption></figure>
+      <figure><img src="IMG:pin" alt="Owner or manager PIN keypad for approving a discount"><figcaption><b>PIN approval</b>A cashier's discount waits for an owner or manager PIN.</figcaption></figure>
+      <figure><img src="IMG:approved" alt="Bill with an approved discount and reason"><figcaption><b>On record</b>Who approved it, and why, stays on the bill.</figcaption></figure>
+      <figure><img src="IMG:chat" alt="Day close summary sent as a message to the owner"><figcaption><b>Day-end report</b>The summary goes to the owner's phone on WhatsApp.</figcaption></figure>
+      <figure><img src="IMG:reports" alt="Reports screen with monthly total, bar chart and top items"><figcaption><b>Insights</b>Today, 7 or 30 days, with best-selling dishes.</figcaption></figure>
+      <figure><img src="IMG:export" alt="Export screen with five report types selected"><figcaption><b>Export for CA</b>Five CSV files, ready for Excel or Sheets.</figcaption></figure>
+    </div>
+
+    <div class="flow">
+      <div class="text" style="display: flex; flex-direction: column; gap: 16px;">
+        <h3>Billing in three taps</h3>
+        <ol class="steps">
+          <li data-n="1"><span><b>Tap the dish.</b> Tiles show ADD, then turn into a −/+ stepper. Long-press marks a dish out of stock.</span></li>
+          <li data-n="2"><span><b>Pick payment.</b> UPI opens a QR with the exact amount, so the customer never types it.</span></li>
+          <li data-n="3"><span><b>Print or WhatsApp.</b> A proper tax invoice with GSTIN and FSSAI, and a daily token number.</span></li>
+        </ol>
+      </div>
+      <div class="pair"><img src="IMG:bill_grid" alt="Counter screen"><img src="IMG:bill_qr" alt="UPI QR screen"></div>
+    </div>
+
+    <div class="flow rev">
+      <div class="text" style="display: flex; flex-direction: column; gap: 16px;">
+        <h3>Closing the day without accusing anyone</h3>
+        <p class="muted">At night the app works out what should be in the drawer: start cash, plus cash bills, minus money paid out to vendors. A cashier counts without seeing that number, a blind count, so the result is honest. galla then says matches, short or extra, and the report can be printed or sent to the owner.</p>
+      </div>
+      <div class="pair"><img src="IMG:dayclose" alt="Day close card showing cash matches"><img src="IMG:printer" alt="Receipt printing from a Bluetooth printer"></div>
+    </div>
+  </section>
+
+  <hr class="tear">
+
+  <section class="block" id="decisions">
+    <header><div class="eyebrow">Key decisions</div><h2>The calls that shaped it.</h2></header>
+    <div>
+      <div class="decision"><h3>Save locally first, always</h3><div class="why"><p>One SQLite database file per restaurant, on the phone. Billing never waits for a network.</p><p class="tr"><b>Trade-off:</b> no live multi-phone sync in version one; backups are a file the owner shares.</p></div></div>
+      <div class="decision"><h3>A maximum of four tabs</h3><div class="why"><p>Orders, Bills, Insights, Profile. Everything else lives in Profile, grouped by who uses it.</p><p class="tr"><b>Trade-off:</b> owner-only tools are one level deeper, which keeps the cashier's view clean.</p></div></div>
+      <div class="decision"><h3>Blind count for cashiers</h3><div class="why"><p>Cashiers count the drawer without seeing the expected total. Owners and managers see it.</p><p class="tr"><b>Why:</b> if the target is visible, a short drawer gets "found" money. Blind counts make the number honest.</p></div></div>
+      <div class="decision"><h3>Nothing is ever deleted</h3><div class="why"><p>Cancelled bills stay visible, struck through, with who cancelled and why. Removed expenses stay on record.</p><p class="tr"><b>Why:</b> deletion is how leakage hides. A record that can't disappear protects honest staff too.</p></div></div>
+      <div class="decision"><h3>Delivery-app orders carry no GST</h3><div class="why"><p>Zomato and Swiggy orders are entered with their order ID, duplicates are blocked, and no GST is added.</p><p class="tr"><b>Why:</b> under Section 9(5) the delivery platform pays GST on these orders, not the restaurant.</p></div></div>
+      <div class="decision"><h3>UPI QR only on the table bill</h3><div class="why"><p>The printed QR appears on the pre-bill a guest sees at the table, not on the final tax invoice.</p><p class="tr"><b>Why:</b> the QR is for paying; once paid, the invoice should just say how it was paid.</p></div></div>
+      <div class="decision"><h3>"Rs" on paper, "₹" on screen</h3><div class="why"><p>Receipts print amounts as Rs, 32 characters a line, ASCII only.</p><p class="tr"><b>Why:</b> many cheap thermal printers can't print the ₹ sign or a middle dot. Designing for the real printer beat designing for the mockup.</p></div></div>
+      <div class="decision"><h3>One owner, many restaurants</h3><div class="why"><p>An early build blocked a second sign-up on the same phone. I reversed it: one phone can hold several restaurants, each its own file.</p><p class="tr"><b>Why:</b> owners often run two outlets. The first version assumed one restaurant per person, which was wrong.</p></div></div>
+    </div>
+  </section>
+
+  <hr class="tear">
+
+  <section class="block" id="features">
+    <header><div class="eyebrow">Scope</div><h2>What shipped in version 0.3.</h2></header>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Area</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr><td><b>Start and sign-in</b></td><td>Sign in, sign up or restore from backup. Several restaurants per phone. A 4-digit PIN for each person. Log out returns to the start page.</td></tr>
+          <tr><td><b>Agreement</b></td><td>Terms of Use and Privacy Notice before setup: three required ticks, one optional contact permission, asked again when documents change.</td></tr>
+          <tr><td><b>Setup</b></td><td>Name, owner, address, phone, GSTIN, FSSAI, counter or dine-in, tables, sample or empty menu, owner PIN.</td></tr>
+          <tr><td><b>Counter billing</b></td><td>Search, categories, ADD and −/+ tiles, daily tokens, Cash / UPI / Card, UPI QR with the exact amount, out-of-stock by long-press.</td></tr>
+          <tr><td><b>Tables and kitchen</b></td><td>Floor view with running totals; kitchen slips with notes, only new items, removed items printed as CANCEL, warning before settling with unsent items.</td></tr>
+          <tr><td><b>Delivery apps</b></td><td>Zomato and Swiggy entry with order ID; duplicates blocked; no GST added.</td></tr>
+          <tr><td><b>Discounts</b></td><td>Percent or rupees with a reason; cashiers need an owner or manager PIN; applied before GST.</td></tr>
+          <tr><td><b>GST and invoices</b></td><td>No GST, 5% or 18%; prices with or without GST; invoice numbers INV-&lt;financial year&gt;-&lt;serial&gt;.</td></tr>
+          <tr><td><b>Bills history</b></td><td>Search by token or invoice, receipt view, WhatsApp, print, cancel with PIN and reason.</td></tr>
+          <tr><td><b>Insights</b></td><td>Today, 7 or 30 days, compared with the previous period, a plain-language summary, top items, payment and order-type split.</td></tr>
+          <tr><td><b>Expenses</b></td><td>Cash paid to vendors, gas or staff advances, from the drawer or by UPI.</td></tr>
+          <tr><td><b>Day closing</b></td><td>Expected cash, count by total or by notes, short or extra, blind count, print and WhatsApp, history.</td></tr>
+          <tr><td><b>Export for CA</b></td><td>Bill register, GST summary by rate, day-wise, item-wise and expenses as CSV files.</td></tr>
+          <tr><td><b>Menu, stock and staff</b></td><td>Edit menu and categories, stock on/off, roles with unique PINs, "billed by" on every bill.</td></tr>
+          <tr><td><b>Printing</b></td><td>Customer bill, kitchen slip, table bill with QR, day closing and test page over Bluetooth; auto-print options.</td></tr>
+          <tr><td><b>Backup and help</b></td><td>One backup file shared to Drive or WhatsApp with a weekly reminder; quick start per role; problem reports after a crash.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <hr class="tear">
+
+  <section class="block" id="build">
+    <header><div class="eyebrow">How it was built</div><h2>A designer and an AI, shipping a real app.</h2>
+      <p class="prose muted">I owned the product: the problem, the flows, every screen decision, testing on real phones and a real printer. Claude wrote all the code in a cloud workspace and pushed every change to GitHub. I pulled it on my laptop, tested it in seconds, and turned it into an installable app with Expo's cloud build.</p></header>
+    <div class="grid2">
+      <div class="card">
+        <h3>The loop</h3>
+        <ol class="steps">
+          <li data-n="1"><span>I describe the change, or report what broke on my phone.</span></li>
+          <li data-n="2"><span>Claude writes the code, type-checks it, and pushes to GitHub.</span></li>
+          <li data-n="3"><span>I run <code>git pull</code> in Windows CMD and see it in Expo Go on the phone within seconds.</span></li>
+          <li data-n="4"><span>For hardware features, Expo's cloud builds an APK that I install from a QR code.</span></li>
+        </ol>
+      </div>
+      <div class="card">
+        <h3>Versions</h3>
+        <div class="timeline">
+          <div><span class="when">v0.1.0</span><b>First Android app</b><p>Billing, tables, kitchen slips, bills, insights on a real phone.</p></div>
+          <div><span class="when">v0.2.0</span><b>Bluetooth printing</b><p>A custom native module talks to the printer directly.</p></div>
+          <div style="padding-bottom: 0;"><span class="when">v0.3.0</span><b>Trust release</b><p>Encryption, terms and privacy, quick start, crash reports.</p></div>
+        </div>
+      </div>
+    </div>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Layer</th><th>What we used</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr><td>Language</td><td>TypeScript</td><td>Catches mistakes before the app runs</td></tr>
+          <tr><td>Framework</td><td>React Native 0.86 + Expo SDK 57</td><td>One codebase; Android now, iPhone later; no Android Studio</td></tr>
+          <tr><td>Database</td><td>SQLite with SQLCipher encryption</td><td>Offline, fast, private; one file per restaurant</td></tr>
+          <tr><td>Keys and PINs</td><td>Android Keystore (secure store), salted SHA-256</td><td>Data unreadable off the phone; PINs never stored as-is</td></tr>
+          <tr><td>Printing</td><td>Own Kotlin module "GallaPrinter" + ESC/POS</td><td>Sends bills straight to cheap 57 mm printers</td></tr>
+          <tr><td>QR, files, sharing</td><td>react-native-qrcode-svg, expo-file-system, expo-sharing</td><td>UPI QR, backups and CSV exports</td></tr>
+          <tr><td>Builds and updates</td><td>EAS Build, EAS Update, GitHub</td><td>Signed APKs in the cloud; updates without reinstalling</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <hr class="tear">
+
+  <section class="block" id="trust">
+    <div class="band">
+      <div class="eyebrow" style="color: var(--gold);">Trust, security and privacy</div>
+      <h2 style="font-size: clamp(28px, 3.8vw, 40px);">A restaurant's sales are theirs.</h2>
+      <p style="max-width: 64ch;">Billing data is sensitive business information. I treated privacy as a design feature, not a legal page.</p>
+      <div class="grid3">
+        <div class="item"><b>Encrypted on the phone</b><p>Each restaurant's database is encrypted with SQLCipher. Old files are converted with a row-count check, and left untouched if anything fails.</p></div>
+        <div class="item"><b>PINs, hashed</b><p>Every person has a unique PIN, stored only as a salted hash. Android phone backups are off so data can't be restored without its key.</p></div>
+        <div class="item"><b>Consent that means something</b><p>Terms and a Privacy Notice written to India's DPDP Act, with a Hindi summary. Contact permission is optional and off by default.</p></div>
+        <div class="item"><b>Customer numbers not kept</b><p>A guest's WhatsApp number only opens WhatsApp; it is never saved.</p></div>
+        <div class="item"><b>Crash reports stay local</b><p>Problem reports are saved on the phone without bills or customer details, and sent only if the owner chooses.</p></div>
+        <div class="item"><b>Rules for our own dashboard</b><p>The planned owner dashboard shows service health only. Restaurant numbers only with opt-in, and combined across five or more.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="tear">
+
+  <section class="block" id="testing">
+    <header><div class="eyebrow">Testing</div><h2>What real phones taught me.</h2>
+      <p class="prose muted">I tested on an iPhone through Expo Go and on an Android phone with the installed app and a BluPrints 57 mm printer, using a written test list. These are the problems testing found and how each was fixed.</p></header>
+    <div class="fix">
+      <div class="h">What went wrong</div><div class="h">What changed</div>
+      <div>The Offline chip never appeared on iPhone in airplane mode.</div><div class="p">Airplane mode can keep Wi-Fi on. The app now checks real network state on a timer.</div>
+      <div>Bottom sheets were cut off and couldn't be dragged; the discount sheet opened in the middle of the screen.</div><div class="p">One shared bottom sheet for the whole app: slides up from the bottom, swipe down to close.</div>
+      <div>Receipts lost their indentation, and "₹" and "·" printed as junk.</div><div class="p">Leading spaces kept; printed text limited to plain characters, with "Rs" for rupees.</div>
+      <div>In grids of three, the last tile stretched to full width.</div><div class="p">Invisible spacer tiles keep every tile the same size.</div>
+      <div>A second restaurant on the same phone was blocked as "already signed up".</div><div class="p">Several restaurants per phone, one database file each, switched from the start page.</div>
+      <div>Windows said "driver unavailable" for the printer.</div><div class="p">Not a bug: the phone talks to the printer directly over Bluetooth. Printing confirmed working.</div>
+    </div>
+  </section>
+
+  <hr class="tear">
+
+  <section class="block" id="brand">
+    <header><div class="eyebrow">Brand and launch</div><h2>A name from the counter, colours from the kitchen.</h2>
+      <p class="prose muted">The icon is a gold coin dropping into a cash-box slot. The palette borrows from Indian cooking: curry-leaf green for trust, turmeric for action. The type is a friendly grotesque that reads well at a glance.</p></header>
+    <div class="swatches">
+      <div class="sw"><i style="background: #17382A;"></i><span>Curry leaf<br>#17382A</span></div>
+      <div class="sw"><i style="background: #F2B01E;"></i><span>Turmeric<br>#F2B01E</span></div>
+      <div class="sw"><i style="background: #F3F6F4; border: 1px solid #D6E0DA;"></i><span>Rice paper<br>#F3F6F4</span></div>
+      <div class="sw"><i style="background: #1B8A3A;"></i><span>Paid green<br>#1B8A3A</span></div>
+    </div>
+
+    <h3 style="margin-top: 12px;">Five Instagram reels</h3>
+    <p class="prose muted">Rendered frame by frame from code, with captions for sound-off viewing and a soundtrack synthesised from scratch, so there are no music licences to worry about.</p>
+    <div class="reels">
+      <figure><img src="IMG:r_main" alt="Reel opening: Internet gone? Billing keeps going."><figcaption><b>Main reel</b>25 s · the full story</figcaption></figure>
+      <figure><img src="IMG:r_rush" alt="Reel opening: Every table full."><figcaption><b>Rush hour</b>22 s · tables and kitchen</figcaption></figure>
+      <figure><img src="IMG:r_owner" alt="Reel opening: Not at your shop?"><figcaption><b>Owner away</b>23 s · PINs and reports</figcaption></figure>
+      <figure><img src="IMG:r_month" alt="Reel opening: Month end."><figcaption><b>Month end</b>22.5 s · CA exports</figcaption></figure>
+      <figure><img src="IMG:r_soon" alt="Reel ending: Coming soon."><figcaption><b>Coming soon</b>15 s · teaser</figcaption></figure>
+    </div>
+
+    <h3 style="margin-top: 12px;">An 8-page brochure</h3>
+    <p class="prose muted">For owners who prefer paper: why switch, how billing works, a day with galla, features, sample bills, FAQs and plans.</p>
+    <div class="pages">
+      <img src="IMG:bro-1" alt="Brochure cover">
+      <img src="IMG:bro-2" alt="Brochure page: still billing on paper?">
+      <img src="IMG:bro-4" alt="Brochure page: a day with galla">
+      <img src="IMG:bro-8" alt="Brochure page: plans and contact">
+    </div>
+  </section>
+
+  <hr class="tear">
+
+  <section class="block" id="business">
+    <header><div class="eyebrow">Business model</div><h2>A flat monthly price. No contract.</h2></header>
+    <div class="plans">
+      <div class="plan"><span class="n">Free</span><b>₹0</b><p>Counter billing on one phone, today's sales, backup file.</p></div>
+      <div class="plan"><span class="n">Starter</span><b>₹499</b><p>Tables, staff PINs and roles, UPI QR and WhatsApp bills.</p></div>
+      <div class="plan"><span class="n">Pro</span><b>₹999</b><p>Printing and kitchen slips, Zomato and Swiggy, daily sales on WhatsApp.</p></div>
+      <div class="plan"><span class="n">Business</span><b>₹1,499</b><p>Planned: more phones together and priority support.</p></div>
+    </div>
+    <div class="grid2">
+      <div class="card"><h3>Upgrading without a payment gateway</h3><p>The owner taps a plan, pays our UPI ID with a reference, and enters the UPI transaction number. We check it and approve; the plan switches on in their app. No data is ever deleted when a plan lapses.</p></div>
+      <div class="card"><h3>Running costs today</h3><p>₹0. GitHub, Expo Go, EAS Build (15 builds a month free) and EAS Update (1,000 phones free) cover everything so far. Supabase's free tier is next, for cloud backup.</p></div>
+    </div>
+  </section>
+
+  <hr class="tear">
+
+  <section class="block" id="learnings">
+    <header><div class="eyebrow">Reflection</div><h2>What I learned.</h2></header>
+    <div class="learn">
+      <div class="card"><h3>Design for the drawer, not just the screen</h3><p>The hardest problems weren't layout. They were trust: who can give a discount, who sees the expected cash, what can never be deleted. Permission design is UX.</p></div>
+      <div class="card"><h3>The real device is the real spec</h3><p>A ₹ sign that looks perfect on screen prints as junk on a thermal printer. Airplane mode behaves differently on iPhone. Testing on real hardware changed decisions I thought were final.</p></div>
+      <div class="card"><h3>Offline changes everything downstream</h3><p>Choosing "save on the phone first" shaped backups, multi-restaurant support, encryption and the future cloud plan. One early principle made dozens of later decisions easy.</p></div>
+      <div class="card"><h3>AI moves the bottleneck to judgement</h3><p>With Claude writing the code, building stopped being the slow part. Deciding what to build, what to cut, and spotting what felt wrong on a real phone became the job.</p></div>
+    </div>
+  </section>
+
+  <hr class="tear">
+
+  <section class="block" id="next">
+    <header><div class="eyebrow">What's next</div><h2>From prototype to a real counter.</h2></header>
+    <div class="timeline">
+      <div><span class="when">Now</span><b>Pilot at a friend's restaurant</b><p>Real orders, real rush hours, and a real night-time cash count.</p></div>
+      <div><span class="when">Next</span><b>Cloud backup and plan requests (Supabase)</b><p>Automatic backup and in-app plan requests, after a new Privacy Notice version is accepted.</p></div>
+      <div><span class="when">Then</span><b>Owner dashboard</b><p>Restaurants, trials, plan approvals and service health, with no access to restaurants' sales.</p></div>
+      <div style="padding-bottom: 0;"><span class="when">Later</span><b>Trial with 3–4 restaurants</b><p>After a lawyer reviews the terms. Then mobile-number sign-in, and maybe the Play Store.</p></div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div><b>galla</b><p style="margin-top: 8px;">Case study by Jasdeep Singh · Product design · October 2026</p></div>
+    <p>Sample shop names and figures in screens are illustrative.</p>
+  </div>
+</footer>
