@@ -4,6 +4,8 @@ import { dayKey, DayClosing, getDayClosing, getDaySummary, getRecentClosings, sa
 import { useSettings } from '../data/settingsStore';
 import { can, useCurrentUser } from '../data/staffStore';
 import { formatRupees } from '../utils/money';
+import { printReceipt } from '../print/print';
+import { dayClosingReceipt } from '../print/receipts';
 import { colors, fonts } from '../theme';
 
 // Notes and coins counted in an Indian cash drawer.
@@ -93,6 +95,11 @@ export default function DayCloseScreen({ onBack }: { onBack: () => void }) {
     await Share.share({ message: closingMessage(settings.restaurantName, c) });
   }
 
+  const [printError, setPrintError] = useState<string | null>(null);
+  async function print(c: DayClosing) {
+    setPrintError(await printReceipt(dayClosingReceipt(settings.restaurantName, settings.gstin, c)));
+  }
+
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView style={styles.screen} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
@@ -145,9 +152,14 @@ export default function DayCloseScreen({ onBack }: { onBack: () => void }) {
                 : `Saved. You counted ${formatRupees(justSaved.countedCash)}. The owner will check it.`}
             </Text>
             {seesNumbers && (
-              <Pressable onPress={() => send(justSaved)} style={styles.secondary} accessibilityRole="button">
-                <Text style={styles.secondaryText}>Send summary on WhatsApp</Text>
-              </Pressable>
+              <View style={{ flexDirection: 'row', gap: 10 }}>
+                <Pressable onPress={() => print(justSaved)} style={[styles.secondary, { flex: 1 }]} accessibilityRole="button">
+                  <Text style={styles.secondaryText}>Print</Text>
+                </Pressable>
+                <Pressable onPress={() => send(justSaved)} style={[styles.secondary, { flex: 1 }]} accessibilityRole="button">
+                  <Text style={styles.secondaryText}>WhatsApp</Text>
+                </Pressable>
+              </View>
             )}
           </View>
         )}
@@ -162,9 +174,14 @@ export default function DayCloseScreen({ onBack }: { onBack: () => void }) {
             {seesNumbers && <ClosingDetail c={existing} />}
             <View style={{ flexDirection: 'row', gap: 10 }}>
               {seesNumbers && (
-                <Pressable onPress={() => send(existing)} style={[styles.secondary, { flex: 1 }]} accessibilityRole="button">
-                  <Text style={styles.secondaryText}>Send</Text>
-                </Pressable>
+                <>
+                  <Pressable onPress={() => print(existing)} style={[styles.secondary, { flex: 1 }]} accessibilityRole="button">
+                    <Text style={styles.secondaryText}>Print</Text>
+                  </Pressable>
+                  <Pressable onPress={() => send(existing)} style={[styles.secondary, { flex: 1 }]} accessibilityRole="button">
+                    <Text style={styles.secondaryText}>WhatsApp</Text>
+                  </Pressable>
+                </>
               )}
               <Pressable onPress={() => setEditing(true)} style={[styles.secondary, { flex: 1 }]} accessibilityRole="button">
                 <Text style={styles.secondaryText}>Count again</Text>
@@ -268,12 +285,20 @@ export default function DayCloseScreen({ onBack }: { onBack: () => void }) {
           </View>
         )}
 
+        {printError && <Text style={styles.printError}>{printError}</Text>}
+
         {seesNumbers && history.length > 0 && (
           <>
-            <Text style={styles.groupTitle}>Recent closings</Text>
+            <Text style={styles.groupTitle}>Recent closings · tap to print</Text>
             <View style={[styles.card, { paddingVertical: 4, marginTop: 0 }]}>
               {history.map((c) => (
-                <View key={c.id} style={styles.histRow}>
+                <Pressable
+                  key={c.id}
+                  onPress={() => print(c)}
+                  style={({ pressed }) => [styles.histRow, pressed && { opacity: 0.6 }]}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Print closing of ${dayLabel(c.day)}`}
+                >
                   <View style={{ flex: 1 }}>
                     <Text style={styles.histDay}>{dayLabel(c.day)}</Text>
                     <Text style={styles.histMeta}>
@@ -288,7 +313,8 @@ export default function DayCloseScreen({ onBack }: { onBack: () => void }) {
                   >
                     {c.difference === 0 ? 'OK' : (c.difference < 0 ? '−' : '+') + formatRupees(Math.abs(c.difference))}
                   </Text>
-                </View>
+                  <Text style={styles.histPrint}>Print</Text>
+                </Pressable>
               ))}
             </View>
           </>
@@ -393,4 +419,6 @@ const styles = StyleSheet.create({
   histDay: { fontFamily: fonts.semibold, fontSize: 15, color: colors.ink },
   histMeta: { fontFamily: fonts.regular, fontSize: 13, color: colors.muted, marginTop: 2 },
   histDiff: { fontFamily: fonts.bold, fontSize: 15 },
+  histPrint: { fontFamily: fonts.semibold, fontSize: 13, color: colors.brand, marginLeft: 14 },
+  printError: { fontFamily: fonts.semibold, fontSize: 14, color: colors.danger, marginTop: 12 },
 });
