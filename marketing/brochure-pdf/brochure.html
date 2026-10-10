@@ -14,18 +14,21 @@ body { font-family: 'Poppins', sans-serif; color: #102018; -webkit-print-color-a
 .mint { background: #F3F6F4; }
 .gold { color: #F2B01E; }
 .kicker { font-size: 13px; font-weight: 700; letter-spacing: 2px; color: #1F6B47; text-transform: uppercase; }
+.green .kicker { color: #F2B01E; }
 h1, h2, h3, p { margin: 0; }
 h2 { font-size: 44px; line-height: 50px; font-weight: 700; letter-spacing: -1.5px; color: #17382A; }
+.green h2 { color: #fff; }
 .lead { font-size: 18px; line-height: 28px; color: #3E4F47; }
+.green .lead { color: #CFE0D6; }
+.head { position: absolute; left: 56px; right: 56px; top: 64px; }
 .foot { position: absolute; left: 56px; right: 56px; bottom: 32px; display: flex; justify-content: space-between; font-size: 12px; color: #5E6E66; }
 .green .foot { color: #9DB8AA; }
+.r { display: flex; justify-content: space-between; }
 
-/* coin logo */
 .logo { position: relative; width: 96px; height: 92px; }
 .logo .c { position: absolute; left: 18px; top: 0; width: 60px; height: 60px; border-radius: 30px; background: #F2B01E; border: 5px solid #C98C07; display: flex; align-items: center; justify-content: center; font-family: 'DejaVu Sans', sans-serif; font-weight: 700; font-size: 30px; color: #0F2A1F; }
-.logo .s { position: absolute; left: 0; top: 70px; width: 96px; height: 16px; border-radius: 8px; background: #0B1F17; border: 2px solid rgba(255,255,255,0.2); }
+.logo .s { position: absolute; left: 0; top: 70px; width: 96px; height: 16px; border-radius: 8px; background: #0B1F17; border: 2px solid rgba(255,255,255,0.25); }
 
-/* phone mock */
 .phone { background: #0B1F17; border-radius: 34px; padding: 9px; box-shadow: 0 24px 50px rgba(0,0,0,0.28); }
 .scr { background: #F3F6F4; border-radius: 26px; overflow: hidden; height: 100%; position: relative; color: #102018; }
 .bar { background: #17382A; color: #fff; padding: 22px 14px 10px; display: flex; justify-content: space-between; align-items: flex-end; }
@@ -35,35 +38,54 @@ h2 { font-size: 44px; line-height: 50px; font-weight: 700; letter-spacing: -1.5p
 .tile i { font-style: normal; color: #5E6E66; font-weight: 400; font-size: 9px; }
 .add { border: 1.5px solid #17382A; border-radius: 6px; text-align: center; font-size: 8px; font-weight: 700; padding: 2px 0; color: #17382A; }
 .add.on { background: #17382A; color: #fff; }
-.r { display: flex; justify-content: space-between; }
 
-/* feature tiles */
-.feat { background: #fff; border: 1.5px solid #DDE3E0; border-radius: 20px; padding: 20px 20px; display: flex; gap: 16px; align-items: flex-start; }
+.feat { background: #fff; border: 1.5px solid #DDE3E0; border-radius: 20px; padding: 16px 18px; display: flex; gap: 16px; align-items: flex-start; }
 .ico { flex: 0 0 48px; height: 48px; border-radius: 14px; background: #17382A; display: flex; align-items: center; justify-content: center; }
 .feat h3 { font-size: 18px; line-height: 24px; font-weight: 700; color: #17382A; }
 .feat p { font-size: 13.5px; line-height: 20px; color: #3E4F47; margin-top: 3px; }
 .num { flex: 0 0 44px; height: 44px; border-radius: 22px; background: #F2B01E; color: #0F2A1F; font-weight: 700; font-size: 20px; display: flex; align-items: center; justify-content: center; }
+
+.slip { background: #fff; font-family: 'DejaVu Sans Mono', monospace; font-size: 9px; line-height: 15px; color: #111; padding: 16px 14px 20px; box-shadow: 0 14px 30px rgba(0,0,0,0.14); }
+.slip .c { text-align: center; }
+.slip .b { font-weight: 700; }
+
+.cmp { display: grid; grid-template-columns: 1fr 1fr; }
+.cmp > div { padding: 15px 22px; font-size: 14.5px; line-height: 21px; display: flex; gap: 12px; align-items: center; }
+.x { flex: 0 0 26px; height: 26px; border-radius: 13px; background: #E3E8E5; color: #6B7A73; font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center; }
+.ok { flex: 0 0 26px; height: 26px; border-radius: 13px; background: #F2B01E; color: #0F2A1F; font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center; }
+
+.faq h3 { font-size: 19px; line-height: 26px; font-weight: 700; color: #17382A; }
+.faq p { font-size: 15px; line-height: 23px; color: #3E4F47; margin-top: 4px; }
 </style>
 </head>
 <body>
 
-<!-- PAGE 1: COVER -->
+<!-- ============ PAGE 1: COVER ============ -->
 <section class="page green">
-  <div style="position: absolute; right: -180px; top: 380px; width: 640px; height: 640px; border-radius: 50%; background: #1F4A37;"></div>
+  <div style="position: absolute; right: -180px; top: 360px; width: 660px; height: 660px; border-radius: 50%; background: #1F4A37;"></div>
   <div style="position: absolute; left: 56px; top: 64px;" class="logo"><div class="c">₹</div><div class="s"></div></div>
   <div style="position: absolute; left: 56px; top: 180px; font-size: 128px; line-height: 120px; font-weight: 700; letter-spacing: -6px;">galla</div>
   <div style="position: absolute; left: 60px; top: 320px; width: 420px; font-size: 32px; line-height: 42px; font-weight: 600;">Simple billing app for <span class="gold">small restaurants.</span></div>
-  <div style="position: absolute; left: 60px; top: 430px; width: 360px; font-size: 18px; line-height: 28px; color: #CFE0D6;">Make bills on your Android phone. It keeps working even when the internet stops.</div>
+  <div style="position: absolute; left: 60px; top: 418px; font-size: 18px; font-style: italic; color: #F2B01E;">Restaurant ka hisaab, ab phone pe.</div>
+  <div style="position: absolute; left: 60px; top: 470px; width: 360px; font-size: 17px; line-height: 27px; color: #CFE0D6;">Make bills on your Android phone. It keeps working even when the internet stops.</div>
 
-  <div style="position: absolute; left: 60px; top: 560px; width: 330px; display: flex; flex-direction: column; gap: 16px;">
-    <div style="display: flex; gap: 14px; align-items: center; font-size: 17px; font-weight: 600;"><span style="width: 30px; height: 30px; border-radius: 15px; background: #F2B01E; color: #0F2A1F; display: flex; align-items: center; justify-content: center; font-weight: 700;">✓</span>Bill in three taps</div>
-    <div style="display: flex; gap: 14px; align-items: center; font-size: 17px; font-weight: 600;"><span style="width: 30px; height: 30px; border-radius: 15px; background: #F2B01E; color: #0F2A1F; display: flex; align-items: center; justify-content: center; font-weight: 700;">✓</span>UPI QR with the exact amount</div>
-    <div style="display: flex; gap: 14px; align-items: center; font-size: 17px; font-weight: 600;"><span style="width: 30px; height: 30px; border-radius: 15px; background: #F2B01E; color: #0F2A1F; display: flex; align-items: center; justify-content: center; font-weight: 700;">✓</span>GST bills, ready for your CA</div>
-    <div style="display: flex; gap: 14px; align-items: center; font-size: 17px; font-weight: 600;"><span style="width: 30px; height: 30px; border-radius: 15px; background: #F2B01E; color: #0F2A1F; display: flex; align-items: center; justify-content: center; font-weight: 700;">✓</span>Works without internet</div>
+  <div style="position: absolute; left: 60px; top: 590px; width: 340px; display: flex; flex-direction: column; gap: 16px;">
+    <div style="display: flex; gap: 14px; align-items: center; font-size: 17px; font-weight: 600;"><span class="ok" style="flex-basis: 30px; height: 30px;">✓</span>Bill in three taps</div>
+    <div style="display: flex; gap: 14px; align-items: center; font-size: 17px; font-weight: 600;"><span class="ok" style="flex-basis: 30px; height: 30px;">✓</span>UPI QR with the exact amount</div>
+    <div style="display: flex; gap: 14px; align-items: center; font-size: 17px; font-weight: 600;"><span class="ok" style="flex-basis: 30px; height: 30px;">✓</span>GST bills, ready for your CA</div>
+    <div style="display: flex; gap: 14px; align-items: center; font-size: 17px; font-weight: 600;"><span class="ok" style="flex-basis: 30px; height: 30px;">✓</span>Works without internet</div>
+    <div style="display: flex; gap: 14px; align-items: center; font-size: 17px; font-weight: 600;"><span class="ok" style="flex-basis: 30px; height: 30px;">✓</span>Cash check every night</div>
   </div>
 
-  <!-- phone -->
-  <div class="phone" style="position: absolute; left: 448px; top: 300px; width: 290px; height: 590px; transform: rotate(4deg);">
+  <!-- receipt behind phone -->
+  <div class="slip" style="position: absolute; left: 420px; top: 250px; width: 170px; transform: rotate(-9deg);">
+    <div class="c b" style="font-size: 11px;">SHARMA SWEETS</div><div class="c">TAX INVOICE</div><div>----------------------</div>
+    <div class="r"><span>Masala Dosa x2</span><span>180</span></div><div class="r"><span>Vada x1</span><span>40</span></div><div>----------------------</div>
+    <div class="r"><span>CGST 2.5%</span><span>5.50</span></div><div class="r"><span>SGST 2.5%</span><span>5.50</span></div>
+    <div class="r b" style="font-size: 10.5px;"><span>TOTAL</span><span>Rs 231</span></div><div class="c" style="margin-top: 6px;">Thank you!</div>
+  </div>
+
+  <div class="phone" style="position: absolute; left: 470px; top: 310px; width: 280px; height: 570px; transform: rotate(5deg);">
     <div class="scr">
       <div class="bar"><div><small>Sharma Sweets</small><b>Counter</b></div><span class="chip">● Offline</span></div>
       <div style="padding: 10px;">
@@ -75,7 +97,7 @@ h2 { font-size: 44px; line-height: 50px; font-weight: 700; letter-spacing: -1.5p
           <div class="tile"><div>Filter Coffee<br><i>₹30</i></div><div class="add">ADD</div></div>
         </div>
       </div>
-      <div style="position: absolute; left: 0; right: 0; bottom: 0; height: 300px; background: #fff; border-radius: 18px 18px 0 0; padding: 14px 14px; box-shadow: 0 -8px 20px rgba(0,0,0,0.12);">
+      <div style="position: absolute; left: 0; right: 0; bottom: 0; height: 290px; background: #fff; border-radius: 18px 18px 0 0; padding: 14px 14px; box-shadow: 0 -8px 20px rgba(0,0,0,0.12);">
         <div style="font-size: 13px; font-weight: 700;">Bill · Token #42</div>
         <div class="r" style="font-size: 11px; margin-top: 10px;"><span>2 × Masala Dosa</span><span>₹180</span></div>
         <div class="r" style="font-size: 11px; margin-top: 6px;"><span>1 × Vada</span><span>₹40</span></div>
@@ -91,22 +113,65 @@ h2 { font-size: 44px; line-height: 50px; font-weight: 700; letter-spacing: -1.5p
     </div>
   </div>
 
-  <div style="position: absolute; left: 56px; bottom: 80px; display: flex; gap: 14px; align-items: center;">
-    <div style="background: #F2B01E; color: #0F2A1F; border-radius: 40px; padding: 14px 26px; font-size: 20px; font-weight: 700;">Free trial for your restaurant</div>
-  </div>
-  <div class="foot"><span>Made in India</span><span>1 / 4</span></div>
+  <div style="position: absolute; left: 56px; bottom: 80px; background: #F2B01E; color: #0F2A1F; border-radius: 40px; padding: 14px 26px; font-size: 20px; font-weight: 700;">Free trial for your restaurant</div>
+  <div class="foot"><span>Made in India</span><span>[@your_handle]</span></div>
 </section>
 
-<!-- PAGE 2: HOW IT WORKS -->
+<!-- ============ PAGE 2: PAPER VS GALLA ============ -->
 <section class="page">
-  <div style="position: absolute; left: 56px; top: 64px; right: 56px;">
+  <div class="head">
+    <div class="kicker">Why switch</div>
+    <h2 style="margin-top: 10px;">Still billing on paper?</h2>
+    <p class="lead" style="margin-top: 12px; width: 600px;">A bill book and a calculator cost you time, money and sleep. Here is what changes with galla.</p>
+  </div>
+
+  <div style="position: absolute; left: 56px; right: 56px; top: 280px; border-radius: 26px; overflow: hidden; border: 1.5px solid #DDE3E0;">
+    <div class="cmp">
+      <div style="background: #EEF1EF; font-size: 15px; font-weight: 700; color: #5E6E66; padding: 18px 22px;">With a bill book</div>
+      <div class="green" style="font-size: 15px; font-weight: 700; padding: 18px 22px;"><span style="color: #F2B01E;">With galla</span></div>
+
+      <div style="color: #4A5A53; border-top: 1px solid #E3E8E5;"><span class="x">✕</span>Totals and GST added by hand. Mistakes happen.</div>
+      <div style="background: #F7FAF8; border-top: 1px solid #E3E8E5; font-weight: 600;"><span class="ok">✓</span>Totals and GST worked out for you.</div>
+
+      <div style="color: #4A5A53; border-top: 1px solid #E3E8E5;"><span class="x">✕</span>Customer waits while you type the UPI amount.</div>
+      <div style="background: #F7FAF8; border-top: 1px solid #E3E8E5; font-weight: 600;"><span class="ok">✓</span>UPI QR already has the exact amount.</div>
+
+      <div style="color: #4A5A53; border-top: 1px solid #E3E8E5;"><span class="x">✕</span>Kitchen loses slips or makes a dish twice.</div>
+      <div style="background: #F7FAF8; border-top: 1px solid #E3E8E5; font-weight: 600;"><span class="ok">✓</span>Kitchen slip shows only the new items.</div>
+
+      <div style="color: #4A5A53; border-top: 1px solid #E3E8E5;"><span class="x">✕</span>No idea if the cash drawer is short.</div>
+      <div style="background: #F7FAF8; border-top: 1px solid #E3E8E5; font-weight: 600;"><span class="ok">✓</span>Cash check every night: matches, short or extra.</div>
+
+      <div style="color: #4A5A53; border-top: 1px solid #E3E8E5;"><span class="x">✕</span>Discounts given without asking you.</div>
+      <div style="background: #F7FAF8; border-top: 1px solid #E3E8E5; font-weight: 600;"><span class="ok">✓</span>Discounts need your PIN, and stay on record.</div>
+
+      <div style="color: #4A5A53; border-top: 1px solid #E3E8E5;"><span class="x">✕</span>Month end: a bag of bills for your CA.</div>
+      <div style="background: #F7FAF8; border-top: 1px solid #E3E8E5; font-weight: 600;"><span class="ok">✓</span>GST reports exported in one tap.</div>
+
+      <div style="color: #4A5A53; border-top: 1px solid #E3E8E5;"><span class="x">✕</span>Bills get torn, lost or faded.</div>
+      <div style="background: #F7FAF8; border-top: 1px solid #E3E8E5; font-weight: 600;"><span class="ok">✓</span>Every bill saved on the phone, always.</div>
+    </div>
+  </div>
+
+  <div class="green" style="position: absolute; left: 56px; right: 56px; top: 900px; border-radius: 24px; padding: 26px 32px; display: flex; justify-content: space-between; align-items: center;">
+    <div>
+      <div style="font-size: 24px; line-height: 30px; font-weight: 700;">All you need is an Android phone.</div>
+      <div style="font-size: 15px; color: #CFE0D6; margin-top: 4px;">No computer. No billing machine. No internet needed.</div>
+    </div>
+    <div class="logo" style="transform: scale(0.8); transform-origin: right center;"><div class="c">₹</div><div class="s"></div></div>
+  </div>
+  <div class="foot"><span>galla · Simple billing for small restaurants</span><span>2 / 8</span></div>
+</section>
+
+<!-- ============ PAGE 3: HOW IT WORKS ============ -->
+<section class="page">
+  <div class="head">
     <div class="kicker">How it works</div>
     <h2 style="margin-top: 10px;">A bill in three taps.</h2>
     <p class="lead" style="margin-top: 12px; width: 560px;">Your staff can learn galla in five minutes. No computer, no training classes.</p>
   </div>
 
   <div style="position: absolute; left: 56px; right: 56px; top: 290px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px;">
-    <!-- step 1 -->
     <div style="display: flex; flex-direction: column; gap: 18px;">
       <div class="phone" style="width: 200px; height: 380px; margin: 0 auto;">
         <div class="scr">
@@ -124,7 +189,6 @@ h2 { font-size: 44px; line-height: 50px; font-weight: 700; letter-spacing: -1.5p
       </div>
       <div style="display: flex; gap: 12px; align-items: flex-start;"><div class="num">1</div><div><h3 style="font-size: 20px; line-height: 26px; color: #17382A;">Tap the dish</h3><p style="font-size: 14px; line-height: 21px; color: #3E4F47; margin-top: 4px;">Tap again to add more. Search if the menu is long.</p></div></div>
     </div>
-    <!-- step 2 -->
     <div style="display: flex; flex-direction: column; gap: 18px;">
       <div class="phone" style="width: 200px; height: 380px; margin: 0 auto;">
         <div class="scr" style="background: #fff; text-align: center; padding: 26px 14px;">
@@ -139,22 +203,13 @@ h2 { font-size: 44px; line-height: 50px; font-weight: 700; letter-spacing: -1.5p
       </div>
       <div style="display: flex; gap: 12px; align-items: flex-start;"><div class="num">2</div><div><h3 style="font-size: 20px; line-height: 26px; color: #17382A;">Take payment</h3><p style="font-size: 14px; line-height: 21px; color: #3E4F47; margin-top: 4px;">Cash, card or UPI. The UPI QR already has the amount.</p></div></div>
     </div>
-    <!-- step 3 -->
     <div style="display: flex; flex-direction: column; gap: 18px;">
       <div style="width: 200px; height: 380px; margin: 0 auto; position: relative;">
-        <div style="position: absolute; left: 22px; top: 0; width: 156px; background: #fff; padding: 14px 12px; font-family: 'DejaVu Sans Mono', monospace; font-size: 8.5px; line-height: 14px; color: #111; box-shadow: 0 14px 28px rgba(0,0,0,0.16);">
-          <div style="text-align: center; font-weight: 700; font-size: 11px;">SHARMA SWEETS</div>
-          <div style="text-align: center;">GSTIN 07ABCDE1234F1Z5</div>
-          <div style="text-align: center; font-weight: 700;">TAX INVOICE</div>
-          <div>-----------------------</div>
-          <div class="r"><span>Masala Dosa x2</span><span>180</span></div>
-          <div class="r"><span>Vada x1</span><span>40</span></div>
-          <div>-----------------------</div>
-          <div class="r"><span>CGST 2.5%</span><span>5.50</span></div>
-          <div class="r"><span>SGST 2.5%</span><span>5.50</span></div>
-          <div class="r" style="font-weight: 700; font-size: 10px;"><span>TOTAL</span><span>Rs 231</span></div>
-          <div>-----------------------</div>
-          <div style="text-align: center;">Thank you! Visit again.</div>
+        <div class="slip" style="position: absolute; left: 22px; top: 0; width: 156px; font-size: 8.5px; line-height: 14px; padding: 14px 12px;">
+          <div class="c b" style="font-size: 11px;">SHARMA SWEETS</div><div class="c">GSTIN 07ABCDE1234F1Z5</div><div class="c b">TAX INVOICE</div><div>-----------------------</div>
+          <div class="r"><span>Masala Dosa x2</span><span>180</span></div><div class="r"><span>Vada x1</span><span>40</span></div><div>-----------------------</div>
+          <div class="r"><span>CGST 2.5%</span><span>5.50</span></div><div class="r"><span>SGST 2.5%</span><span>5.50</span></div>
+          <div class="r b" style="font-size: 10px;"><span>TOTAL</span><span>Rs 231</span></div><div>-----------------------</div><div class="c">Thank you! Visit again.</div>
         </div>
         <div style="position: absolute; left: 0; top: 190px; width: 200px; height: 120px; border-radius: 24px; background: #17382A; box-shadow: 0 16px 30px rgba(15,42,31,0.3);">
           <div style="position: absolute; left: 20px; top: 12px; width: 160px; height: 8px; border-radius: 4px; background: #0B1F17;"></div>
@@ -174,19 +229,86 @@ h2 { font-size: 44px; line-height: 50px; font-weight: 700; letter-spacing: -1.5p
       <p style="font-size: 15px; line-height: 23px; color: #3E4F47; margin-top: 4px;">Every bill is saved on the phone itself. Nothing stops at rush hour.</p>
     </div>
   </div>
-  <div class="foot"><span>galla · Simple billing for small restaurants</span><span>2 / 4</span></div>
+  <div class="foot"><span>galla · Simple billing for small restaurants</span><span>3 / 8</span></div>
 </section>
 
-<!-- PAGE 3: FEATURES -->
+<!-- ============ PAGE 4: A DAY WITH GALLA ============ -->
 <section class="page mint">
-  <div style="position: absolute; left: 56px; top: 64px; right: 56px;">
+  <div class="head">
+    <div class="kicker">A day with galla</div>
+    <h2 style="margin-top: 10px;">From opening to closing.</h2>
+    <p class="lead" style="margin-top: 12px; width: 600px;">Here is how a normal day at your counter looks with galla.</p>
+  </div>
+
+  <div style="position: absolute; left: 118px; top: 300px; width: 4px; height: 572px; background: #C9D3CE; border-radius: 2px;"></div>
+
+  <!-- stop 1 -->
+  <div style="position: absolute; left: 56px; right: 56px; top: 280px; display: flex; gap: 28px; align-items: flex-start;">
+    <div style="flex: 0 0 128px; height: 44px; border-radius: 22px; background: #17382A; color: #F2B01E; font-weight: 700; font-size: 16px; display: flex; align-items: center; justify-content: center;">10:00 AM</div>
+    <div style="flex: 1; display: flex; gap: 22px; align-items: center; background: #fff; border-radius: 22px; padding: 20px 22px; border: 1.5px solid #DDE3E0;">
+      <div style="flex: 1;"><h3 style="font-size: 20px; line-height: 26px; color: #17382A;">Open the counter</h3><p style="font-size: 14px; line-height: 21px; color: #3E4F47; margin-top: 4px;">Note the cash in the drawer. Each staff member logs in with their own PIN.</p></div>
+      <div style="flex: 0 0 170px; background: #F3F6F4; border-radius: 14px; padding: 14px; text-align: center;">
+        <div style="font-size: 11px; font-weight: 600; color: #5E6E66;">Enter your PIN</div>
+        <div style="display: flex; gap: 10px; justify-content: center; margin-top: 10px;"><span style="width: 14px; height: 14px; border-radius: 7px; background: #17382A;"></span><span style="width: 14px; height: 14px; border-radius: 7px; background: #17382A;"></span><span style="width: 14px; height: 14px; border-radius: 7px; background: #17382A;"></span><span style="width: 14px; height: 14px; border-radius: 7px; border: 2px solid #17382A; box-sizing: border-box;"></span></div>
+        <div style="font-size: 11px; color: #5E6E66; margin-top: 10px;">Ravi · Cashier</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- stop 2 -->
+  <div style="position: absolute; left: 56px; right: 56px; top: 470px; display: flex; gap: 28px; align-items: flex-start;">
+    <div style="flex: 0 0 128px; height: 44px; border-radius: 22px; background: #17382A; color: #F2B01E; font-weight: 700; font-size: 16px; display: flex; align-items: center; justify-content: center;">1:30 PM</div>
+    <div style="flex: 1; display: flex; gap: 22px; align-items: center; background: #fff; border-radius: 22px; padding: 20px 22px; border: 1.5px solid #DDE3E0;">
+      <div style="flex: 1;"><h3 style="font-size: 20px; line-height: 26px; color: #17382A;">Lunch rush</h3><p style="font-size: 14px; line-height: 21px; color: #3E4F47; margin-top: 4px;">Counter, tables and Zomato or Swiggy orders, all in one place. Kitchen slips go out as orders come in.</p></div>
+      <div style="flex: 0 0 170px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;">
+        <div style="height: 40px; border-radius: 8px; background: #17382A; color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center;">T1</div>
+        <div style="height: 40px; border-radius: 8px; background: #17382A; color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center;">T2</div>
+        <div style="height: 40px; border-radius: 8px; background: #fff; border: 1.5px solid #DDE3E0; color: #5E6E66; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center;">T3</div>
+        <div style="height: 40px; border-radius: 8px; background: #17382A; color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center;">T4</div>
+        <div style="height: 40px; border-radius: 8px; background: #FFF4DB; border: 1.5px solid #F2B01E; color: #102018; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center;">T5</div>
+        <div style="height: 40px; border-radius: 8px; background: #17382A; color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center;">T6</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- stop 3 -->
+  <div style="position: absolute; left: 56px; right: 56px; top: 660px; display: flex; gap: 28px; align-items: flex-start;">
+    <div style="flex: 0 0 128px; height: 44px; border-radius: 22px; background: #17382A; color: #F2B01E; font-weight: 700; font-size: 16px; display: flex; align-items: center; justify-content: center;">4:00 PM</div>
+    <div style="flex: 1; display: flex; gap: 22px; align-items: center; background: #fff; border-radius: 22px; padding: 20px 22px; border: 1.5px solid #DDE3E0;">
+      <div style="flex: 1;"><h3 style="font-size: 20px; line-height: 26px; color: #17382A;">Pay the vegetable vendor</h3><p style="font-size: 14px; line-height: 21px; color: #3E4F47; margin-top: 4px;">Note money taken from the drawer, so the night count still adds up.</p></div>
+      <div style="flex: 0 0 170px; background: #F3F6F4; border-radius: 14px; padding: 14px;">
+        <div style="font-size: 11px; font-weight: 600; color: #5E6E66;">Paid out</div>
+        <div class="r" style="font-size: 13px; font-weight: 700; margin-top: 6px;"><span>Vegetables</span><span>₹200</span></div>
+        <div style="font-size: 10px; color: #5E6E66; margin-top: 4px;">by Ravi · 4:02 PM</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- stop 4 -->
+  <div style="position: absolute; left: 56px; right: 56px; top: 850px; display: flex; gap: 28px; align-items: flex-start;">
+    <div style="flex: 0 0 128px; height: 44px; border-radius: 22px; background: #F2B01E; color: #0F2A1F; font-weight: 700; font-size: 16px; display: flex; align-items: center; justify-content: center;">11:00 PM</div>
+    <div class="green" style="flex: 1; display: flex; gap: 22px; align-items: center; border-radius: 22px; padding: 20px 22px;">
+      <div style="flex: 1;"><h3 style="font-size: 20px; line-height: 26px;">Close the day</h3><p style="font-size: 14px; line-height: 21px; color: #CFE0D6; margin-top: 4px;">Count the cash. galla checks it. The day's report goes to the owner's phone.</p></div>
+      <div style="flex: 0 0 170px; background: #fff; border-radius: 14px; padding: 14px; color: #102018;">
+        <div class="r" style="font-size: 11px;"><span>Should be</span><span>₹14,345</span></div>
+        <div class="r" style="font-size: 11px; margin-top: 4px;"><span>Counted</span><span>₹14,345</span></div>
+        <div style="margin-top: 8px; background: #E6F4EA; color: #156B2E; border-radius: 8px; text-align: center; padding: 6px 0; font-size: 12px; font-weight: 700;">✓ Cash matches</div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>galla · Simple billing for small restaurants</span><span>4 / 8</span></div>
+</section>
+
+<!-- ============ PAGE 5: FEATURES ============ -->
+<section class="page">
+  <div class="head">
     <div class="kicker">Features</div>
     <h2 style="margin-top: 10px;">Everything your restaurant needs.</h2>
     <p class="lead" style="margin-top: 12px; width: 600px;">From the first order to the last rupee of the day, in one app.</p>
   </div>
 
-  <div style="position: absolute; left: 56px; right: 56px; top: 270px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
-    <div class="feat"><div class="ico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#F2B01E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div><div><h3>Tables</h3><p>See every table, its bill and how long guests have waited.</p></div></div>
+  <div style="position: absolute; left: 56px; right: 56px; top: 264px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+    <div class="feat"><div class="ico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#F2B01E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div><div><h3>Tables</h3><p>See which tables are busy and each table's running bill.</p></div></div>
     <div class="feat"><div class="ico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#F2B01E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg></div><div><h3>Kitchen slips</h3><p>Only new items go to the kitchen. No repeats, no missed orders.</p></div></div>
     <div class="feat"><div class="ico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#F2B01E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/></svg></div><div><h3>UPI QR</h3><p>The customer scans, the amount is already filled in.</p></div></div>
     <div class="feat"><div class="ico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#F2B01E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg></div><div><h3>GST bills</h3><p>CGST and SGST worked out, with your GSTIN and FSSAI number.</p></div></div>
@@ -194,63 +316,154 @@ h2 { font-size: 44px; line-height: 50px; font-weight: 700; letter-spacing: -1.5p
     <div class="feat"><div class="ico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#F2B01E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/></svg></div><div><h3>Phone printing</h3><p>Print from the phone to a small Bluetooth printer. No computer.</p></div></div>
     <div class="feat"><div class="ico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#F2B01E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M17 7.5a3 3 0 0 1 0 5.5M19.5 20a5.5 5.5 0 0 0-3-5"/></svg></div><div><h3>Staff PINs</h3><p>Owner, manager and cashier, each with their own PIN.</p></div></div>
     <div class="feat"><div class="ico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#F2B01E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg></div><div><h3>Sales reports</h3><p>Today, this week or this month, and your best-selling dishes.</p></div></div>
+    <div class="feat"><div class="ico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#F2B01E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v20M17 6.5c0-1.9-2.2-3.5-5-3.5s-5 1.6-5 3.5S9.2 10 12 10s5 1.6 5 3.5S14.8 17 12 17s-5-1.6-5-3.5"/></svg></div><div><h3>Expenses</h3><p>Money paid to vendors is noted, so the cash count is right.</p></div></div>
+    <div class="feat"><div class="ico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#F2B01E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V9l7-5 7 5v12"/><path d="M10 21v-6h4v6"/></svg></div><div><h3>More than one outlet</h3><p>One owner can add more restaurants and switch between them.</p></div></div>
   </div>
 
-  <div class="green" style="position: absolute; left: 56px; right: 56px; top: 802px; border-radius: 26px; padding: 30px 34px;">
+  <div class="green" style="position: absolute; left: 56px; right: 56px; top: 852px; border-radius: 26px; padding: 26px 34px;">
     <h3 style="font-size: 26px; line-height: 32px; font-weight: 700;">You stay in control, <span class="gold">even when you are away.</span></h3>
-    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 20px;">
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 18px;">
       <div><div style="font-size: 16px; font-weight: 700;">Discounts need your PIN</div><div style="font-size: 13.5px; line-height: 20px; color: #CFE0D6; margin-top: 4px;">Staff can't give discounts or cancel bills on their own.</div></div>
       <div><div style="font-size: 16px; font-weight: 700;">Everything on record</div><div style="font-size: 13.5px; line-height: 20px; color: #CFE0D6; margin-top: 4px;">Who gave which discount, and why, is saved.</div></div>
       <div><div style="font-size: 16px; font-weight: 700;">Report on WhatsApp</div><div style="font-size: 13.5px; line-height: 20px; color: #CFE0D6; margin-top: 4px;">The day's sales and cash come to your phone.</div></div>
     </div>
   </div>
-  <div class="foot"><span>galla · Simple billing for small restaurants</span><span>3 / 4</span></div>
+  <div class="foot"><span>galla · Simple billing for small restaurants</span><span>5 / 8</span></div>
 </section>
 
-<!-- PAGE 4: DAY CLOSE, PLANS, CONTACT -->
+<!-- ============ PAGE 6: BILLS ============ -->
+<section class="page mint">
+  <div class="head">
+    <div class="kicker">Printed bills</div>
+    <h2 style="margin-top: 10px;">Bills your customers trust.</h2>
+    <p class="lead" style="margin-top: 12px; width: 620px;">Clean, proper bills with your shop's details on every one. Print them, or send them on WhatsApp.</p>
+  </div>
+
+  <div style="position: absolute; left: 56px; right: 56px; top: 290px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; align-items: start;">
+    <div style="display: flex; flex-direction: column; gap: 18px;">
+      <div class="slip" style="min-height: 400px;">
+        <div class="c b" style="font-size: 12px;">SHARMA SWEETS</div><div class="c">MG Road, Pune</div><div class="c">Ph 98765 43210</div><div>--------------------------</div>
+        <div class="c b">TABLE 4 · BILL</div><div>--------------------------</div>
+        <div class="r"><span>Paneer Tikka x1</span><span>220</span></div><div class="r"><span>Butter Naan x3</span><span>120</span></div><div class="r"><span>Dal Makhani x1</span><span>240</span></div><div>--------------------------</div>
+        <div class="r"><span>CGST 2.5%</span><span>14.50</span></div><div class="r"><span>SGST 2.5%</span><span>14.50</span></div>
+        <div class="r b" style="font-size: 11px;"><span>TO PAY</span><span>Rs 609</span></div>
+        <div class="c b" style="margin-top: 10px;">Scan to pay with any UPI app</div>
+        <div style="display: flex; justify-content: center; margin-top: 8px;"><svg width="96" height="96" viewBox="0 0 21 21" aria-hidden="true"><rect x="0" y="0" width="7" height="7" fill="#111"/><rect x="1" y="1" width="5" height="5" fill="#fff"/><rect x="2" y="2" width="3" height="3" fill="#111"/><rect x="14" y="0" width="7" height="7" fill="#111"/><rect x="15" y="1" width="5" height="5" fill="#fff"/><rect x="16" y="2" width="3" height="3" fill="#111"/><rect x="0" y="14" width="7" height="7" fill="#111"/><rect x="1" y="15" width="5" height="5" fill="#fff"/><rect x="2" y="16" width="3" height="3" fill="#111"/><rect x="8" y="0" width="1" height="2" fill="#111"/><rect x="10" y="1" width="2" height="1" fill="#111"/><rect x="9" y="3" width="1" height="3" fill="#111"/><rect x="11" y="4" width="2" height="2" fill="#111"/><rect x="0" y="8" width="2" height="1" fill="#111"/><rect x="3" y="9" width="2" height="2" fill="#111"/><rect x="6" y="8" width="1" height="3" fill="#111"/><rect x="8" y="8" width="3" height="1" fill="#111"/><rect x="12" y="8" width="1" height="2" fill="#111"/><rect x="14" y="8" width="2" height="2" fill="#111"/><rect x="17" y="9" width="3" height="1" fill="#111"/><rect x="9" y="10" width="2" height="2" fill="#111"/><rect x="1" y="12" width="3" height="1" fill="#111"/><rect x="13" y="11" width="1" height="3" fill="#111"/><rect x="15" y="12" width="2" height="1" fill="#111"/><rect x="19" y="11" width="2" height="2" fill="#111"/><rect x="8" y="13" width="2" height="1" fill="#111"/><rect x="9" y="15" width="1" height="2" fill="#111"/><rect x="11" y="14" width="2" height="2" fill="#111"/><rect x="14" y="15" width="3" height="1" fill="#111"/><rect x="18" y="14" width="1" height="3" fill="#111"/><rect x="8" y="18" width="3" height="1" fill="#111"/><rect x="12" y="17" width="1" height="3" fill="#111"/><rect x="15" y="18" width="2" height="2" fill="#111"/><rect x="19" y="19" width="2" height="1" fill="#111"/></svg></div>
+      </div>
+      <div><h3 style="font-size: 18px; line-height: 24px; color: #17382A;">Table bill with UPI QR</h3><p style="font-size: 13.5px; line-height: 20px; color: #3E4F47; margin-top: 4px;">Guests scan and pay right at the table.</p></div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 18px;">
+      <div class="slip" style="min-height: 400px;">
+        <div class="c b" style="font-size: 12px;">SHARMA SWEETS</div><div class="c">MG Road, Pune</div><div class="c">GSTIN 27ABCDE1234F1Z5</div><div class="c">FSSAI 11223344556677</div><div>--------------------------</div>
+        <div class="c b">TAX INVOICE</div>
+        <div class="r"><span>Invoice</span><span>INV-2627-000123</span></div><div class="r"><span>Date</span><span>10 Oct, 1:42 PM</span></div><div>--------------------------</div>
+        <div class="r"><span>Masala Dosa x2</span><span>180</span></div><div class="r"><span>Vada x1</span><span>40</span></div><div>--------------------------</div>
+        <div class="r"><span>Taxable value</span><span>220.00</span></div><div class="r"><span>CGST 2.5%</span><span>5.50</span></div><div class="r"><span>SGST 2.5%</span><span>5.50</span></div>
+        <div class="r b" style="font-size: 11px;"><span>TOTAL</span><span>Rs 231</span></div><div>--------------------------</div>
+        <div>Paid by UPI</div><div class="c" style="margin-top: 8px;">Thank you! Visit again.</div>
+      </div>
+      <div><h3 style="font-size: 18px; line-height: 24px; color: #17382A;">GST tax invoice</h3><p style="font-size: 13.5px; line-height: 20px; color: #3E4F47; margin-top: 4px;">GSTIN, FSSAI and an invoice number that never repeats.</p></div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 18px;">
+      <div class="slip" style="min-height: 400px; font-size: 10.5px; line-height: 18px;">
+        <div class="c b" style="font-size: 15px; line-height: 22px;">KOT #12</div><div class="c b">TABLE 4 · 8:42 PM</div><div>-------------------</div>
+        <div class="b">NEW ITEMS</div>
+        <div class="b" style="font-size: 13px; line-height: 24px;">+ Butter Naan  x2</div><div class="b" style="font-size: 13px; line-height: 24px;">+ Dal Makhani  x1</div><div>-------------------</div>
+        <div>Note: less spicy</div><div>Waiter: Ravi</div>
+      </div>
+      <div><h3 style="font-size: 18px; line-height: 24px; color: #17382A;">Kitchen slip (KOT)</h3><p style="font-size: 13.5px; line-height: 20px; color: #3E4F47; margin-top: 4px;">Big, clear text. Only what the kitchen needs to make now.</p></div>
+    </div>
+  </div>
+
+  <div style="position: absolute; left: 56px; right: 56px; top: 900px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+    <div style="background: #fff; border-radius: 22px; padding: 22px 24px; border: 1.5px solid #DDE3E0;"><h3 style="font-size: 18px; line-height: 24px; color: #17382A;">No printer? No problem.</h3><p style="font-size: 13.5px; line-height: 20px; color: #3E4F47; margin-top: 4px;">Send the bill to the customer on WhatsApp instead.</p></div>
+    <div style="background: #fff; border-radius: 22px; padding: 22px 24px; border: 1.5px solid #DDE3E0;"><h3 style="font-size: 18px; line-height: 24px; color: #17382A;">Small printer, big help</h3><p style="font-size: 13.5px; line-height: 20px; color: #3E4F47; margin-top: 4px;">Works with common 58 mm Bluetooth receipt printers.</p></div>
+  </div>
+  <div class="foot"><span>galla · Simple billing for small restaurants</span><span>6 / 8</span></div>
+</section>
+
+<!-- ============ PAGE 7: FAQ + SAFETY ============ -->
 <section class="page">
-  <div style="position: absolute; left: 56px; top: 64px; right: 56px; display: grid; grid-template-columns: 1fr 300px; gap: 34px; align-items: start;">
-    <div>
-      <div class="kicker">End of day</div>
-      <h2 style="margin-top: 10px; font-size: 40px; line-height: 46px;">Close the day. Catch any shortage.</h2>
-      <p class="lead" style="margin-top: 14px; font-size: 16px; line-height: 25px;">At night, the cashier counts the cash. galla tells you if it matches, is short or is extra. Month end? Export bills and GST reports for your CA in one tap.</p>
-    </div>
-    <div style="background: #fff; border: 1.5px solid #DDE3E0; border-radius: 22px; padding: 20px 22px; box-shadow: 0 16px 34px rgba(15,42,31,0.1);">
-      <div style="font-size: 16px; font-weight: 700;">Cash in the drawer</div>
-      <div class="r" style="font-size: 13px; margin-top: 12px;"><span>Start of day</span><span>₹2,000</span></div>
-      <div class="r" style="font-size: 13px; margin-top: 6px;"><span>+ Cash bills</span><span>₹12,545</span></div>
-      <div class="r" style="font-size: 13px; margin-top: 6px; color: #5E6E66;"><span>− Paid to vendor</span><span>₹200</span></div>
-      <div class="r" style="font-size: 13px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #DDE3E0; font-weight: 700;"><span>Should be</span><span>₹14,345</span></div>
-      <div class="r" style="font-size: 13px; margin-top: 6px; font-weight: 700;"><span>Counted</span><span>₹14,345</span></div>
-      <div style="margin-top: 12px; background: #E6F4EA; color: #156B2E; border-radius: 10px; text-align: center; padding: 9px 0; font-size: 16px; font-weight: 700;">✓ Cash matches</div>
-    </div>
+  <div class="head">
+    <div class="kicker">Questions</div>
+    <h2 style="margin-top: 10px;">Questions owners ask us.</h2>
   </div>
 
-  <div style="position: absolute; left: 56px; right: 56px; top: 400px;">
+  <div class="faq" style="position: absolute; left: 56px; right: 56px; top: 210px; display: grid; grid-template-columns: 1fr 1fr; gap: 36px 44px;">
+    <div><h3>Do I need internet?</h3><p>No. Billing works fully offline. Every bill is saved on the phone.</p></div>
+    <div><h3>Which phone do I need?</h3><p>Any Android phone. No computer and no billing machine.</p></div>
+    <div><h3>Do I need a printer?</h3><p>No. You can send bills on WhatsApp. A 58 mm Bluetooth printer is optional.</p></div>
+    <div><h3>Can I change my menu and prices?</h3><p>Yes, any time, right from the app. Changes show up at once.</p></div>
+    <div><h3>Can my staff misuse it?</h3><p>Each person has their own PIN and role. Discounts and cancelled bills need an owner or manager PIN.</p></div>
+    <div><h3>What if I change my phone?</h3><p>Make a backup file from the app and restore it on the new phone.</p></div>
+    <div><h3>I have two outlets. Can I use one app?</h3><p>Yes. One owner can add more restaurants and switch between them.</p></div>
+    <div><h3>How do I start?</h3><p>Message us. We set up your menu and you try galla free at your counter.</p></div>
+  </div>
+
+  <div class="green" style="position: absolute; left: 56px; right: 56px; top: 790px; border-radius: 26px; padding: 30px 34px;">
+    <div style="display: flex; gap: 20px; align-items: center;">
+      <div style="flex: 0 0 60px; height: 60px; border-radius: 18px; background: #F2B01E; display: flex; align-items: center; justify-content: center;">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#0F2A1F" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+      </div>
+      <h3 style="font-size: 28px; line-height: 34px; font-weight: 700;">Your data is safe.</h3>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 22px;">
+      <div><div style="font-size: 16px; font-weight: 700;">Stays on your phone</div><div style="font-size: 13.5px; line-height: 20px; color: #CFE0D6; margin-top: 4px;">Your sales are not shared with anyone.</div></div>
+      <div><div style="font-size: 16px; font-weight: 700;">Locked with encryption</div><div style="font-size: 13.5px; line-height: 20px; color: #CFE0D6; margin-top: 4px;">The data file can't be opened outside galla.</div></div>
+      <div><div style="font-size: 16px; font-weight: 700;">PIN for every person</div><div style="font-size: 13.5px; line-height: 20px; color: #CFE0D6; margin-top: 4px;">Only your staff can open the app.</div></div>
+    </div>
+  </div>
+  <div class="foot"><span>galla · Simple billing for small restaurants</span><span>7 / 8</span></div>
+</section>
+
+<!-- ============ PAGE 8: PLANS + CONTACT ============ -->
+<section class="page">
+  <div class="head">
     <div class="kicker">Plans</div>
-    <h2 style="margin-top: 8px; font-size: 34px; line-height: 40px;">Simple monthly price.</h2>
-    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 20px;">
-      <div style="border: 1.5px solid #DDE3E0; border-radius: 22px; padding: 22px 22px;">
-        <div style="font-size: 18px; font-weight: 700; color: #17382A;">Free</div>
-        <div style="font-size: 34px; font-weight: 700; letter-spacing: -1px; margin-top: 2px;">₹0</div>
-        <div style="font-size: 13px; line-height: 20px; color: #3E4F47; margin-top: 8px;">Counter billing on one phone. Today's bills and sales.</div>
-      </div>
-      <div style="border: 1.5px solid #DDE3E0; border-radius: 22px; padding: 22px 22px;">
-        <div style="font-size: 18px; font-weight: 700; color: #17382A;">Starter</div>
-        <div style="font-size: 34px; font-weight: 700; letter-spacing: -1px; margin-top: 2px;">₹499<span style="font-size: 14px; font-weight: 600; color: #5E6E66; letter-spacing: 0;"> /month</span></div>
-        <div style="font-size: 13px; line-height: 20px; color: #3E4F47; margin-top: 8px;">Tables, staff PINs, UPI QR and WhatsApp bills.</div>
-      </div>
-      <div class="green" style="border-radius: 22px; padding: 22px 22px; position: relative;">
-        <div style="position: absolute; right: 16px; top: 16px; background: #F2B01E; color: #0F2A1F; border-radius: 12px; padding: 3px 10px; font-size: 11px; font-weight: 700;">Most popular</div>
-        <div style="font-size: 18px; font-weight: 700;">Pro</div>
-        <div style="font-size: 34px; font-weight: 700; letter-spacing: -1px; margin-top: 2px;" class="gold">₹999<span style="font-size: 14px; font-weight: 600; color: #CFE0D6; letter-spacing: 0;"> /month</span></div>
-        <div style="font-size: 13px; line-height: 20px; color: #DCE7E1; margin-top: 8px;">Everything in Starter, plus printing, kitchen slips, Zomato and Swiggy.</div>
-      </div>
-    </div>
-    <div style="font-size: 12px; color: #5E6E66; margin-top: 10px;">Prices are per restaurant. You need an Android phone. A Bluetooth printer is optional.</div>
+    <h2 style="margin-top: 10px;">Simple monthly price.</h2>
+    <p class="lead" style="margin-top: 12px; width: 600px;">Start free. Pay only when galla is helping your counter.</p>
   </div>
 
-  <div class="mint" style="position: absolute; left: 56px; right: 56px; top: 740px; border-radius: 26px; padding: 28px 30px 30px;">
+  <div style="position: absolute; left: 56px; right: 56px; top: 260px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+    <div style="border: 1.5px solid #DDE3E0; border-radius: 24px; padding: 26px 24px; height: 330px; display: flex; flex-direction: column;">
+      <div style="font-size: 20px; font-weight: 700; color: #17382A;">Free</div>
+      <div style="font-size: 40px; font-weight: 700; letter-spacing: -1px; margin-top: 4px;">₹0</div>
+      <div style="font-size: 13px; color: #5E6E66;">For trying galla</div>
+      <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px; font-size: 13.5px; line-height: 19px;">
+        <div style="display: flex; gap: 8px;"><span style="color: #1B8A3A; font-weight: 700;">✓</span>Counter billing, one phone</div>
+        <div style="display: flex; gap: 8px;"><span style="color: #1B8A3A; font-weight: 700;">✓</span>Today's bills and sales</div>
+        <div style="display: flex; gap: 8px;"><span style="color: #1B8A3A; font-weight: 700;">✓</span>Backup file</div>
+      </div>
+    </div>
+    <div style="border: 1.5px solid #DDE3E0; border-radius: 24px; padding: 26px 24px; height: 330px; display: flex; flex-direction: column;">
+      <div style="font-size: 20px; font-weight: 700; color: #17382A;">Starter</div>
+      <div style="font-size: 40px; font-weight: 700; letter-spacing: -1px; margin-top: 4px;">₹499<span style="font-size: 14px; font-weight: 600; color: #5E6E66; letter-spacing: 0;"> /month</span></div>
+      <div style="font-size: 13px; color: #5E6E66;">For small counters and cafes</div>
+      <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px; font-size: 13.5px; line-height: 19px;">
+        <div style="display: flex; gap: 8px;"><span style="color: #1B8A3A; font-weight: 700;">✓</span>Everything in Free</div>
+        <div style="display: flex; gap: 8px;"><span style="color: #1B8A3A; font-weight: 700;">✓</span>Tables and dine-in</div>
+        <div style="display: flex; gap: 8px;"><span style="color: #1B8A3A; font-weight: 700;">✓</span>Staff PINs and roles</div>
+        <div style="display: flex; gap: 8px;"><span style="color: #1B8A3A; font-weight: 700;">✓</span>UPI QR and WhatsApp bills</div>
+      </div>
+    </div>
+    <div class="green" style="border-radius: 24px; padding: 26px 24px; height: 330px; display: flex; flex-direction: column; position: relative;">
+      <div style="position: absolute; right: 18px; top: 22px; background: #F2B01E; color: #0F2A1F; border-radius: 12px; padding: 3px 10px; font-size: 11px; font-weight: 700;">Most popular</div>
+      <div style="font-size: 20px; font-weight: 700;">Pro</div>
+      <div style="font-size: 40px; font-weight: 700; letter-spacing: -1px; margin-top: 4px;" class="gold">₹999<span style="font-size: 14px; font-weight: 600; color: #CFE0D6; letter-spacing: 0;"> /month</span></div>
+      <div style="font-size: 13px; color: #CFE0D6;">For busy restaurants</div>
+      <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px; font-size: 13.5px; line-height: 19px;">
+        <div style="display: flex; gap: 8px;"><span style="color: #F2B01E; font-weight: 700;">✓</span>Everything in Starter</div>
+        <div style="display: flex; gap: 8px;"><span style="color: #F2B01E; font-weight: 700;">✓</span>Printed bills and kitchen slips</div>
+        <div style="display: flex; gap: 8px;"><span style="color: #F2B01E; font-weight: 700;">✓</span>Zomato and Swiggy orders</div>
+        <div style="display: flex; gap: 8px;"><span style="color: #F2B01E; font-weight: 700;">✓</span>Daily sales on WhatsApp</div>
+      </div>
+    </div>
+  </div>
+  <div style="position: absolute; left: 56px; right: 56px; top: 604px; font-size: 12.5px; color: #5E6E66;">Prices are per restaurant. You need an Android phone. A Bluetooth printer is optional.</div>
+
+  <div class="mint" style="position: absolute; left: 56px; right: 56px; top: 650px; border-radius: 26px; padding: 28px 30px 30px;">
     <h3 style="font-size: 24px; line-height: 30px; color: #17382A;">Start in three easy steps</h3>
     <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 18px;">
       <div style="display: flex; gap: 12px; align-items: flex-start;"><div class="num" style="flex-basis: 38px; height: 38px; font-size: 17px;">1</div><div><div style="font-size: 16px; font-weight: 700;">Message us</div><div style="font-size: 13px; line-height: 19px; color: #3E4F47; margin-top: 2px;">On WhatsApp or Instagram.</div></div></div>
@@ -259,15 +472,19 @@ h2 { font-size: 44px; line-height: 50px; font-weight: 700; letter-spacing: -1.5p
     </div>
   </div>
 
-  <div class="green" style="position: absolute; left: 0; right: 0; bottom: 0; height: 150px; padding: 0 56px; display: flex; align-items: center; justify-content: space-between;">
-    <div style="display: flex; gap: 18px; align-items: center;">
-      <div class="logo" style="transform: scale(0.75); transform-origin: left center; width: 72px;"><div class="c">₹</div><div class="s"></div></div>
-      <div>
-        <div style="font-size: 26px; font-weight: 700; letter-spacing: -0.5px;">Book your free trial</div>
-        <div style="font-size: 15px; color: #CFE0D6; margin-top: 2px;">WhatsApp: [YOUR NUMBER] &nbsp;·&nbsp; Instagram: [@your_handle]</div>
+  <div class="green" style="position: absolute; left: 0; right: 0; bottom: 0; height: 250px; padding: 0 56px; display: flex; align-items: center; justify-content: space-between;">
+    <div>
+      <div style="font-size: 36px; line-height: 42px; font-weight: 700; letter-spacing: -1px;">Book your <span class="gold">free trial</span></div>
+      <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 14px; font-size: 17px; font-weight: 600;">
+        <div>WhatsApp: [YOUR NUMBER]</div>
+        <div>Instagram: [@your_handle]</div>
       </div>
     </div>
-    <div style="font-size: 44px; font-weight: 700; letter-spacing: -2px;">galla</div>
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+      <div class="logo"><div class="c">₹</div><div class="s"></div></div>
+      <div style="font-size: 48px; line-height: 50px; font-weight: 700; letter-spacing: -2px;">galla</div>
+      <div style="font-size: 12px; color: #9DB8AA;">Made in India</div>
+    </div>
   </div>
 </section>
 
