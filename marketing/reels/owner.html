@@ -1,0 +1,114 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="kit.css">
+<style>
+.ln { display: flex; justify-content: space-between; font-size: 22px; padding: 10px 0; }
+.key { height: 74px; border-radius: 16px; background: #F3F6F4; display: flex; align-items: center; justify-content: center; font-size: 30px; font-weight: 600; position: relative; overflow: hidden; }
+.dot { width: 26px; height: 26px; border-radius: 13px; border: 3px solid #17382A; }
+.bub { position: absolute; max-width: 450px; border-radius: 22px; padding: 18px 20px; font-size: 19px; line-height: 29px; color: #102018; box-shadow: 0 2px 4px rgba(0,0,0,0.08); }
+.role { position: absolute; left: 110px; right: 110px; height: 230px; border-radius: 36px; background: #fff; color: #102018; padding: 36px 44px; display: flex; gap: 34px; align-items: center; }
+.av { flex: 0 0 120px; height: 120px; border-radius: 60px; display: flex; align-items: center; justify-content: center; font-size: 52px; font-weight: 700; }
+.rn { font-size: 46px; font-weight: 700; letter-spacing: -1px; }
+.rd { font-size: 28px; color: #5E6E66; margin-top: 4px; }
+.pd { display: flex; gap: 10px; margin-top: 14px; } .pd span { width: 18px; height: 18px; border-radius: 9px; background: #17382A; }
+</style></head><body>
+<div id="s0" class="scene" style="background: #0B1F17;">
+  <div id="shop" class="abs" style="left: 340px; top: 420px; width: 400px; height: 360px;">
+    <div class="abs" style="left: 0; top: 0; width: 400px; height: 110px; border-radius: 20px 20px 0 0; background: repeating-linear-gradient(90deg, #F2B01E 0 50px, #FFFFFF 50px 100px);"></div>
+    <div class="abs" style="left: 20px; top: 110px; width: 360px; height: 250px; background: #17382A;"></div>
+    <div class="abs" style="left: 150px; top: 190px; width: 100px; height: 170px; border-radius: 10px 10px 0 0; background: #0B1F17;"></div>
+    <div class="abs" style="left: 50px; top: 160px; width: 70px; height: 70px; border-radius: 10px; background: #2C5A44;"></div>
+    <div class="abs" style="left: 280px; top: 160px; width: 70px; height: 70px; border-radius: 10px; background: #2C5A44;"></div>
+  </div>
+  <div id="away" class="abs" style="left: 640px; top: 380px; padding: 12px 26px; border-radius: 30px; background: #E5484D; font-size: 32px; font-weight: 700;">You're away</div>
+  <div id="hk1" class="abs h1" style="left: 0; right: 0; top: 880px; text-align: center; font-size: 120px; line-height: 128px;">Not at your shop?</div>
+  <div id="hk2" class="abs h1" style="left: 0; right: 0; top: 1040px; text-align: center; font-size: 100px; line-height: 110px; color: #F2B01E;">Still know<br>everything.</div>
+</div>
+
+<div id="s1" class="scene" style="background: #17382A;">
+  <div class="title">Discounts need<br><span style="color: #F2B01E;">your PIN.</span></div>
+  <div id="ph" class="phone" style="left: 280px; top: 420px;"><div class="screen">
+    <div class="bar"><div><div class="k">Sharma Sweets</div><div class="v">Bill · T2</div></div><div class="chip">Ravi · Cashier</div></div>
+    <div style="padding: 20px 28px;">
+      <div class="ln"><span>2 × Thali</span><span>₹500</span></div>
+      <div class="ln"><span>2 × Gulab Jamun</span><span>₹120</span></div>
+      <div class="ln"><span>4 × Butter Roti</span><span>₹180</span></div>
+      <div style="border-top: 2px dashed #DDE3E0; margin-top: 10px; padding-top: 10px;">
+        <div class="ln" style="color: #5E6E66;"><span>Subtotal</span><span>₹800</span></div>
+        <div class="ln" style="color: #5E6E66;"><span>GST 5%</span><span>₹40</span></div>
+        <div id="disc" class="ln" style="color: #1B8A3A; font-weight: 600; opacity: 0;"><span>Discount</span><span>−₹50</span></div>
+        <div id="by" style="font-size: 16px; color: #1B8A3A; opacity: 0; margin-top: -6px;">Approved by Owner · Regular customer</div>
+        <div class="ln" style="font-size: 32px; font-weight: 700; margin-top: 8px;"><span>Total</span><span id="tot">₹840</span></div>
+      </div>
+      <div id="addd" class="card" style="margin-top: 22px; height: 64px; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 600; color: #17382A; position: relative; overflow: hidden;"><div class="ripple" id="rd" style="left: 50%; top: 50%;"></div>+ Add discount</div>
+    </div>
+    <div id="dim" class="abs" style="inset: 0; background: rgba(15,42,31,0.55); opacity: 0;"></div>
+    <div id="pin" class="abs" style="left: 0; right: 0; bottom: 0; height: 700px; background: #fff; border-radius: 34px 34px 0 0; padding: 30px 30px; transform: translateY(720px);">
+      <div style="width: 60px; height: 6px; border-radius: 3px; background: #DDE3E0; margin: 0 auto 22px auto;"></div>
+      <div style="font-size: 28px; font-weight: 700; text-align: center;">Owner or manager PIN</div>
+      <div style="font-size: 18px; color: #5E6E66; text-align: center; margin-top: 4px;">Discount ₹50 on Bill T2</div>
+      <div style="display: flex; gap: 22px; justify-content: center; margin: 30px 0;"><div class="dot" id="d0"></div><div class="dot" id="d1"></div><div class="dot" id="d2"></div><div class="dot" id="d3"></div></div>
+      <div id="keys" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;"></div>
+    </div>
+  </div></div>
+</div>
+
+<div id="s2" class="scene" style="background: #F2B01E; color: #0F2A1F;">
+  <div class="title">Day-end report<br>on your phone.</div>
+  <div id="ph2" class="phone" style="left: 280px; top: 420px;"><div class="screen" style="background: #EFE7DC;">
+    <div style="background: #17382A; padding: 54px 28px 20px 28px; display: flex; gap: 16px; align-items: center;">
+      <div style="width: 56px; height: 56px; border-radius: 28px; background: #F2B01E; color: #0F2A1F; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 24px;">R</div>
+      <div><div style="font-size: 24px; font-weight: 700; color: #fff;">Ravi (Counter)</div><div style="font-size: 16px; color: #9DB8AA;">online</div></div>
+    </div>
+    <div id="b1" class="bub mono" style="left: 24px; top: 170px; background: #fff; font-size: 21px; line-height: 35px; border-top-left-radius: 6px; width: 440px;">
+      <div style="font-family: Poppins; font-weight: 700; font-size: 25px;">Day close · Sharma Sweets</div>
+      <div style="font-family: Poppins; color: #5E6E66; font-size: 18px;">Sat 10 Oct · 11:02 PM</div>
+      Sales    ₹18,420 (64 bills)<br>Cash     ₹12,545<br>UPI      ₹5,875<br>Discounts ₹150 (3)<br>Paid out ₹200<br>Counted  ₹14,345
+      <div style="font-family: Poppins; font-weight: 700; color: #1B8A3A; margin-top: 6px; font-size: 25px;">✓ Cash matches</div>
+    </div>
+    <div id="b2" class="bub" style="right: 24px; top: 720px; font-size: 22px; line-height: 32px; background: #D9F2C9; border-top-right-radius: 6px;">Great, thanks Ravi. See you tomorrow.</div>
+  </div></div>
+</div>
+
+<div id="s3" class="scene" style="background: #0F2A1F;">
+  <div class="title">Each person.<br><span style="color: #F2B01E;">Their own PIN.</span></div>
+  <div id="r1" class="role" style="top: 520px;"><div class="av" style="background: #F2B01E; color: #0F2A1F;">O</div><div><div class="rn">Owner</div><div class="rd">Everything</div><div class="pd"><span></span><span></span><span></span><span></span></div></div></div>
+  <div id="r2" class="role" style="top: 790px;"><div class="av" style="background: #17382A; color: #F2B01E;">M</div><div><div class="rn">Manager</div><div class="rd">Discounts, day close, reports</div><div class="pd"><span></span><span></span><span></span><span></span></div></div></div>
+  <div id="r3" class="role" style="top: 1060px;"><div class="av" style="background: #DDE3E0; color: #17382A;">C</div><div><div class="rn">Cashier</div><div class="rd">Billing only</div><div class="pd"><span></span><span></span><span></span><span></span></div></div></div>
+</div>
+
+<div id="s4" class="scene" style="background: #17382A;"></div>
+<div class="cap"><div id="capbox" class="capbox"></div></div>
+<script src="kit.js"></script>
+<script>
+endCard('s4', 'Free trial for restaurants', 'Run your counter,<br>even when you are away.');
+$('keys').innerHTML = ['1','2','3','4','5','6','7','8','9','','0','⌫'].map((k, i) => `<div class="key" id="k${k}">${k}<div class="ripple" id="rk${k}" style="left:50%;top:50%;width:120px;height:120px;margin:-60px 0 0 -60px;"></div></div>`).join('');
+const PIN = [['7', 5.0], ['3', 5.35], ['9', 5.7], ['1', 6.05]];
+CAPS = [
+  [2.7, 4.9, 'Staff can\'t give discounts <g>on their own.</g>'],
+  [5.0, 6.9, 'Your PIN <g>approves it.</g>'],
+  [7.1, 9.4, 'Every discount stays <g>on record.</g>'],
+  [10.0, 14.5, 'The day-end report comes <g>straight to you.</g>'],
+  [15.1, 18.2, 'Owner, manager, cashier – <g>each with a PIN.</g>'],
+];
+window.render = function (t) {
+  pop('shop', t, 0.05, 0.4); pop('away', t, 0.6, 0.3); pop('hk1', t, 0.25); rise('hk2', t, 1.4, 50, 0.4);
+  slide('s1', t, 2.4); hideUntil('s1', t, 2.4);
+  $('ph').style.transform = 'translateY(' + (300 * (1 - out(prog(t, 2.6, 3.3)))) + 'px)';
+  ripple('rd', t, 3.9);
+  const sOpen = out(prog(t, 4.2, 4.7)) * (1 - out(prog(t, 6.45, 6.85)));
+  $('dim').style.opacity = 0.9 * sOpen; $('pin').style.transform = 'translateY(' + (720 * (1 - sOpen)) + 'px)';
+  PIN.forEach(([k, at], i) => { ripple('rk' + k, t, at); $('d' + i).style.background = t >= at + 0.05 ? '#17382A' : 'transparent'; });
+  const ok = t >= 6.25; for (let i = 0; i < 4; i++) if (ok) { $('d' + i).style.background = '#1B8A3A'; $('d' + i).style.borderColor = '#1B8A3A'; } else $('d' + i).style.borderColor = '#17382A';
+  rise('disc', t, 6.9, 14, 0.3); rise('by', t, 7.3, 10, 0.3);
+  $('tot').textContent = t >= 6.9 ? '₹790' : '₹840';
+  $('addd').style.opacity = t >= 6.9 ? 0.35 : 1;
+  slide('s2', t, 9.6); hideUntil('s2', t, 9.6);
+  $('ph2').style.transform = 'translateY(' + (300 * (1 - out(prog(t, 9.8, 10.4)))) + 'px)';
+  pop('b1', t, 10.6, 0.35); $('b1').style.transformOrigin = 'top left';
+  pop('b2', t, 12.8, 0.3); $('b2').style.transformOrigin = 'top right';
+  slide('s3', t, 14.8); hideUntil('s3', t, 14.8);
+  rise('r1', t, 15.3, 80, 0.45); rise('r2', t, 15.7, 80, 0.45); rise('r3', t, 16.1, 80, 0.45);
+  endAnim('s4', t, 18.4); hideUntil('s4', t, 18.4);
+  captions(t);
+};
+render(0);
+</script></body></html>

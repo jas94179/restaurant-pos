@@ -1,0 +1,133 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="kit.css">
+<style>
+.tb { position: absolute; width: 250px; height: 170px; border-radius: 26px; border: 3px solid #2C5A44; display: flex; align-items: center; justify-content: center; font-size: 44px; font-weight: 700; color: #5E8A74; }
+.tt { border-radius: 16px; height: 150px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden; }
+.tt.free { background: #fff; border: 1.5px solid #DDE3E0; color: #5E6E66; }
+.tt.busy { background: #17382A; color: #fff; }
+.tt.wait { background: #FFF4DB; border: 2px solid #F2B01E; color: #102018; }
+.tt .n { font-size: 26px; font-weight: 700; }
+.tt .s { font-size: 17px; }
+.ln { display: flex; justify-content: space-between; font-size: 22px; padding: 14px 0; border-bottom: 1px solid #E6EBE8; }
+.new { font-size: 13px; font-weight: 700; background: #F2B01E; color: #0F2A1F; padding: 3px 8px; border-radius: 8px; margin-left: 8px; vertical-align: middle; }
+.pill { position: absolute; left: 140px; right: 140px; height: 170px; border-radius: 40px; display: flex; align-items: center; gap: 34px; padding: 0 50px; font-size: 64px; font-weight: 700; letter-spacing: -1.5px; }
+.ico { width: 92px; height: 92px; border-radius: 26px; display: flex; align-items: center; justify-content: center; font-size: 50px; }
+</style></head><body>
+<div id="s0" class="scene" style="background: #0B1F17;">
+  <div id="clock" class="abs" style="left: 0; right: 0; top: 230px; text-align: center; font-size: 44px; font-weight: 600; color: #9DB8AA;">Friday · 8:30 PM</div>
+  <div id="hk1" class="abs h1" style="left: 0; right: 0; top: 300px; text-align: center; font-size: 124px; line-height: 132px;">Every table full.</div>
+  <div id="grid0"></div>
+  <div id="hk2" class="abs h1" style="left: 0; right: 0; top: 1380px; text-align: center; font-size: 110px; line-height: 120px; color: #F2B01E;">No panic.</div>
+</div>
+
+<div id="s1" class="scene" style="background: #17382A;">
+  <div class="title">Every table.<br>One screen.</div>
+  <div id="ph" class="phone" style="left: 280px; top: 420px;"><div class="screen">
+    <div id="tables">
+      <div class="bar"><div><div class="k">Sharma Sweets</div><div class="v">Tables</div></div><div class="chip">Ravi</div></div>
+      <div style="padding: 18px 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+        <div class="tt busy"><div class="n">T1</div><div class="s">₹640 · 25 min</div></div>
+        <div class="tt free"><div class="n">T2</div><div class="s">Free</div></div>
+        <div class="tt busy"><div class="n">T3</div><div class="s">₹380 · 12 min</div></div>
+        <div id="t4" class="tt busy"><div class="ripple" id="r4" style="left: 50%; top: 50%;"></div><div class="n">T4</div><div class="s">₹220 · 4 min</div></div>
+        <div class="tt free"><div class="n">T5</div><div class="s">Free</div></div>
+        <div class="tt wait"><div class="n">T6</div><div class="s">Bill printed · ₹910</div></div>
+        <div class="tt busy"><div class="n">T7</div><div class="s">₹150 · 2 min</div></div>
+        <div class="tt free"><div class="n">T8</div><div class="s">Free</div></div>
+      </div>
+    </div>
+    <div id="order" class="abs" style="inset: 0; background: #F3F6F4; transform: translateX(560px);">
+      <div class="bar"><div><div class="k">Table 4 · 2 guests</div><div class="v">Order</div></div><div class="chip">Ravi</div></div>
+      <div style="padding: 10px 28px;">
+        <div style="font-size: 16px; font-weight: 600; color: #5E6E66; margin-top: 12px;">ALREADY IN KITCHEN</div>
+        <div class="ln" style="color: #5E6E66;"><span>1 × Paneer Tikka</span><span>₹220</span></div>
+        <div style="font-size: 16px; font-weight: 600; color: #5E6E66; margin-top: 24px;">NEW</div>
+        <div id="o1" class="ln" style="opacity: 0;"><span>2 × Butter Naan<span class="new">NEW</span></span><span>₹80</span></div>
+        <div id="o2" class="ln" style="opacity: 0;"><span>1 × Dal Makhani<span class="new">NEW</span></span><span>₹240</span></div>
+        <div id="o3" style="opacity: 0; margin-top: 16px; font-size: 18px; color: #5E6E66; background: #fff; border: 1.5px dashed #DDE3E0; border-radius: 12px; padding: 12px 16px;">Note: less spicy</div>
+      </div>
+      <div id="send" class="btn dark abs" style="left: 24px; right: 24px; bottom: 30px; overflow: hidden;"><div class="ripple" id="rs" style="left: 50%; top: 50%;"></div><span id="sendt">Send to kitchen</span></div>
+    </div>
+    <div id="toast" class="toast">KOT #12 sent to kitchen</div>
+  </div></div>
+</div>
+
+<div id="s2" class="scene" style="background: #F2B01E; color: #0F2A1F;">
+  <div class="title" style="font-size: 92px; line-height: 98px;">Kitchen gets only what's new.</div>
+  <div id="old" class="abs mono" style="left: 70px; top: 560px; width: 380px; background: #fff; padding: 26px; font-size: 19px; line-height: 30px; color: #111; transform: rotate(-5deg); box-shadow: 0 16px 30px rgba(0,0,0,0.12);">
+    <div style="font-weight: 700; font-size: 24px;">KOT #11 · TABLE 4</div><div>8:31 PM</div><div>-----------------------</div><div>+ Paneer Tikka   x1</div>
+    <div class="abs" style="right: 18px; top: 18px; font-family: Poppins; font-weight: 700; color: #1B8A3A; border: 3px solid #1B8A3A; border-radius: 10px; padding: 0 10px; transform: rotate(8deg);">DONE</div>
+  </div>
+  <div class="abs" style="left: 470px; top: 470px; width: 480px; height: 900px; overflow: hidden;">
+    <div id="kot" class="abs mono" style="left: 0; width: 480px; top: 900px; background: #fff; padding: 34px; font-size: 22px; line-height: 34px; color: #111; box-shadow: 0 20px 40px rgba(0,0,0,0.12);">
+      <div style="text-align: center; font-weight: 700; font-size: 32px; line-height: 42px;">KOT #12</div>
+      <div style="text-align: center; font-weight: 700;">TABLE 4 · 8:42 PM</div>
+      <div>--------------------------</div>
+      <div style="font-weight: 700;">NEW ITEMS</div>
+      <div style="font-size: 28px; line-height: 44px; font-weight: 700;">+ Butter Naan  x2</div>
+      <div style="font-size: 28px; line-height: 44px; font-weight: 700;">+ Dal Makhani  x1</div>
+      <div>--------------------------</div>
+      <div>Note: less spicy</div>
+      <div>Waiter: Ravi</div>
+    </div>
+  </div>
+  <div class="abs" style="left: 420px; top: 1360px; width: 580px; height: 260px; border-radius: 50px; background: #17382A; box-shadow: 0 30px 60px rgba(15,42,31,0.35);">
+    <div class="abs" style="left: 40px; top: 22px; width: 500px; height: 18px; border-radius: 9px; background: #0B1F17;"></div>
+    <div class="abs" style="left: 50px; bottom: 46px; display: flex; gap: 16px; align-items: center;"><div id="led" style="width: 18px; height: 18px; border-radius: 9px; background: #3DDC84;"></div><div style="font-size: 28px; font-weight: 600; color: #CFE0D6;">Kitchen printer</div></div>
+  </div>
+</div>
+
+<div id="s3" class="scene" style="background: #0F2A1F;">
+  <div class="title">One app for<br><span style="color: #F2B01E;">every order.</span></div>
+  <div id="p1" class="pill" style="top: 560px; background: #fff; color: #102018;"><div class="ico" style="background: #17382A; color: #F2B01E;">◫</div>Dine-in</div>
+  <div id="p2" class="pill" style="top: 770px; background: #fff; color: #102018;"><div class="ico" style="background: #17382A; color: #F2B01E;">⇡</div>Takeaway</div>
+  <div id="p3" class="pill" style="top: 980px; background: #F2B01E; color: #0F2A1F;"><div class="ico" style="background: #0F2A1F; color: #F2B01E;">➜</div>Delivery apps</div>
+  <div id="p3s" class="abs" style="left: 140px; right: 140px; top: 1180px; text-align: center; font-size: 36px; color: #CFE0D6;">Zomato and Swiggy orders billed in the same place.</div>
+</div>
+
+<div id="s4" class="scene" style="background: #17382A;"></div>
+<div class="cap"><div id="capbox" class="capbox"></div></div>
+<script src="kit.js"></script>
+<script>
+endCard('s4', 'Free trial for restaurants', 'Tables, kitchen slips and<br>billing in one app.');
+// hook grid
+const g0 = $('grid0'); let gh = '';
+for (let i = 0; i < 9; i++) { const x = 110 + (i % 3) * 300, y = 560 + Math.floor(i / 3) * 240; gh += `<div id="g${i}" class="tb" style="left:${x}px; top:${y}px;">T${i + 1}</div>`; }
+g0.innerHTML = gh;
+const ORDER = [4, 0, 8, 2, 6, 1, 7, 3, 5];
+CAPS = [
+  [2.7, 5.8, 'See every table, <g>at a glance.</g>'],
+  [6.4, 9.7, 'Add more anytime. Send it to the <g>kitchen.</g>'],
+  [10.4, 14.3, 'No repeated items. No <g>missed orders.</g>'],
+  [14.9, 17.4, 'Dine-in, takeaway and <g>delivery apps.</g>'],
+];
+window.render = function (t) {
+  // hook
+  rise('clock', t, 0.0, 20, 0.4); pop('hk1', t, 0.15);
+  ORDER.forEach((k, i) => { const at = 0.45 + i * 0.12, p = prog(t, at, at + 0.18), el = $('g' + k);
+    el.style.background = p > 0 ? '#F2B01E' : 'transparent'; el.style.color = p > 0 ? '#0F2A1F' : '#5E8A74'; el.style.borderColor = p > 0 ? '#F2B01E' : '#2C5A44';
+    el.style.transform = 'scale(' + (p > 0 ? 0.85 + 0.15 * back(p) : 1) + ')'; });
+  rise('hk2', t, 1.65, 50, 0.4);
+  // s1
+  slide('s1', t, 2.4); hideUntil('s1', t, 2.4);
+  $('ph').style.transform = 'translateY(' + (300 * (1 - out(prog(t, 2.6, 3.3)))) + 'px)';
+  ripple('r4', t, 5.9);
+  $('order').style.transform = 'translateX(' + (560 * (1 - out(prog(t, 6.2, 6.7)))) + 'px)';
+  rise('o1', t, 7.0, 20, 0.3); rise('o2', t, 7.6, 20, 0.3); rise('o3', t, 8.1, 20, 0.3);
+  ripple('rs', t, 8.7);
+  $('sendt').textContent = t < 7.0 ? 'Send to kitchen' : t < 7.6 ? 'Send to kitchen · 1 new' : 'Send to kitchen · 2 new';
+  $('send').style.background = t >= 8.75 ? '#1B8A3A' : '#17382A';
+  const tp = prog(t, 8.9, 9.2); $('toast').style.opacity = Math.min(tp, 1 - prog(t, 9.7, 9.9)); $('toast').style.transform = 'translateY(' + (-30 * (1 - out(tp))) + 'px)';
+  // s2
+  slide('s2', t, 9.9); hideUntil('s2', t, 9.9);
+  rise('old', t, 10.3, 40, 0.4); $('old').style.transform += ' rotate(-5deg)';
+  $('kot').style.top = (900 - ($('kot').offsetHeight + 10) * inOut(prog(t, 10.8, 12.8))) + 'px';
+  $('led').style.opacity = t > 10.8 && t < 12.8 ? (Math.floor(t * 6) % 2 ? 1 : 0.3) : 1;
+  // s3
+  slide('s3', t, 14.4); hideUntil('s3', t, 14.4);
+  pop('p1', t, 15.0); pop('p2', t, 15.5); pop('p3', t, 16.0); rise('p3s', t, 16.4, 20);
+  // end
+  endAnim('s4', t, 17.6); hideUntil('s4', t, 17.6);
+  captions(t);
+};
+render(0);
+</script></body></html>

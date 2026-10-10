@@ -1,0 +1,109 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="kit.css">
+<style>
+.chk { width: 34px; height: 34px; border-radius: 10px; border: 2.5px solid #B8C4BE; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 22px; font-weight: 700; }
+.xr { display: flex; gap: 18px; align-items: center; padding: 18px 0; border-bottom: 1px solid #E6EBE8; }
+.xr .a { font-size: 22px; font-weight: 600; } .xr .b { font-size: 16px; color: #5E6E66; }
+.file { position: absolute; padding: 18px 26px; border-radius: 20px; background: #fff; color: #102018; font-size: 26px; font-weight: 600; box-shadow: 0 20px 40px rgba(0,0,0,0.25); display: flex; gap: 14px; align-items: center; opacity: 0; }
+.file i { font-style: normal; width: 44px; height: 52px; border-radius: 8px; background: #1B8A3A; color: #fff; font-size: 13px; font-weight: 700; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 6px; }
+.gr { display: flex; justify-content: space-between; font-size: 38px; padding: 20px 0; border-bottom: 2px solid #E6EBE8; }
+</style></head><body>
+<div id="s0" class="scene" style="background: #0B1F17;">
+  <div id="cal" class="abs" style="left: 365px; top: 360px; width: 350px; height: 380px; border-radius: 40px; background: #fff; overflow: hidden; color: #102018; text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.4);">
+    <div style="height: 100px; background: #E5484D; color: #fff; font-size: 48px; font-weight: 700; line-height: 100px; letter-spacing: 4px;">OCT</div>
+    <div style="font-size: 200px; font-weight: 700; line-height: 260px; letter-spacing: -8px;">31</div>
+  </div>
+  <div id="call" class="abs" style="left: 600px; top: 320px; padding: 14px 28px; border-radius: 34px; background: #1B8A3A; font-size: 32px; font-weight: 700;">CA calling…</div>
+  <div id="hk1" class="abs h1" style="left: 0; right: 0; top: 860px; text-align: center; font-size: 140px; line-height: 148px;">Month end.</div>
+  <div id="hk2" class="abs h1" style="left: 80px; right: 80px; top: 1030px; text-align: center; font-size: 92px; line-height: 104px; color: #F2B01E;">Your CA wants the GST numbers.</div>
+</div>
+
+<div id="s1" class="scene" style="background: #17382A;">
+  <div class="title">Every rupee,<br>counted.</div>
+  <div id="ph" class="phone" style="left: 280px; top: 420px;"><div class="screen">
+    <div class="bar"><div><div class="k">Sharma Sweets</div><div class="v">Reports</div></div><div class="chip">October</div></div>
+    <div style="padding: 24px 28px;">
+      <div style="font-size: 18px; color: #5E6E66; font-weight: 600;">Total sales</div>
+      <div id="sales" style="font-size: 58px; font-weight: 700; letter-spacing: -1.5px; line-height: 70px;">₹0</div>
+      <div id="bills" style="font-size: 18px; color: #5E6E66;">0 bills</div>
+      <div id="chart" style="height: 200px; margin-top: 22px; display: flex; align-items: flex-end; gap: 4px;"></div>
+      <div style="font-size: 18px; color: #5E6E66; font-weight: 600; margin-top: 26px;">Top items</div>
+      <div id="i1" class="row" style="font-size: 22px; padding: 12px 0; border-bottom: 1px solid #E6EBE8;"><span>Masala Dosa</span><span style="font-weight: 600;">612 sold</span></div>
+      <div id="i2" class="row" style="font-size: 22px; padding: 12px 0; border-bottom: 1px solid #E6EBE8;"><span>Filter Coffee</span><span style="font-weight: 600;">540 sold</span></div>
+      <div id="i3" class="row" style="font-size: 22px; padding: 12px 0;"><span>Veg Thali</span><span style="font-weight: 600;">288 sold</span></div>
+    </div>
+  </div></div>
+</div>
+
+<div id="s2" class="scene" style="background: #F2B01E; color: #0F2A1F;">
+  <div class="title">Export for<br>your CA.</div>
+  <div id="ph2" class="phone" style="left: 280px; top: 420px;"><div class="screen">
+    <div class="bar"><div><div class="k">Sharma Sweets</div><div class="v">Export</div></div><div class="chip">Oct 2026</div></div>
+    <div style="padding: 10px 28px;">
+      <div class="xr"><div class="chk" id="c0">✓</div><div><div class="a">All bills</div><div class="b">Every invoice, with GST</div></div></div>
+      <div class="xr"><div class="chk" id="c1">✓</div><div><div class="a">GST summary</div><div class="b">CGST and SGST by rate</div></div></div>
+      <div class="xr"><div class="chk" id="c2">✓</div><div><div class="a">Daily totals</div><div class="b">Cash, UPI and card per day</div></div></div>
+      <div class="xr"><div class="chk" id="c3">✓</div><div><div class="a">Item sales</div><div class="b">Quantity and value</div></div></div>
+      <div class="xr" style="border: 0;"><div class="chk" id="c4">✓</div><div><div class="a">Expenses</div><div class="b">Money paid out</div></div></div>
+    </div>
+    <div id="exp" class="btn dark abs" style="left: 24px; right: 24px; bottom: 30px; overflow: hidden;"><div class="ripple" id="rx" style="left: 50%; top: 50%;"></div><span id="expt">Export</span></div>
+    <div id="toast" class="toast">5 files ready to share</div>
+  </div></div>
+  <div id="f0" class="file" style="left: 560px; top: 760px;"><i>CSV</i>gst-summary.csv</div>
+  <div id="f1" class="file" style="left: 560px; top: 760px;"><i>CSV</i>bills-oct.csv</div>
+  <div id="f2" class="file" style="left: 560px; top: 760px;"><i>CSV</i>daily-totals.csv</div>
+</div>
+
+<div id="s3" class="scene" style="background: #0F2A1F;">
+  <div class="title">GST,<br><span style="color: #F2B01E;">already split.</span></div>
+  <div id="gcard" class="abs" style="left: 90px; right: 90px; top: 520px; border-radius: 44px; background: #fff; color: #102018; padding: 50px 54px;">
+    <div style="font-size: 34px; font-weight: 700;">October 2026 · GST 5%</div>
+    <div style="margin-top: 16px;">
+      <div class="gr"><span>Taxable value</span><span id="g0">₹0</span></div>
+      <div class="gr"><span>CGST 2.5%</span><span id="g1">₹0</span></div>
+      <div class="gr"><span>SGST 2.5%</span><span id="g2">₹0</span></div>
+      <div class="gr" style="border: 0; font-weight: 700; font-size: 46px;"><span>Total</span><span id="g3">₹0</span></div>
+    </div>
+  </div>
+  <div id="stamp" class="abs" style="left: 560px; top: 1180px; padding: 16px 30px; border: 6px solid #F2B01E; color: #F2B01E; border-radius: 20px; font-size: 44px; font-weight: 700; transform: rotate(-8deg); background: #0F2A1F;">Ready for your CA</div>
+</div>
+
+<div id="s4" class="scene" style="background: #17382A;"></div>
+<div class="cap"><div id="capbox" class="capbox"></div></div>
+<script src="kit.js"></script>
+<script>
+endCard('s4', 'Free trial for restaurants', 'Month end in minutes,<br>not days.');
+const H = [52,60,48,70,88,96,64,55,58,66,74,92,100,70,50,62,58,72,90,98,68,54,60,64,78,94,100,72,56,66,84];
+$('chart').innerHTML = H.map((h, i) => `<div id="bar${i}" style="flex:1; border-radius: 4px 4px 0 0; background: ${i % 7 >= 4 && i % 7 <= 5 ? '#F2B01E' : '#17382A'}; height: 0;"></div>`).join('');
+CAPS = [
+  [2.7, 5.4, 'Sales for any day, week or <g>month.</g>'],
+  [5.6, 8.2, 'See what sells <g>the most.</g>'],
+  [8.7, 11.0, 'Pick the reports. <g>One tap.</g>'],
+  [11.2, 13.8, 'Send the files to your CA, <g>on WhatsApp or email.</g>'],
+  [14.3, 17.8, 'CGST and SGST <g>already worked out.</g>'],
+];
+window.render = function (t) {
+  const cp = prog(t, 0.05, 0.5); $('cal').style.opacity = Math.min(1, cp * 2); $('cal').style.transform = 'perspective(900px) rotateX(' + (-90 * (1 - back(cp))) + 'deg)'; $('cal').style.transformOrigin = 'top center';
+  pop('call', t, 0.6, 0.3); if (t > 0.9) $('call').style.transform = 'rotate(' + Math.sin(t * 50) * 4 + 'deg)';
+  pop('hk1', t, 0.3); rise('hk2', t, 1.3, 50, 0.4);
+  slide('s1', t, 2.4); hideUntil('s1', t, 2.4);
+  $('ph').style.transform = 'translateY(' + (300 * (1 - out(prog(t, 2.6, 3.3)))) + 'px)';
+  const sp = out(prog(t, 3.2, 4.8)); $('sales').textContent = inr(482300 * sp); $('bills').textContent = Math.round(1742 * sp).toLocaleString('en-IN') + ' bills';
+  H.forEach((h, i) => { $('bar' + i).style.height = (h * 1.9 * out(prog(t, 3.5 + i * 0.03, 3.9 + i * 0.03))) + 'px'; });
+  rise('i1', t, 5.6, 20, 0.3); rise('i2', t, 5.8, 20, 0.3); rise('i3', t, 6.0, 20, 0.3);
+  slide('s2', t, 8.4); hideUntil('s2', t, 8.4);
+  $('ph2').style.transform = 'translateY(' + (300 * (1 - out(prog(t, 8.6, 9.2)))) + 'px)';
+  for (let i = 0; i < 5; i++) { const on = t >= 9.3 + i * 0.3, el = $('c' + i); el.style.background = on ? '#17382A' : 'transparent'; el.style.borderColor = on ? '#17382A' : '#B8C4BE'; el.style.color = on ? '#fff' : 'transparent'; }
+  $('expt').textContent = t < 9.3 ? 'Export' : 'Export ' + Math.min(5, Math.floor((t - 9.3) / 0.3) + 1) + ' files';
+  ripple('rx', t, 10.9); $('exp').style.background = t >= 10.95 ? '#1B8A3A' : '#17382A';
+  const tp = prog(t, 11.1, 11.4); $('toast').style.opacity = Math.min(tp, 1 - prog(t, 13.4, 13.7));
+  [[0, 11.5, 480, 640], [1, 11.75, 520, 880], [2, 12.0, 440, 1120]].forEach(([i, at, x, y]) => { const p = out(prog(t, at, at + 0.6)), el = $('f' + i);
+    el.style.opacity = Math.min(1, p * 3); el.style.left = (500 + (x - 500) * p) + 'px'; el.style.top = (900 + (y - 900) * p) + 'px'; el.style.transform = 'scale(' + (0.5 + 0.5 * p) + ') rotate(' + (i - 1) * 3 * p + 'deg)'; });
+  slide('s3', t, 14.0); hideUntil('s3', t, 14.0);
+  rise('gcard', t, 14.3, 100, 0.5);
+  const gp = out(prog(t, 14.9, 16.4)); [459333, 11483, 11483, 482300].forEach((v, i) => $('g' + i).textContent = inr(v * gp));
+  const sp2 = prog(t, 16.6, 16.9); $('stamp').style.opacity = Math.min(1, sp2 * 3); $('stamp').style.transform = 'rotate(-8deg) scale(' + (1.8 - 0.8 * out(sp2)) + ')';
+  endAnim('s4', t, 18.0); hideUntil('s4', t, 18.0);
+  captions(t);
+};
+render(0);
+</script></body></html>

@@ -1,0 +1,27 @@
+* { box-sizing: border-box; }
+html, body { margin: 0; width: 1080px; height: 1920px; overflow: hidden; background: #17382A; }
+body { font-family: 'Poppins', sans-serif; color: #fff; position: relative; }
+.abs { position: absolute; }
+.scene { position: absolute; inset: 0; overflow: hidden; }
+.h1 { font-weight: 700; letter-spacing: -2px; }
+.title { position: absolute; left: 80px; right: 80px; top: 150px; font-size: 88px; line-height: 96px; font-weight: 700; letter-spacing: -2.5px; }
+.sub { position: absolute; left: 80px; right: 80px; font-size: 40px; line-height: 54px; color: #CFE0D6; }
+.phone { position: absolute; width: 520px; height: 1060px; border-radius: 74px; background: #0B1F17; padding: 18px; box-shadow: 0 50px 100px rgba(0,0,0,0.4); }
+.screen { width: 100%; height: 100%; border-radius: 58px; overflow: hidden; background: #F3F6F4; color: #102018; position: relative; }
+.bar { background: #17382A; padding: 54px 28px 20px 28px; display: flex; justify-content: space-between; align-items: flex-end; }
+.bar .k { font-size: 17px; font-weight: 600; color: #9DB8AA; }
+.bar .v { font-size: 32px; font-weight: 700; color: #fff; }
+.chip { font-size: 17px; font-weight: 600; color: #fff; background: rgba(255,255,255,0.12); padding: 8px 14px; border-radius: 20px; }
+.row { display: flex; justify-content: space-between; align-items: center; }
+.mono { font-family: 'DejaVu Sans Mono', monospace; }
+.card { background: #fff; border-radius: 18px; border: 1.5px solid #DDE3E0; }
+.btn { height: 72px; border-radius: 18px; background: #F2B01E; color: #0F2A1F; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; }
+.btn.dark { background: #17382A; color: #fff; }
+.toast { position: absolute; left: 40px; right: 40px; top: 40px; border-radius: 22px; background: #1B8A3A; color: #fff; padding: 24px; text-align: center; font-size: 26px; font-weight: 700; opacity: 0; }
+.ripple { position: absolute; width: 160px; height: 160px; border-radius: 80px; background: rgba(242,176,30,0.5); margin: -80px 0 0 -80px; transform: scale(0); opacity: 0; pointer-events: none; }
+.cap { position: absolute; left: 60px; right: 60px; top: 1712px; display: flex; justify-content: center; z-index: 50; }
+.capbox { background: rgba(8,22,16,0.8); border-radius: 30px; padding: 22px 34px; font-size: 46px; line-height: 58px; font-weight: 600; text-align: center; color: #fff; max-width: 960px; text-wrap: balance; display: none; }
+.capbox .w { display: inline-block; opacity: 0; }
+.capbox .g { color: #F2B01E; }
+.coin { position: absolute; border-radius: 50%; background: #F2B01E; border-style: solid; border-color: #C98C07; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #0F2A1F; font-family: 'DejaVu Sans', sans-serif; }
+.slot { position: absolute; background: #0B1F17; border: 3px solid rgba(255,255,255,0.18); }
