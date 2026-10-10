@@ -11,8 +11,8 @@ export const ROLE_LABEL: Record<Role, string> = {
 
 export const ROLE_INFO: Record<Role, string> = {
   owner: 'Everything: billing, all reports, menu, staff and settings.',
-  manager: "Billing, all bills, today's insights, stock on and off.",
-  cashier: "Billing, today's bills, stock on and off. No sales totals.",
+  manager: "Billing, all bills, today's insights, stock on and off, day-end cash check.",
+  cashier: "Billing, today's bills, stock on and off, day-end cash count. No sales totals.",
 };
 
 // ---------- Permissions (one place, so rules stay consistent) ----------
@@ -24,12 +24,15 @@ export type Permission =
   | 'editMenu' // add, edit, delete items and prices
   | 'toggleStock' // mark items out of stock
   | 'manageStaff'
-  | 'editRestaurant';
+  | 'editRestaurant'
+  | 'closeDay' // count the cash at day end
+  | 'seeCashDifference' // see expected cash and shortages (cashiers count blind)
+  | 'exportSales'; // sales files for the CA
 
 const RULES: Record<Role, Permission[]> = {
-  owner: ['insights', 'insightsAllPeriods', 'billsAllDays', 'editMenu', 'toggleStock', 'manageStaff', 'editRestaurant'],
-  manager: ['insights', 'billsAllDays', 'toggleStock'],
-  cashier: ['toggleStock'],
+  owner: ['insights', 'insightsAllPeriods', 'billsAllDays', 'editMenu', 'toggleStock', 'manageStaff', 'editRestaurant', 'closeDay', 'seeCashDifference', 'exportSales'],
+  manager: ['insights', 'billsAllDays', 'toggleStock', 'closeDay', 'seeCashDifference'],
+  cashier: ['toggleStock', 'closeDay'],
 };
 
 export function can(user: Staff | null, permission: Permission): boolean {

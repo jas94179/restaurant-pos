@@ -176,6 +176,27 @@ function prepareSchema(): void {
     );
   `);
 
+  db.execSync(`
+    CREATE TABLE IF NOT EXISTS day_closings (
+      id TEXT PRIMARY KEY NOT NULL,
+      day TEXT NOT NULL,
+      closed_at TEXT NOT NULL,
+      closed_by TEXT NOT NULL,
+      opening_cash INTEGER NOT NULL,
+      cash_sales INTEGER NOT NULL,
+      expected_cash INTEGER NOT NULL,
+      counted_cash INTEGER NOT NULL,
+      difference INTEGER NOT NULL,
+      bill_count INTEGER NOT NULL,
+      total_sales INTEGER NOT NULL,
+      upi_sales INTEGER NOT NULL,
+      card_sales INTEGER NOT NULL,
+      delivery_sales INTEGER NOT NULL,
+      note TEXT
+    );
+    CREATE INDEX IF NOT EXISTS idx_day_closings_day ON day_closings(day);
+  `);
+
   // Upgrade older databases on the phone: add columns that newer versions need.
   const billColumns = db.getAllSync<{ name: string }>('PRAGMA table_info(bills)').map((c) => c.name);
   if (!billColumns.includes('table_no')) {
@@ -735,7 +756,7 @@ export function cancelBill(id: string, approvedBy: string, reason: string): void
 // ---------- Backup and restore ----------
 // The whole database as one JSON file. Restore replaces everything on this phone.
 
-const BACKUP_TABLES = ['settings', 'staff', 'categories', 'menu_items', 'bills', 'bill_items', 'open_tables'] as const;
+const BACKUP_TABLES = ['settings', 'staff', 'categories', 'menu_items', 'bills', 'bill_items', 'open_tables', 'day_closings'] as const;
 export const BACKUP_FORMAT = 'galla-backup';
 export const BACKUP_VERSION = 1;
 
@@ -788,4 +809,109 @@ export function restoreBackup(b: BackupFile): void {
       }
     }
   });
+}
+
+// ---------- Day-end closing ----------
+// At night the cash in the drawer is counted and compared with cash bills.
+// Every closing is kept (closing again the same day adds a new record).
+
+export type DayClosing = {
+  id: string;
+  day: string;
+  closedAt: string;
+  closedBy: string;
+  openingCash: number;
+  cashSales: number;
+  expectedCash: number;
+  countedCash: number;
+  difference: number; // counted - expected; negative means cash is short
+  billCount: number;
+  totalSales: number;
+  upiSales: number;
+  cardSales: number;
+  deliverySales: number;
+  note: string;
+};
+
+type DayClosingRow = {
+  id: string; day: string; closed_at: string; closed_by: string; opening_cash: number; cash_sales: number;
+  expected_cash: number; counted_cash: number; difference: number; bill_count: number; total_sales: number;
+  upi_sales: number; card_sales: number; delivery_sales: number; note: string | null;
+};
+
+function toClosing(r: DayClosingRow): DayClosing {
+  return {
+    id: r.id, day: r.day, closedAt: r.closed_at, closedBy: r.closed_by, openingCash: r.opening_cash,
+    cashSales: r.cash_sales, expectedCash: r.expected_cash, countedCash: r.counted_cash, difference: r.difference,
+    billCount: r.bill_count, totalSales: r.total_sales, upiSales: r.upi_sales, cardSales: r.card_sales,
+    deliverySales: r.delivery_sales, note: r.note ?? '',
+  };
+}
+
+export function saveDayClosing(input: { day: string; closedBy: string; openingCash: number; countedCash: number; note: string }): DayClosing {
+  const s = getDaySummary(input.day);
+  const cashSales = s.byMode.cash.amount;
+  const expectedCash = input.openingCash + cashSales;
+  const row: DayClosingRow = {
+    id: newId(),
+    day: input.day,
+    closed_at: new Date().toISOString(),
+    closed_by: input.closedBy,
+    opening_cash: input.openingCash,
+    cash_sales: cashSales,
+    expected_cash: expectedCash,
+    counted_cash: input.countedCash,
+    difference: input.countedCash - expectedCash,
+    bill_count: s.billCount,
+    total_sales: s.totalSales,
+    upi_sales: s.byMode.upi.amount,
+    card_sales: s.byMode.card.amount,
+    delivery_sales: s.byMode.zomato.amount + s.byMode.swiggy.amount,
+    note: input.note.trim() || null,
+  };
+  db.runSync(
+    `INSERT INTO day_closings (id, day, closed_at, closed_by, opening_cash, cash_sales, expected_cash, counted_cash, difference, bill_count, total_sales, upi_sales, card_sales, delivery_sales, note)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [row.id, row.day, row.closed_at, row.closed_by, row.opening_cash, row.cash_sales, row.expected_cash, row.counted_cash, row.difference, row.bill_count, row.total_sales, row.upi_sales, row.card_sales, row.delivery_sales, row.note],
+  );
+  return toClosing(row);
+}
+
+// Latest closing for a day, if any.
+export function getDayClosing(day: string): DayClosing | null {
+  const r = db.getFirstSync<DayClosingRow>('SELECT * FROM day_closings WHERE day = ? ORDER BY closed_at DESC LIMIT 1', [day]);
+  return r ? toClosing(r) : null;
+}
+
+export function getRecentClosings(limit = 30): DayClosing[] {
+  return db.getAllSync<DayClosingRow>('SELECT * FROM day_closings ORDER BY closed_at DESC LIMIT ?', [limit]).map(toClosing);
+}
+
+// ---------- Export for the CA ----------
+
+export type ExportBill = {
+  created_at: string; day: string; invoice_no: string | null; token: number; order_type: string;
+  table_no: number | null; payment_mode: string; platform_order_id: string | null; gst_rate: number;
+  subtotal: number; gst: number; total: number; status: string; cancel_reason: string | null; staff_name: string | null;
+};
+
+// All bills in the range, oldest first, cancelled ones included (marked), as a CA expects.
+export function getBillsForExport(fromDay: string, toDay: string): ExportBill[] {
+  return db.getAllSync<ExportBill>(
+    `SELECT created_at, day, invoice_no, token, order_type, table_no, payment_mode, platform_order_id, gst_rate,
+            subtotal, gst, total, status, cancel_reason, staff_name
+     FROM bills WHERE day BETWEEN ? AND ? ORDER BY created_at ASC`,
+    [fromDay, toDay],
+  );
+}
+
+export function getItemSalesForExport(fromDay: string, toDay: string): ItemTotal[] {
+  return db.getAllSync<ItemTotal>(
+    `SELECT i.name AS name, SUM(i.qty) AS qty, SUM(i.amount) AS amount
+     FROM bill_items i JOIN bills b ON b.id = i.bill_id
+     WHERE b.day BETWEEN ? AND ? AND b.status = 'paid'
+     GROUP BY i.item_id
+     ORDER BY amount DESC`,
+    [fromDay, toDay],
+  );
 }

@@ -31,6 +31,7 @@ import { formatRupees } from '../utils/money';
 import { computeTotals } from '../utils/tax';
 import UpiQrSheet from '../components/UpiQrSheet';
 import WhatsAppShareSheet from '../components/WhatsAppShareSheet';
+import PreBillSheet from '../components/PreBillSheet';
 import { billText } from '../utils/billText';
 import { colors, fonts } from '../theme';
 
@@ -67,6 +68,7 @@ export default function BillingScreen({ tableNo, onBackToTables, onTableSettled 
   const [source, setSource] = useState<'counter' | DeliveryApp>('counter');
   const [platformOrderId, setPlatformOrderId] = useState('');
   const [showQr, setShowQr] = useState(false);
+  const [showPreBill, setShowPreBill] = useState(false);
   const [lastBill, setLastBill] = useState<{
     id: string;
     token: number;
@@ -270,7 +272,7 @@ export default function BillingScreen({ tableNo, onBackToTables, onTableSettled 
         contentContainerStyle={styles.grid}
         keyboardShouldPersistTaps="handled"
         ListEmptyComponent={
-          <Text style={styles.empty}>{query ? `No items match "${search}"` : 'No items in this category yet. Add them in More, then Menu.'}</Text>
+          <Text style={styles.empty}>{query ? `No items match "${search}"` : 'No items here yet. The owner can add them in Profile, then Menu.'}</Text>
         }
         renderItem={({ item }) => (
           <ItemTile
@@ -297,9 +299,16 @@ export default function BillingScreen({ tableNo, onBackToTables, onTableSettled 
         <View style={styles.sheet}>
           <View style={styles.sheetHeader}>
             <Text style={styles.sheetTitle}>{isTable ? `Table ${tableNo} · Bill` : `Bill · Token #${token}`}</Text>
-            <Pressable onPress={() => setCartOpen(false)} hitSlop={12}>
-              <Text style={styles.link}>Add more</Text>
-            </Pressable>
+            <View style={{ flexDirection: 'row', gap: 18 }}>
+              {isTable && itemCount > 0 && (
+                <Pressable onPress={() => setShowPreBill(true)} hitSlop={12} accessibilityRole="button">
+                  <Text style={styles.link}>Show bill</Text>
+                </Pressable>
+              )}
+              <Pressable onPress={() => setCartOpen(false)} hitSlop={12}>
+                <Text style={styles.link}>Add more</Text>
+              </Pressable>
+            </View>
           </View>
 
           <ScrollView style={styles.lines}>
@@ -426,6 +435,36 @@ export default function BillingScreen({ tableNo, onBackToTables, onTableSettled 
       )}
 
       {shareText && <WhatsAppShareSheet message={shareText} onClose={() => setShareText(null)} />}
+
+      {showPreBill && tableNo != null && (
+        <PreBillSheet
+          restaurantName={settings.restaurantName}
+          tableNo={tableNo}
+          lines={cartLines.map(({ item, qty, amount }) => ({ name: item.name, qty, amount }))}
+          subtotal={subtotal}
+          gst={gst}
+          gstRate={tax.gstRate}
+          pricesIncludeGst={settings.pricesIncludeGst}
+          total={total}
+          upiId={settings.upiId}
+          onClose={() => setShowPreBill(false)}
+          onShare={() => {
+            setShowPreBill(false);
+            setShareText(
+              [
+                `*${settings.restaurantName}* – Table ${tableNo}`,
+                ...cartLines.map(({ item, qty, amount }) => `${item.name} x${qty}  ${formatRupees(amount)}`),
+                tax.gstRate > 0 ? `GST ${tax.gstRate}%${settings.pricesIncludeGst ? ' (included)' : ''}  ${formatRupees(gst)}` : '',
+                `*To pay: ${formatRupees(total)}*`,
+                settings.upiId ? `Pay by UPI: ${settings.upiId}` : '',
+                'Not a tax invoice.',
+              ]
+                .filter(Boolean)
+                .join('\n'),
+            );
+          }}
+        />
+      )}
 
       {showQr && (
         <UpiQrSheet

@@ -26,6 +26,8 @@ import StaffScreen from './src/screens/StaffScreen';
 import StockScreen from './src/screens/StockScreen';
 import BackupScreen from './src/screens/BackupScreen';
 import PlanScreen from './src/screens/PlanScreen';
+import DayCloseScreen from './src/screens/DayCloseScreen';
+import ExportScreen from './src/screens/ExportScreen';
 import { colors, fonts } from './src/theme';
 
 type Tab = 'orders' | 'bills' | 'insights' | 'profile';
@@ -121,7 +123,7 @@ function MainApp({ onLock }: { onLock: () => void }) {
   // Inside Orders: counter billing or the tables floor.
   const [mode, setMode] = useState<OrderMode>(settings.outletType === 'dine_in' ? 'tables' : 'counter');
   const [activeTable, setActiveTable] = useState<number | null>(null);
-  const [morePage, setMorePage] = useState<'list' | 'menu' | 'staff' | 'stock' | 'backup' | 'plan'>('list');
+  const [morePage, setMorePage] = useState<'list' | 'menu' | 'staff' | 'stock' | 'backup' | 'plan' | 'dayclose' | 'export'>('list');
   const [profileOpen, setProfileOpen] = useState(false);
 
   // Keep the order mode valid when the outlet type changes in Restaurant details.
@@ -157,12 +159,17 @@ function MainApp({ onLock }: { onLock: () => void }) {
                   ? 'Backup'
                   : morePage === 'plan'
                     ? 'Plan'
-                    : 'Profile';
+                    : morePage === 'dayclose'
+                      ? 'Close the day'
+                      : morePage === 'export'
+                        ? 'Export sales'
+                        : 'Profile';
 
   return (
     <View style={styles.root}>
       <AppHeader
         title={headerTitle}
+        restaurantName={settings.restaurantName}
         userName={user?.name ?? ''}
         userRole={user ? ROLE_LABEL[user.role] : ''}
         onLock={onLock}
@@ -224,6 +231,10 @@ function MainApp({ onLock }: { onLock: () => void }) {
           <BackupScreen onBack={() => setMorePage('list')} />
         ) : morePage === 'plan' && can(user, 'editRestaurant') ? (
           <PlanScreen onBack={() => setMorePage('list')} />
+        ) : morePage === 'dayclose' && can(user, 'closeDay') ? (
+          <DayCloseScreen onBack={() => setMorePage('list')} />
+        ) : morePage === 'export' && can(user, 'exportSales') ? (
+          <ExportScreen onBack={() => setMorePage('list')} />
         ) : (
           <ProfileScreen
             onOpenMenu={() => setMorePage('menu')}
@@ -232,6 +243,8 @@ function MainApp({ onLock }: { onLock: () => void }) {
             onOpenBackup={() => setMorePage('backup')}
             onOpenRestaurant={() => setProfileOpen(true)}
             onOpenPlan={() => setMorePage('plan')}
+            onOpenDayClose={() => setMorePage('dayclose')}
+            onOpenExport={() => setMorePage('export')}
             onLock={onLock}
           />
         )}

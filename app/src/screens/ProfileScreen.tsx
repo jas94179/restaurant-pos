@@ -4,6 +4,7 @@ import { useSettings } from '../data/settingsStore';
 import { useMenu } from '../data/menuStore';
 import { can, ROLE_INFO, ROLE_LABEL, useCurrentUser, useStaffList } from '../data/staffStore';
 import { PLAN_LABEL } from '../data/plans';
+import { dayKey, getDayClosing } from '../db/database';
 import { colors, fonts } from '../theme';
 
 type Props = {
@@ -13,6 +14,8 @@ type Props = {
   onOpenBackup: () => void;
   onOpenRestaurant: () => void;
   onOpenPlan: () => void;
+  onOpenDayClose: () => void;
+  onOpenExport: () => void;
   onLock: () => void;
 };
 
@@ -20,7 +23,7 @@ const OUTLET_LABEL = { counter: 'Counter', dine_in: 'Dine-in', both: 'Counter an
 
 // The restaurant's profile, plus everything used less often than billing,
 // so the bottom bar never grows past four tabs.
-export default function ProfileScreen({ onOpenMenu, onOpenStaff, onOpenStock, onOpenBackup, onOpenRestaurant, onOpenPlan, onLock }: Props) {
+export default function ProfileScreen({ onOpenMenu, onOpenStaff, onOpenStock, onOpenBackup, onOpenRestaurant, onOpenPlan, onOpenDayClose, onOpenExport, onLock }: Props) {
   const settings = useSettings();
   const menu = useMenu();
   const user = useCurrentUser();
@@ -28,6 +31,7 @@ export default function ProfileScreen({ onOpenMenu, onOpenStaff, onOpenStock, on
   const isOwner = can(user, 'manageStaff');
   const itemCount = menu.items.filter((i) => !i.archived).length;
   const outOfStock = menu.items.filter((i) => !i.archived && !i.available).length;
+  const closedToday = getDayClosing(dayKey());
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
@@ -51,6 +55,25 @@ export default function ProfileScreen({ onOpenMenu, onOpenStaff, onOpenStock, on
         />
       </Group>
 
+      <Group title="Today">
+        <Row
+          title="Close the day"
+          detail={
+            closedToday
+              ? `Closed by ${closedToday.closedBy}. Tap to view or count again`
+              : 'Count the cash in the drawer at night'
+          }
+          onPress={onOpenDayClose}
+        />
+        {!isOwner && can(user, 'toggleStock') && (
+          <Row
+            title="Stock on and off"
+            detail={outOfStock ? `${outOfStock} item${outOfStock === 1 ? '' : 's'} out of stock` : 'Everything is available'}
+            onPress={onOpenStock}
+          />
+        )}
+      </Group>
+
       {isOwner && (
         <>
           <Group title="Restaurant">
@@ -68,6 +91,11 @@ export default function ProfileScreen({ onOpenMenu, onOpenStaff, onOpenStock, on
               title="Restaurant details"
               detail="Name, GSTIN, GST, UPI ID, tables"
               onPress={onOpenRestaurant}
+            />
+            <Row
+              title="Export sales for CA"
+              detail="Bill register, GST summary, day-wise, item-wise"
+              onPress={onOpenExport}
             />
             <Row
               title="Backup and restore"
@@ -89,16 +117,6 @@ export default function ProfileScreen({ onOpenMenu, onOpenStaff, onOpenStock, on
             <Row title="Plan" detail={`${PLAN_LABEL[settings.plan] ?? settings.plan}. Upgrade or change`} onPress={onOpenPlan} />
           </Group>
         </>
-      )}
-
-      {!isOwner && can(user, 'toggleStock') && (
-        <Group title="Today">
-          <Row
-            title="Stock on and off"
-            detail={outOfStock ? `${outOfStock} item${outOfStock === 1 ? '' : 's'} out of stock` : 'Everything is available'}
-            onPress={onOpenStock}
-          />
-        </Group>
       )}
 
       {!isOwner && (

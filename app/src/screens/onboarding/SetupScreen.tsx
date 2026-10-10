@@ -90,7 +90,7 @@ export default function SetupScreen({ onBack, onDone }: { onBack: () => void; on
       const ownerId = addStaff({ name: ownerName.trim(), role: 'owner', pinHash: hash, pinSalt: salt });
       saveSettings({
         restaurantName: name.trim(),
-        gstin,
+        gstin: gstin.trim().toUpperCase(),
         outletType: outletType ?? 'both',
         tableCount: outletType === 'counter' ? 0 : tableCount,
         plan: 'pilot',

@@ -5,30 +5,36 @@ import { colors, fonts } from '../theme';
 
 type Props = {
   title: string;
+  restaurantName: string; // which restaurant is open (one phone can hold several)
   userName: string; // who is logged in
   userRole: string; // their role, e.g. "Cashier"
   onLock: () => void;
 };
 
 // Slim one-line header: where you are on the left; live status and who is logged in on the right.
-export default function AppHeader({ title, userName, userRole, onLock }: Props) {
+export default function AppHeader({ title, restaurantName, userName, userRole, onLock }: Props) {
   const insets = useSafeAreaInsets();
   const net = useNetworkState();
   // Only speak up when something needs attention. Bills are always saved on the phone.
   const offline = net.isConnected === false || net.isInternetReachable === false;
 
   function openUserMenu() {
-    Alert.alert(`${userName}, ${userRole}`, 'Switch user or lock the app. The next person enters their own PIN.', [
+    Alert.alert(`${userName}, ${userRole}`, `Signed in to ${restaurantName}. Log out to let the next person sign in with their PIN.`, [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Switch user', onPress: onLock },
+      { text: 'Log out', style: 'destructive', onPress: onLock },
     ]);
   }
 
   return (
     <View style={[styles.bar, { paddingTop: insets.top + 8 }]}>
-      <Text style={styles.title} numberOfLines={1} accessibilityRole="header">
-        {title}
-      </Text>
+      <View style={{ flexShrink: 1 }}>
+        <Text style={styles.restaurant} numberOfLines={1}>
+          {restaurantName}
+        </Text>
+        <Text style={styles.title} numberOfLines={1} accessibilityRole="header">
+          {title}
+        </Text>
+      </View>
 
       <View style={styles.right}>
         {offline && (
@@ -41,7 +47,7 @@ export default function AppHeader({ title, userName, userRole, onLock }: Props) 
           onPress={openUserMenu}
           style={({ pressed }) => [styles.user, pressed && { opacity: 0.7 }]}
           accessibilityRole="button"
-          accessibilityLabel={`Logged in as ${userName}, ${userRole}. Tap to switch user.`}
+          accessibilityLabel={`Logged in as ${userName}, ${userRole}. Tap to log out.`}
           hitSlop={6}
         >
           <View style={styles.userDot}>
@@ -58,7 +64,8 @@ export default function AppHeader({ title, userName, userRole, onLock }: Props) 
 
 const styles = StyleSheet.create({
   bar: { backgroundColor: colors.brand, paddingBottom: 10, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
-  title: { flexShrink: 1, fontFamily: fonts.bold, fontSize: 20, color: colors.paper },
+  restaurant: { fontFamily: fonts.semibold, fontSize: 12, color: '#9DB8AA' },
+  title: { fontFamily: fonts.bold, fontSize: 20, color: colors.paper },
   right: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   status: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 10, height: 30, borderRadius: 15, backgroundColor: '#FBF0D2' },
   statusDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.turmericDeep },
