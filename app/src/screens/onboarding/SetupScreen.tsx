@@ -30,6 +30,8 @@ export default function SetupScreen({ onBack, onDone }: { onBack: () => void; on
   const [name, setName] = useState('');
   const [ownerName, setOwnerName] = useState('');
   const [gstin, setGstin] = useState('');
+  const [fssai, setFssai] = useState('');
+  const [phone, setPhone] = useState('');
   const [outletType, setOutletType] = useState<OutletType | null>(null);
   const [tableCount, setTableCount] = useState(10);
   const [menuChoice, setMenuChoice] = useState<'sample' | 'empty' | null>(null);
@@ -71,6 +73,7 @@ export default function SetupScreen({ onBack, onDone }: { onBack: () => void; on
     if (ownerName.trim().length < 2) return setError('Enter your name.');
     const g = gstin.trim().toUpperCase();
     if (g && !GSTIN_PATTERN.test(g)) return setError('GSTIN should be 15 characters, like 07ABCDE1234F1Z5. You can also leave it empty.');
+    if (fssai && !/^\d{14}$/.test(fssai)) return setError('FSSAI number should be 14 digits. You can also add it later.');
     setGstin(g);
     next();
   }
@@ -91,6 +94,8 @@ export default function SetupScreen({ onBack, onDone }: { onBack: () => void; on
       saveSettings({
         restaurantName: name.trim(),
         gstin: gstin.trim().toUpperCase(),
+        fssai,
+        phone: phone.replace(/[^\d+]/g, ''),
         outletType: outletType ?? 'both',
         tableCount: outletType === 'counter' ? 0 : tableCount,
         plan: 'pilot',
@@ -167,6 +172,27 @@ export default function SetupScreen({ onBack, onDone }: { onBack: () => void; on
               autoCorrect={false}
               maxLength={15}
             />
+            <Text style={styles.label}>FSSAI licence number (optional)</Text>
+            <TextInput
+              value={fssai}
+              onChangeText={(t) => setFssai(t.replace(/[^\d]/g, ''))}
+              placeholder="14 digits, printed on bills"
+              placeholderTextColor={colors.muted}
+              style={styles.input}
+              keyboardType="number-pad"
+              maxLength={14}
+            />
+            <Text style={styles.label}>Phone on bills (optional)</Text>
+            <TextInput
+              value={phone}
+              onChangeText={setPhone}
+              placeholder="e.g. 98765 43210"
+              placeholderTextColor={colors.muted}
+              style={styles.input}
+              keyboardType="phone-pad"
+              maxLength={14}
+            />
+            <Text style={styles.hint}>You can add the address and change these later in Profile, Restaurant details.</Text>
           </>
         )}
 
@@ -279,6 +305,7 @@ export default function SetupScreen({ onBack, onDone }: { onBack: () => void; on
 }
 
 const styles = StyleSheet.create({
+  hint: { fontFamily: fonts.regular, fontSize: 13, lineHeight: 18, color: colors.muted, marginTop: 10 },
   screen: { flex: 1, backgroundColor: colors.mist },
   topBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 24, paddingTop: 60, paddingBottom: 12 },
   back: { fontFamily: fonts.semibold, fontSize: 16, color: colors.brand },

@@ -39,6 +39,9 @@ export default function ProfileSheet({ onClose }: Props) {
   const settings = useSettings();
   const [name, setName] = useState(settings.restaurantName);
   const [gstin, setGstin] = useState(settings.gstin);
+  const [address, setAddress] = useState(settings.address);
+  const [phone, setPhone] = useState(settings.phone);
+  const [fssai, setFssai] = useState(settings.fssai);
   const [outletType, setOutletType] = useState<OutletType>(settings.outletType);
   const [tables, setTables] = useState(settings.tableCount || 10);
   const [gstRate, setGstRate] = useState(settings.gstRate);
@@ -53,6 +56,10 @@ export default function ProfileSheet({ onClose }: Props) {
     const g = gstin.trim().toUpperCase();
     if (n.length < 2) return setError('Enter your restaurant name.');
     if (g && !GSTIN_PATTERN.test(g)) return setError('GSTIN should be 15 characters, like 07ABCDE1234F1Z5.');
+    const f = fssai.replace(/\s/g, '');
+    if (f && !/^\d{14}$/.test(f)) return setError('FSSAI number should be 14 digits.');
+    const ph = phone.replace(/[^\d+]/g, '');
+    if (ph && !/^\+?\d{10,13}$/.test(ph)) return setError('Enter a valid phone number.');
     const u = upiId.trim();
     if (u && !UPI_PATTERN.test(u)) return setError('UPI ID should look like name@bank, for example sharmasweets@okaxis.');
 
@@ -69,6 +76,9 @@ export default function ProfileSheet({ onClose }: Props) {
     saveSettings({
       restaurantName: n,
       gstin: g,
+      address: address.trim(),
+      phone: ph,
+      fssai: f,
       outletType,
       tableCount: outletType === 'counter' ? 0 : tables,
       gstRate,
@@ -81,7 +91,6 @@ export default function ProfileSheet({ onClose }: Props) {
 
   return (
     <BottomSheet onClose={onClose}>
-          <View style={styles.handle} />
           <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 8 }}>
             <View style={styles.head}>
               <View style={styles.avatar}>
@@ -105,6 +114,36 @@ export default function ProfileSheet({ onClose }: Props) {
               autoCorrect={false}
               maxLength={15}
               placeholder="15 characters"
+              placeholderTextColor={colors.muted}
+            />
+            <Text style={styles.label}>FSSAI licence number</Text>
+            <TextInput
+              value={fssai}
+              onChangeText={(t) => { setFssai(t.replace(/[^\d]/g, '')); setSaved(false); }}
+              style={styles.input}
+              keyboardType="number-pad"
+              maxLength={14}
+              placeholder="14 digits, printed on every bill"
+              placeholderTextColor={colors.muted}
+            />
+            <Text style={styles.label}>Address</Text>
+            <TextInput
+              value={address}
+              onChangeText={(t) => { setAddress(t); setSaved(false); }}
+              style={[styles.input, { height: 72, paddingTop: 12, textAlignVertical: 'top' }]}
+              multiline
+              maxLength={120}
+              placeholder="Shop no., street, area, city"
+              placeholderTextColor={colors.muted}
+            />
+            <Text style={styles.label}>Phone on bills</Text>
+            <TextInput
+              value={phone}
+              onChangeText={(t) => { setPhone(t); setSaved(false); }}
+              style={styles.input}
+              keyboardType="phone-pad"
+              maxLength={14}
+              placeholder="e.g. 98765 43210"
               placeholderTextColor={colors.muted}
             />
 

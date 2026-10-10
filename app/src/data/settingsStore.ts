@@ -10,6 +10,9 @@ export type Settings = {
   setupDone: boolean;
   restaurantName: string;
   gstin: string;
+  address: string; // printed under the name on bills
+  phone: string;
+  fssai: string; // 14-digit FSSAI licence / registration number, printed on bills
   outletType: OutletType;
   tableCount: number;
   plan: Plan;
@@ -31,6 +34,9 @@ function load(): Settings {
     setupDone: s.setupDone === '1',
     restaurantName: s.restaurantName ?? '',
     gstin: s.gstin ?? '',
+    address: s.address ?? '',
+    phone: s.phone ?? '',
+    fssai: s.fssai ?? '',
     outletType: (s.outletType as OutletType) ?? 'both',
     tableCount: Number(s.tableCount ?? 12) || 12,
     plan: (s.plan as Plan) ?? 'pilot',
@@ -103,4 +109,9 @@ export async function checkOwnerPin(pin: string): Promise<boolean> {
   const { ownerPinHash, ownerPinSalt } = state;
   if (!ownerPinHash) return false;
   return (await hashPin(pin, ownerPinSalt)) === ownerPinHash;
+}
+
+// Restaurant details printed at the top of bills.
+export function restaurantInfo(s: Settings) {
+  return { name: s.restaurantName, gstin: s.gstin, address: s.address, phone: s.phone, fssai: s.fssai };
 }

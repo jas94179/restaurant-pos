@@ -45,6 +45,8 @@ import KotSheet from '../components/KotSheet';
 import { printReceipt } from '../print/print';
 import { billReceipt, kotReceipt, preBillReceipt } from '../print/receipts';
 import { billText } from '../utils/billText';
+import { padGrid } from '../utils/grid';
+import { restaurantInfo } from '../data/settingsStore';
 import { colors, fonts } from '../theme';
 
 type Props = {
@@ -187,7 +189,7 @@ export default function BillingScreen({ tableNo, onBackToTables, onTableSettled 
   async function printBill(billId: string) {
     const detail = getBillDetail(billId);
     if (!detail) return;
-    const err = await printReceipt(billReceipt({ name: settings.restaurantName, gstin: settings.gstin }, detail));
+    const err = await printReceipt(billReceipt(restaurantInfo(settings), detail));
     if (err) Alert.alert('Print', err);
   }
 
@@ -338,7 +340,7 @@ export default function BillingScreen({ tableNo, onBackToTables, onTableSettled 
           <Pressable
             onPress={() => {
               const detail = getBillDetail(lastBill.id);
-              if (detail) setShareText(billText(detail, { name: settings.restaurantName, gstin: settings.gstin }));
+              if (detail) setShareText(billText(detail, restaurantInfo(settings)));
             }}
             style={styles.waBtn}
             accessibilityRole="button"
@@ -393,8 +395,8 @@ export default function BillingScreen({ tableNo, onBackToTables, onTableSettled 
       )}
 
       <FlatList
-        data={items}
-        keyExtractor={(i) => i.id}
+        data={padGrid(items, 2)}
+        keyExtractor={(i) => (i.pad ? i.key : i.value.id)}
         numColumns={2}
         columnWrapperStyle={styles.row}
         contentContainerStyle={styles.grid}
@@ -402,15 +404,19 @@ export default function BillingScreen({ tableNo, onBackToTables, onTableSettled 
         ListEmptyComponent={
           <Text style={styles.empty}>{query ? `No items match "${search}"` : 'No items here yet. The owner can add them in Profile, then Menu.'}</Text>
         }
-        renderItem={({ item }) => (
-          <ItemTile
-            item={item}
-            qty={cart[item.id] ?? 0}
-            onAdd={() => changeQty(item.id, 1)}
-            onRemove={() => changeQty(item.id, -1)}
-            onLongPress={() => toggleStock(item)}
-          />
-        )}
+        renderItem={({ item: cell }) => {
+          if (cell.pad) return <View style={styles.tileSpacer} />;
+          const item = cell.value;
+          return (
+            <ItemTile
+              item={item}
+              qty={cart[item.id] ?? 0}
+              onAdd={() => changeQty(item.id, 1)}
+              onRemove={() => changeQty(item.id, -1)}
+              onLongPress={() => toggleStock(item)}
+            />
+          );
+        }}
       />
 
       {itemCount > 0 && !cartOpen && (
@@ -615,7 +621,7 @@ export default function BillingScreen({ tableNo, onBackToTables, onTableSettled 
           onPrint={async () => {
             const err = await printReceipt(
               preBillReceipt(
-                { name: settings.restaurantName, gstin: settings.gstin, upiId: settings.upiId },
+                { ...restaurantInfo(settings), upiId: settings.upiId },
                 tableNo,
                 cartLines.map(({ item, qty, amount }) => ({ name: item.name, qty, amount })),
                 { subtotal, gst, gstRate: tax.gstRate, discount: discountAmt, itemsSum, total },
@@ -781,6 +787,7 @@ const styles = StyleSheet.create({
   chipTextActive: { color: '#fff', fontFamily: fonts.semibold },
   grid: { padding: 12, paddingBottom: 100 },
   row: { gap: 12 },
+  tileSpacer: { flex: 1, marginBottom: 12 },
   tile: { flex: 1, minHeight: 132, marginBottom: 12, padding: 12, borderRadius: 12, backgroundColor: '#fff', borderWidth: 1, borderColor: LINE },
   tileSelected: { borderColor: ACCENT, borderWidth: 2 },
   vegMark: { width: 14, height: 14, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', marginBottom: 6 },

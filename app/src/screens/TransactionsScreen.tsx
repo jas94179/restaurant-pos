@@ -6,6 +6,7 @@ import { can, useCurrentUser } from '../data/staffStore';
 import { formatRupees } from '../utils/money';
 import { billText } from '../utils/billText';
 import BottomSheet from '../components/BottomSheet';
+import { restaurantInfo } from '../data/settingsStore';
 import { printReceipt } from '../print/print';
 import { billReceipt } from '../print/receipts';
 import WhatsAppShareSheet from '../components/WhatsAppShareSheet';
@@ -228,7 +229,10 @@ function BillSheet({ bill, onClose, onChanged }: { bill: BillDetail; onClose: ()
           )}
           <View style={[styles.receipt, cancelled && { opacity: 0.6 }]}>
             <Text style={styles.rName}>{settings.restaurantName}</Text>
+            {!!settings.address && <Text style={styles.rMeta}>{settings.address}</Text>}
+            {!!settings.phone && <Text style={styles.rMeta}>Ph: {settings.phone}</Text>}
             {!!settings.gstin && <Text style={styles.rMeta}>GSTIN {settings.gstin}</Text>}
+            {!!settings.fssai && <Text style={styles.rMeta}>FSSAI Lic. No. {settings.fssai}</Text>}
 
             <View style={styles.rDivider} />
 
@@ -319,7 +323,7 @@ function BillSheet({ bill, onClose, onChanged }: { bill: BillDetail; onClose: ()
           {!cancelled && (
             <Pressable
               style={styles.waBtn}
-              onPress={() => setShareText(billText(bill, { name: settings.restaurantName, gstin: settings.gstin }))}
+              onPress={() => setShareText(billText(bill, restaurantInfo(settings)))}
               accessibilityRole="button"
             >
               <Text style={styles.waText}>Send on WhatsApp</Text>
@@ -328,7 +332,7 @@ function BillSheet({ bill, onClose, onChanged }: { bill: BillDetail; onClose: ()
           <Pressable
             style={styles.closeBtn}
             onPress={async () => {
-              const err = await printReceipt(billReceipt({ name: settings.restaurantName, gstin: settings.gstin }, bill));
+              const err = await printReceipt(billReceipt(restaurantInfo(settings), bill));
               if (err) Alert.alert('Print', err);
             }}
             accessibilityRole="button"

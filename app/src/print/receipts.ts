@@ -71,6 +71,16 @@ export function kotReceipt(kot: Kot) {
 
 // ---------- Customer bill ----------
 
+export type RestaurantInfo = { name: string; gstin: string; address?: string; phone?: string; fssai?: string };
+
+function header(r: Receipt, info: RestaurantInfo) {
+  r.center(info.name, { big: true });
+  if (info.address) r.center(info.address);
+  if (info.phone) r.center(`Ph: ${info.phone}`);
+  if (info.gstin) r.center(`GSTIN ${info.gstin}`);
+  if (info.fssai) r.center(`FSSAI Lic. No. ${info.fssai}`);
+}
+
 const ORDER = { takeaway: 'Counter', dine_in: 'Dine-in', delivery: 'Delivery' } as Record<string, string>;
 
 function itemRows(r: Receipt, items: { name: string; qty: number; amount: number }[]) {
@@ -99,10 +109,9 @@ function taxRows(r: Receipt, b: { subtotal: number; gst: number; gstRate: number
   }
 }
 
-export function billReceipt(restaurant: { name: string; gstin: string }, bill: BillDetail) {
+export function billReceipt(restaurant: RestaurantInfo, bill: BillDetail) {
   const r = new Receipt();
-  r.center(restaurant.name, { big: true });
-  if (restaurant.gstin) r.center(`GSTIN ${restaurant.gstin}`);
+  header(r, restaurant);
   r.center(bill.gst > 0 ? 'TAX INVOICE' : 'BILL', { bold: true });
   if (bill.status === 'cancelled') r.center('*** CANCELLED ***', { bold: true });
   r.rule();
@@ -135,14 +144,13 @@ export function billReceipt(restaurant: { name: string; gstin: string }, bill: B
 // ---------- Table bill before payment (with UPI QR) ----------
 
 export function preBillReceipt(
-  restaurant: { name: string; gstin: string; upiId: string },
+  restaurant: RestaurantInfo & { upiId: string },
   tableNo: number,
   items: { name: string; qty: number; amount: number }[],
   t: { subtotal: number; gst: number; gstRate: number; discount: number; itemsSum: number; total: number },
 ) {
   const r = new Receipt();
-  r.center(restaurant.name, { big: true });
-  if (restaurant.gstin) r.center(`GSTIN ${restaurant.gstin}`);
+  header(r, restaurant);
   r.center(`TABLE ${tableNo} - BILL`, { bold: true });
   const now = new Date();
   r.center(now.toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }));

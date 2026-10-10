@@ -1,3 +1,4 @@
+import { padGrid } from '../utils/grid';
 import { useCallback, useEffect, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { getMenu } from '../data/menuStore';
@@ -55,12 +56,14 @@ export default function TablesScreen({ visible, activeTable, onOpenTable }: Prop
       </View>
 
       <FlatList
-        data={tables}
-        keyExtractor={(n) => String(n)}
+        data={padGrid(tables, 3)}
+        keyExtractor={(c) => (c.pad ? c.key : String(c.value))}
         numColumns={3}
         columnWrapperStyle={styles.row}
         contentContainerStyle={styles.grid}
-        renderItem={({ item: n }) => {
+        renderItem={({ item: cell }) => {
+          if (cell.pad) return <View style={{ flex: 1 }} />;
+          const n = cell.value;
           const t = open[n];
           const busy = !!t;
           const info = t ? tableTotals(t) : null;

@@ -4,7 +4,10 @@ import { formatRupees } from './money';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-export function billText(bill: BillDetail, restaurant: { name: string; gstin: string }): string {
+export function billText(
+  bill: BillDetail,
+  restaurant: { name: string; gstin: string; address?: string; phone?: string; fssai?: string },
+): string {
   const d = new Date(bill.created_at);
   const h = d.getHours();
   const when = `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}, ${h % 12 || 12}:${String(d.getMinutes()).padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`;
@@ -17,7 +20,10 @@ export function billText(bill: BillDetail, restaurant: { name: string; gstin: st
 
   const lines: string[] = [];
   lines.push(`*${restaurant.name}*`);
+  if (restaurant.address) lines.push(restaurant.address);
+  if (restaurant.phone) lines.push(`Ph: ${restaurant.phone}`);
   if (restaurant.gstin) lines.push(`GSTIN ${restaurant.gstin}`);
+  if (restaurant.fssai) lines.push(`FSSAI Lic. No. ${restaurant.fssai}`);
   lines.push('');
   if (bill.invoice_no) lines.push(`Invoice ${bill.invoice_no}`);
   lines.push(`Token #${bill.token}  |  ${when}`);
