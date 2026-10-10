@@ -27,12 +27,14 @@ export type Permission =
   | 'editRestaurant'
   | 'closeDay' // count the cash at day end
   | 'seeCashDifference' // see expected cash and shortages (cashiers count blind)
-  | 'exportSales'; // sales files for the CA
+  | 'exportSales' // sales files for the CA
+  | 'addExpense' // record cash paid out
+  | 'removeExpense';
 
 const RULES: Record<Role, Permission[]> = {
-  owner: ['insights', 'insightsAllPeriods', 'billsAllDays', 'editMenu', 'toggleStock', 'manageStaff', 'editRestaurant', 'closeDay', 'seeCashDifference', 'exportSales'],
-  manager: ['insights', 'billsAllDays', 'toggleStock', 'closeDay', 'seeCashDifference'],
-  cashier: ['toggleStock', 'closeDay'],
+  owner: ['insights', 'insightsAllPeriods', 'billsAllDays', 'editMenu', 'toggleStock', 'manageStaff', 'editRestaurant', 'closeDay', 'seeCashDifference', 'exportSales', 'addExpense', 'removeExpense'],
+  manager: ['insights', 'billsAllDays', 'toggleStock', 'closeDay', 'seeCashDifference', 'addExpense', 'removeExpense'],
+  cashier: ['toggleStock', 'closeDay', 'addExpense'],
 };
 
 export function can(user: Staff | null, permission: Permission): boolean {

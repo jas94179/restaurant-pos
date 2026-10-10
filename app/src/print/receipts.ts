@@ -1,5 +1,5 @@
 // The receipts the app prints, built line by line for 57 mm paper.
-import type { DayClosing } from '../db/database';
+import type { DayClosing, Kot } from '../db/database';
 import { Receipt, rs } from './receipt';
 
 function dateText(day: string): string {
@@ -24,6 +24,7 @@ export function dayClosingReceipt(restaurant: string, gstin: string, c: DayClosi
   r.text('CASH IN DRAWER', true);
   r.pair('Start of day', rs(c.openingCash));
   r.pair('+ Cash bills', rs(c.cashSales));
+  if (c.paidOut) r.pair('- Paid out', rs(c.paidOut));
   r.pair('Should be', rs(c.expectedCash), true);
   r.pair('Counted', rs(c.countedCash), true);
   r.rule();
@@ -39,6 +40,30 @@ export function dayClosingReceipt(restaurant: string, gstin: string, c: DayClosi
   r.text(closedAt);
   r.blank();
   r.text('Signature: ______________');
+  r.blank();
+  return r.lines;
+}
+
+// Kitchen order ticket: big, simple, no prices. Cancelled items are clearly marked.
+export function kotReceipt(kot: Kot) {
+  const r = new Receipt();
+  r.center(`KOT #${kot.kotNo}`, { big: true });
+  r.center(kot.tableNo != null ? `TABLE ${kot.tableNo}` : `TOKEN #${kot.token ?? '-'}`, { big: true });
+  const time = new Date(kot.createdAt).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' });
+  r.center(`${time}${kot.staffName ? ` - ${kot.staffName}` : ''}`);
+  r.rule('=');
+  const add = kot.items.filter((i) => i.qty > 0);
+  const cancel = kot.items.filter((i) => i.qty < 0);
+  for (const i of add) {
+    r.text(`${String(i.qty).padStart(2)} x ${i.name}`, true);
+    if (i.note) r.text(`     > ${i.note}`);
+  }
+  if (cancel.length) {
+    r.rule();
+    r.text('CANCEL', true);
+    for (const i of cancel) r.text(`${String(-i.qty).padStart(2)} x ${i.name}`, true);
+  }
+  r.rule('=');
   r.blank();
   return r.lines;
 }

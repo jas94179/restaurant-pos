@@ -12,6 +12,8 @@ type Props = {
   tableNo: number;
   lines: Line[];
   subtotal: number;
+  itemsSum: number;
+  discount: number;
   gst: number;
   gstRate: number;
   pricesIncludeGst: boolean;
@@ -29,6 +31,8 @@ export default function PreBillSheet({
   tableNo,
   lines,
   subtotal,
+  itemsSum,
+  discount,
   gst,
   gstRate,
   pricesIncludeGst,
@@ -59,6 +63,12 @@ export default function PreBillSheet({
             ))}
 
             <View style={styles.rule} />
+            {discount > 0 && (
+              <>
+                <Row label="Items total" value={formatRupees(itemsSum)} />
+                <Row label="Discount" value={`− ${formatRupees(discount)}`} />
+              </>
+            )}
             {gstRate > 0 && (
               <>
                 <Row label={pricesIncludeGst ? 'Before GST' : 'Subtotal'} value={formatRupees(subtotal)} />

@@ -26,12 +26,22 @@ import {
   saveBill as saveBillToDb,
   saveTableCart,
   setItemAvailable,
+  createKot,
+  getSentQty,
+  getTableNotes,
+  saveTableNotes,
+  type ItemNotes,
+  type Kot,
+  type KotItem,
 } from '../db/database';
 import { formatRupees } from '../utils/money';
 import { computeTotals } from '../utils/tax';
 import UpiQrSheet from '../components/UpiQrSheet';
 import WhatsAppShareSheet from '../components/WhatsAppShareSheet';
 import PreBillSheet from '../components/PreBillSheet';
+import DiscountSheet, { discountAmount, discountLabel, type Discount } from '../components/DiscountSheet';
+import NoteSheet from '../components/NoteSheet';
+import KotSheet from '../components/KotSheet';
 import { billText } from '../utils/billText';
 import { colors, fonts } from '../theme';
 
@@ -54,9 +64,24 @@ export default function BillingScreen({ tableNo, onBackToTables, onTableSettled 
   const [tableCart, setTableCart] = useState<Cart>({});
   const isTable = tableNo != null;
   const cart = isTable ? tableCart : takeawayCart;
+  // Kitchen notes per item ("less spicy"), and what a table has already sent to the kitchen.
+  const [takeawayNotes, setTakeawayNotes] = useState<ItemNotes>({});
+  const [tableNotes, setTableNotes] = useState<ItemNotes>({});
+  const notes = isTable ? tableNotes : takeawayNotes;
+  const [sentQty, setSentQty] = useState<Record<string, number>>({});
+  const [discount, setDiscount] = useState<Discount | null>(null);
+  const [showDiscount, setShowDiscount] = useState(false);
+  const [noteFor, setNoteFor] = useState<string | null>(null);
+  const [kotView, setKotView] = useState<Kot | null>(null);
+  const [lastKot, setLastKot] = useState<Kot | null>(null);
 
   useEffect(() => {
-    if (tableNo != null) setTableCart(getTableCart(tableNo));
+    if (tableNo != null) {
+      setTableCart(getTableCart(tableNo));
+      setTableNotes(getTableNotes(tableNo));
+      setSentQty(getSentQty(tableNo));
+    }
+    setDiscount(null);
     setCartOpen(false);
     setError(null);
   }, [tableNo]);
@@ -102,7 +127,24 @@ export default function BillingScreen({ tableNo, onBackToTables, onTableSettled 
   // Zomato and Swiggy pay GST on orders through them (Section 9(5)), so the restaurant adds none.
   const deliverySelected = !isTable && source !== 'counter';
   const tax = deliverySelected ? { gstRate: 0, pricesIncludeGst: false } : settings;
-  const { subtotal, gst, total } = computeTotals(itemsSum, tax);
+  // Discount comes off the items total before GST (it lowers the taxable value).
+  // Delivery-app orders take discounts on the app, not here.
+  const discountAmt = deliverySelected ? 0 : discountAmount(discount, itemsSum);
+  const { subtotal, gst, total } = computeTotals(itemsSum - discountAmt, tax);
+
+  // Table orders: what changed since the last kitchen slip (negative = removed after sending).
+  const pendingKot: KotItem[] = useMemo(() => {
+    if (!isTable) return [];
+    const ids = new Set([...Object.keys(cart), ...Object.keys(sentQty)]);
+    const out: KotItem[] = [];
+    for (const id of ids) {
+      const diff = (cart[id] ?? 0) - (sentQty[id] ?? 0);
+      const item = menu.byId[id];
+      if (diff !== 0 && item) out.push({ itemId: id, name: item.name, qty: diff, note: diff > 0 ? notes[id] : undefined });
+    }
+    return out;
+  }, [isTable, cart, sentQty, menu, notes]);
+  const pendingNew = pendingKot.reduce((sum, i) => sum + (i.qty > 0 ? i.qty : 0), 0);
 
   // UPI at the counter or table shows a QR with the exact amount before saving.
   const needsUpiQr = paymentMode === 'upi' && (isTable || source === 'counter');
@@ -117,6 +159,44 @@ export default function BillingScreen({ tableNo, onBackToTables, onTableSettled 
     } else {
       setTakeawayCart(next);
     }
+    if (next[id] == null && notes[id]) setNote(id, '');
+  }
+
+  function setNote(id: string, note: string) {
+    const next = { ...notes };
+    if (note) next[id] = note;
+    else delete next[id];
+    if (tableNo != null) {
+      setTableNotes(next);
+      saveTableNotes(tableNo, next);
+    } else {
+      setTakeawayNotes(next);
+    }
+  }
+
+  function sendToKitchen() {
+    if (tableNo == null || pendingKot.length === 0) return;
+    const kot = createKot({ tableNo, items: pendingKot, staffName: getCurrentUser()?.name });
+    setSentQty(getSentQty(tableNo));
+    setKotView(kot);
+  }
+
+  // Save / settle button. Warn before settling a table with items the kitchen never got.
+  function onSavePress() {
+    const go = () => (needsUpiQr && settings.upiId ? setShowQr(true) : saveBill());
+    if (isTable && pendingNew > 0) {
+      Alert.alert(
+        `${pendingNew} item${pendingNew > 1 ? 's' : ''} not sent to kitchen`,
+        'Send them to the kitchen first, or settle if they were already served.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Settle anyway', onPress: go },
+          { text: 'Send to kitchen', onPress: sendToKitchen },
+        ],
+      );
+      return;
+    }
+    go();
   }
 
   // Long-press shortcut so staff can mark a dish out of stock without leaving billing.
@@ -162,6 +242,9 @@ export default function BillingScreen({ tableNo, onBackToTables, onTableSettled 
         gst,
         gstRate: tax.gstRate,
         total,
+        discount: discountAmt,
+        discountReason: discountAmt > 0 ? discount?.reason : undefined,
+        discountBy: discountAmt > 0 ? discount?.by : undefined,
         lines: cartLines.map(({ item, qty, amount }) => ({
           itemId: item.id,
           name: item.name,
@@ -174,6 +257,20 @@ export default function BillingScreen({ tableNo, onBackToTables, onTableSettled 
         ? `${PLATFORMS.find((p) => p.key === source)?.label} #${orderId}`
         : (PAYMENT_MODES.find((m) => m.key === paymentMode)?.label ?? '');
       setLastBill({ id: saved.id, token: saved.token, invoiceNo: saved.invoiceNo, total, mode: modeLabel, tableNo });
+      // Counter and delivery orders go to the kitchen when the bill is saved.
+      if (!isTable) {
+        setLastKot(
+          createKot({
+            token: saved.token,
+            billId: saved.id,
+            staffName: getCurrentUser()?.name,
+            items: cartLines.map(({ item, qty }) => ({ itemId: item.id, name: item.name, qty, note: notes[item.id] })),
+          }),
+        );
+      } else {
+        setLastKot(null);
+      }
+      setDiscount(null);
       setToken(getNextToken());
       setPaymentMode('cash');
       setSource('counter');
@@ -182,9 +279,12 @@ export default function BillingScreen({ tableNo, onBackToTables, onTableSettled 
       setError(null);
       if (isTable) {
         setTableCart({});
+        setTableNotes({});
+        setSentQty({});
         onTableSettled();
       } else {
         setTakeawayCart({});
+        setTakeawayNotes({});
       }
     } catch (e) {
       // Keep the cart so nothing is lost; tell the cashier.
@@ -223,6 +323,11 @@ export default function BillingScreen({ tableNo, onBackToTables, onTableSettled 
           >
             <Text style={styles.waText}>WhatsApp</Text>
           </Pressable>
+          {lastKot && lastBill.tableNo == null && (
+            <Pressable onPress={() => setKotView(lastKot)} style={styles.kitchenBtn} accessibilityRole="button">
+              <Text style={styles.kitchenText}>Kitchen slip</Text>
+            </Pressable>
+          )}
         </View>
       )}
 
@@ -290,6 +395,7 @@ export default function BillingScreen({ tableNo, onBackToTables, onTableSettled 
           <Text style={styles.cartBarText}>
             {isTable ? `Table ${tableNo} · ` : ''}
             {itemCount} item{itemCount > 1 ? 's' : ''} · {formatRupees(total)}
+            {isTable && pendingNew > 0 ? ` · ${pendingNew} not sent` : ''}
           </Text>
           <Text style={styles.cartBarText}>{isTable ? 'Settle ›' : 'View bill ›'}</Text>
         </Pressable>
@@ -316,7 +422,16 @@ export default function BillingScreen({ tableNo, onBackToTables, onTableSettled 
               <View key={item.id} style={styles.line}>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.lineName}>{item.name}</Text>
-                  <Text style={styles.muted}>{formatRupees(item.price)} each</Text>
+                  <Text style={styles.muted}>
+                    {formatRupees(item.price)} each
+                    {isTable && qty - (sentQty[item.id] ?? 0) > 0 && (sentQty[item.id] ?? 0) > 0
+                      ? ` · ${qty - (sentQty[item.id] ?? 0)} new`
+                      : ''}
+                  </Text>
+                  {!!notes[item.id] && <Text style={styles.noteText}>{notes[item.id]}</Text>}
+                  <Pressable onPress={() => setNoteFor(item.id)} hitSlop={8} accessibilityRole="button">
+                    <Text style={styles.noteLink}>{notes[item.id] ? 'Edit note' : '+ Note for kitchen'}</Text>
+                  </Pressable>
                 </View>
                 <View style={styles.stepper}>
                   <Pressable style={styles.stepBtn} onPress={() => changeQty(item.id, -1)}>
@@ -335,6 +450,22 @@ export default function BillingScreen({ tableNo, onBackToTables, onTableSettled 
           <View style={styles.totals}>
             {deliverySelected && settings.gstRate > 0 && (
               <Text style={styles.paidNote}>No GST added: Zomato and Swiggy pay GST on their orders.</Text>
+            )}
+            {discountAmt > 0 && (
+              <>
+                <TotalRow label="Items total" value={formatRupees(itemsSum)} />
+                <Pressable onPress={() => setShowDiscount(true)} accessibilityRole="button">
+                  <TotalRow
+                    label={`Discount ${discount ? discountLabel(discount) : ''} · ${discount?.reason ?? ''}`}
+                    value={`− ${formatRupees(discountAmt)}`}
+                  />
+                </Pressable>
+              </>
+            )}
+            {!deliverySelected && discountAmt === 0 && itemCount > 0 && (
+              <Pressable onPress={() => setShowDiscount(true)} hitSlop={6} accessibilityRole="button" style={{ alignSelf: 'flex-start' }}>
+                <Text style={styles.noteLink}>+ Add discount</Text>
+              </Pressable>
             )}
             {tax.gstRate > 0 && (
               <>
@@ -415,10 +546,18 @@ export default function BillingScreen({ tableNo, onBackToTables, onTableSettled 
 
           {error && <Text style={styles.error}>{error}</Text>}
 
+          {isTable && pendingKot.length > 0 && (
+            <Pressable style={styles.kotBtn} onPress={sendToKitchen} accessibilityRole="button">
+              <Text style={styles.kotText}>
+                {pendingNew > 0 ? `Send to kitchen · ${pendingNew} new` : 'Send changes to kitchen'}
+              </Text>
+            </Pressable>
+          )}
+
           <Pressable
             style={[styles.saveBtn, itemCount === 0 && styles.saveBtnDisabled]}
             disabled={itemCount === 0}
-            onPress={() => (needsUpiQr && settings.upiId ? setShowQr(true) : saveBill())}
+            onPress={onSavePress}
           >
             <Text style={styles.saveText}>
               {needsUpiQr && settings.upiId
@@ -442,6 +581,8 @@ export default function BillingScreen({ tableNo, onBackToTables, onTableSettled 
           tableNo={tableNo}
           lines={cartLines.map(({ item, qty, amount }) => ({ name: item.name, qty, amount }))}
           subtotal={subtotal}
+          itemsSum={itemsSum}
+          discount={discountAmt}
           gst={gst}
           gstRate={tax.gstRate}
           pricesIncludeGst={settings.pricesIncludeGst}
@@ -454,6 +595,7 @@ export default function BillingScreen({ tableNo, onBackToTables, onTableSettled 
               [
                 `*${settings.restaurantName}* – Table ${tableNo}`,
                 ...cartLines.map(({ item, qty, amount }) => `${item.name} x${qty}  ${formatRupees(amount)}`),
+                discountAmt > 0 ? `Discount  − ${formatRupees(discountAmt)}` : '',
                 tax.gstRate > 0 ? `GST ${tax.gstRate}%${settings.pricesIncludeGst ? ' (included)' : ''}  ${formatRupees(gst)}` : '',
                 `*To pay: ${formatRupees(total)}*`,
                 settings.upiId ? `Pay by UPI: ${settings.upiId}` : '',
@@ -465,6 +607,32 @@ export default function BillingScreen({ tableNo, onBackToTables, onTableSettled 
           }}
         />
       )}
+
+      {showDiscount && (
+        <DiscountSheet
+          itemsSum={itemsSum}
+          current={discount}
+          onClose={() => setShowDiscount(false)}
+          onApply={(d) => {
+            setDiscount(d);
+            setShowDiscount(false);
+          }}
+        />
+      )}
+
+      {noteFor && menu.byId[noteFor] && (
+        <NoteSheet
+          itemName={menu.byId[noteFor].name}
+          note={notes[noteFor] ?? ''}
+          onClose={() => setNoteFor(null)}
+          onSave={(n) => {
+            setNote(noteFor, n);
+            setNoteFor(null);
+          }}
+        />
+      )}
+
+      {kotView && <KotSheet kot={kotView} onClose={() => setKotView(null)} />}
 
       {showQr && (
         <UpiQrSheet
@@ -553,6 +721,8 @@ const styles = StyleSheet.create({
   title: { fontSize: 22, fontFamily: fonts.bold, color: INK },
   subtitle: { fontFamily: fonts.regular, fontSize: 14, color: MUTED },
   banner: { marginHorizontal: 16, marginBottom: 8, padding: 10, borderRadius: 10, backgroundColor: '#E6F4EA', flexDirection: 'row', alignItems: 'center', gap: 10 },
+  kitchenBtn: { paddingHorizontal: 12, height: 32, borderRadius: 8, backgroundColor: colors.turmeric, justifyContent: 'center', marginLeft: 8 },
+  kitchenText: { fontFamily: fonts.semibold, fontSize: 13, color: colors.brandDeep },
   waBtn: { paddingHorizontal: 12, height: 32, borderRadius: 8, backgroundColor: '#1F8F4E', justifyContent: 'center' },
   waText: { fontFamily: fonts.bold, fontSize: 13, color: colors.paper },
   bannerText: { color: '#14532D', fontFamily: fonts.semibold },
@@ -605,6 +775,10 @@ const styles = StyleSheet.create({
   qty: { minWidth: 20, textAlign: 'center', fontSize: 15, fontFamily: fonts.semibold },
   amount: { width: 72, textAlign: 'right', fontFamily: fonts.regular, fontSize: 15, color: INK },
   totals: { paddingVertical: 10, gap: 4 },
+  noteText: { fontFamily: fonts.semibold, fontSize: 13, color: colors.turmericDeep, marginTop: 2 },
+  noteLink: { fontFamily: fonts.semibold, fontSize: 13, color: colors.brand, marginTop: 4 },
+  kotBtn: { height: 48, borderRadius: 14, borderWidth: 1.5, borderColor: colors.brand, alignItems: 'center', justifyContent: 'center', marginTop: 10 },
+  kotText: { fontFamily: fonts.bold, fontSize: 15, color: colors.brand },
   totalRow: { flexDirection: 'row', justifyContent: 'space-between' },
   totalLabel: { fontFamily: fonts.regular, fontSize: 15, color: MUTED },
   totalValue: { fontFamily: fonts.regular, fontSize: 15, color: INK },

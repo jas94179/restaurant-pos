@@ -38,9 +38,12 @@ export type NewBill = {
   staffName?: string;
   gstRate: number;
   paymentMode: PaymentMode;
-  subtotal: number;
+  subtotal: number; // taxable value, after discount
   gst: number;
   total: number;
+  discount?: number; // paise taken off the items total, before GST
+  discountReason?: string;
+  discountBy?: string; // who gave or approved it
   lines: BillLine[];
 };
 
@@ -56,6 +59,7 @@ export type SavedBill = {
   gst: number;
   total: number;
   item_count: number;
+  discount: number;
 };
 
 export type DaySummary = {
@@ -63,6 +67,8 @@ export type DaySummary = {
   billCount: number;
   totalSales: number;
   gstCollected: number;
+  discountTotal: number;
+  discountCount: number;
   byMode: Record<PaymentMode, { count: number; amount: number }>;
   bills: SavedBill[];
 };
@@ -195,6 +201,32 @@ function prepareSchema(): void {
       note TEXT
     );
     CREATE INDEX IF NOT EXISTS idx_day_closings_day ON day_closings(day);
+    CREATE TABLE IF NOT EXISTS kots (
+      id TEXT PRIMARY KEY NOT NULL,
+      kot_no INTEGER NOT NULL,
+      day TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      table_no INTEGER,
+      token INTEGER,
+      items TEXT NOT NULL,
+      staff_name TEXT,
+      bill_id TEXT
+    );
+    CREATE INDEX IF NOT EXISTS idx_kots_table ON kots(table_no, bill_id);
+    CREATE INDEX IF NOT EXISTS idx_kots_day ON kots(day);
+    CREATE TABLE IF NOT EXISTS expenses (
+      id TEXT PRIMARY KEY NOT NULL,
+      day TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      amount INTEGER NOT NULL,
+      category TEXT NOT NULL,
+      note TEXT,
+      from_cash INTEGER NOT NULL DEFAULT 1,
+      added_by TEXT NOT NULL,
+      removed_at TEXT,
+      removed_by TEXT
+    );
+    CREATE INDEX IF NOT EXISTS idx_expenses_day ON expenses(day);
   `);
 
   // Upgrade older databases on the phone: add columns that newer versions need.
@@ -223,6 +255,19 @@ function prepareSchema(): void {
   if (!billColumns.includes('staff_id')) {
     db.execSync('ALTER TABLE bills ADD COLUMN staff_id TEXT');
     db.execSync('ALTER TABLE bills ADD COLUMN staff_name TEXT');
+  }
+  if (!billColumns.includes('discount')) {
+    db.execSync('ALTER TABLE bills ADD COLUMN discount INTEGER NOT NULL DEFAULT 0');
+    db.execSync('ALTER TABLE bills ADD COLUMN discount_reason TEXT');
+    db.execSync('ALTER TABLE bills ADD COLUMN discount_by TEXT');
+  }
+  const tableColumns = db.getAllSync<{ name: string }>('PRAGMA table_info(open_tables)').map((c) => c.name);
+  if (!tableColumns.includes('notes')) {
+    db.execSync("ALTER TABLE open_tables ADD COLUMN notes TEXT NOT NULL DEFAULT '{}'");
+  }
+  const closingColumns = db.getAllSync<{ name: string }>('PRAGMA table_info(day_closings)').map((c) => c.name);
+  if (!closingColumns.includes('paid_out')) {
+    db.execSync('ALTER TABLE day_closings ADD COLUMN paid_out INTEGER NOT NULL DEFAULT 0');
   }
 }
 
@@ -365,9 +410,9 @@ export function saveBill(bill: NewBill): { id: string; token: number; invoiceNo:
       invoiceNo = formatInvoiceNo(fy, serial);
     }
     db.runSync(
-      `INSERT INTO bills (id, token, created_at, day, order_type, table_no, payment_mode, subtotal, gst, total, staff_id, staff_name, gst_rate, platform_order_id, invoice_no, invoice_fy, invoice_serial)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [id, token, now.toISOString(), day, bill.orderType, bill.tableNo ?? null, bill.paymentMode, bill.subtotal, bill.gst, bill.total, bill.staffId ?? null, bill.staffName ?? null, bill.gstRate, bill.platformOrderId ?? null, invoiceNo, fy, serial],
+      `INSERT INTO bills (id, token, created_at, day, order_type, table_no, payment_mode, subtotal, gst, total, staff_id, staff_name, gst_rate, platform_order_id, invoice_no, invoice_fy, invoice_serial, discount, discount_reason, discount_by)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [id, token, now.toISOString(), day, bill.orderType, bill.tableNo ?? null, bill.paymentMode, bill.subtotal, bill.gst, bill.total, bill.staffId ?? null, bill.staffName ?? null, bill.gstRate, bill.platformOrderId ?? null, invoiceNo, fy, serial, bill.discount ?? 0, bill.discountReason ?? null, bill.discountBy ?? null],
     );
     for (const l of bill.lines) {
       db.runSync(
@@ -378,6 +423,7 @@ export function saveBill(bill: NewBill): { id: string; token: number; invoiceNo:
     // A settled table becomes free again.
     if (bill.tableNo != null) {
       db.runSync('DELETE FROM open_tables WHERE table_no = ?', [bill.tableNo]);
+      db.runSync('UPDATE kots SET bill_id = ? WHERE table_no = ? AND bill_id IS NULL', [id, bill.tableNo]);
     }
   });
 
@@ -403,9 +449,15 @@ export function getDaySummary(day: string = dayKey()): DaySummary {
   };
   let totalSales = 0;
   let gstCollected = 0;
+  let discountTotal = 0;
+  let discountCount = 0;
   for (const b of bills) {
     totalSales += b.total;
     gstCollected += b.gst;
+    if (b.discount > 0) {
+      discountTotal += b.discount;
+      discountCount += 1;
+    }
     const m = byMode[b.payment_mode];
     if (m) {
       m.count += 1;
@@ -413,7 +465,7 @@ export function getDaySummary(day: string = dayKey()): DaySummary {
     }
   }
 
-  return { day, billCount: bills.length, totalSales, gstCollected, byMode, bills };
+  return { day, billCount: bills.length, totalSales, gstCollected, discountTotal, discountCount, byMode, bills };
 }
 
 // ---------- Dine-in tables ----------
@@ -457,6 +509,24 @@ export function saveTableCart(tableNo: number, cart: Cart): void {
      ON CONFLICT(table_no) DO UPDATE SET cart = excluded.cart, updated_at = excluded.updated_at`,
     [tableNo, JSON.stringify(cart), now, now],
   );
+}
+
+// Kitchen notes per item on a table's order, e.g. "less spicy".
+export type ItemNotes = Record<string, string>; // item id -> note
+
+export function getTableNotes(tableNo: number): ItemNotes {
+  const row = db.getFirstSync<{ notes: string }>('SELECT notes FROM open_tables WHERE table_no = ?', [tableNo]);
+  if (!row) return {};
+  try {
+    const v = JSON.parse(row.notes);
+    return v && typeof v === 'object' ? (v as ItemNotes) : {};
+  } catch {
+    return {};
+  }
+}
+
+export function saveTableNotes(tableNo: number, notes: ItemNotes): void {
+  db.runSync('UPDATE open_tables SET notes = ? WHERE table_no = ?', [JSON.stringify(notes), tableNo]);
 }
 
 // ---------- Menu ----------
@@ -676,13 +746,16 @@ export type BillDetail = BillRow & {
   cancelled_at: string | null;
   cancelled_by: string | null;
   cancel_reason: string | null;
+  discount: number;
+  discount_reason: string | null;
+  discount_by: string | null;
   items: { name: string; price: number; qty: number; amount: number }[];
 };
 
 export function getBillDetail(id: string): BillDetail | null {
   const bill = db.getFirstSync<Omit<BillDetail, 'items'>>(
     `SELECT id, token, created_at, day, order_type, table_no, platform_order_id, invoice_no, payment_mode, subtotal, gst, total,
-            staff_name, gst_rate, status, cancelled_at, cancelled_by, cancel_reason
+            staff_name, gst_rate, status, cancelled_at, cancelled_by, cancel_reason, discount, discount_reason, discount_by
      FROM bills WHERE id = ?`,
     [id],
   );
@@ -756,7 +829,7 @@ export function cancelBill(id: string, approvedBy: string, reason: string): void
 // ---------- Backup and restore ----------
 // The whole database as one JSON file. Restore replaces everything on this phone.
 
-const BACKUP_TABLES = ['settings', 'staff', 'categories', 'menu_items', 'bills', 'bill_items', 'open_tables', 'day_closings'] as const;
+const BACKUP_TABLES = ['settings', 'staff', 'categories', 'menu_items', 'bills', 'bill_items', 'open_tables', 'day_closings', 'kots', 'expenses'] as const;
 export const BACKUP_FORMAT = 'galla-backup';
 export const BACKUP_VERSION = 1;
 
@@ -825,6 +898,7 @@ export type DayClosing = {
   expectedCash: number;
   countedCash: number;
   difference: number; // counted - expected; negative means cash is short
+  paidOut: number; // cash taken from the drawer for expenses
   billCount: number;
   totalSales: number;
   upiSales: number;
@@ -836,7 +910,7 @@ export type DayClosing = {
 type DayClosingRow = {
   id: string; day: string; closed_at: string; closed_by: string; opening_cash: number; cash_sales: number;
   expected_cash: number; counted_cash: number; difference: number; bill_count: number; total_sales: number;
-  upi_sales: number; card_sales: number; delivery_sales: number; note: string | null;
+  upi_sales: number; card_sales: number; delivery_sales: number; note: string | null; paid_out: number;
 };
 
 function toClosing(r: DayClosingRow): DayClosing {
@@ -844,14 +918,15 @@ function toClosing(r: DayClosingRow): DayClosing {
     id: r.id, day: r.day, closedAt: r.closed_at, closedBy: r.closed_by, openingCash: r.opening_cash,
     cashSales: r.cash_sales, expectedCash: r.expected_cash, countedCash: r.counted_cash, difference: r.difference,
     billCount: r.bill_count, totalSales: r.total_sales, upiSales: r.upi_sales, cardSales: r.card_sales,
-    deliverySales: r.delivery_sales, note: r.note ?? '',
+    deliverySales: r.delivery_sales, note: r.note ?? '', paidOut: r.paid_out ?? 0,
   };
 }
 
 export function saveDayClosing(input: { day: string; closedBy: string; openingCash: number; countedCash: number; note: string }): DayClosing {
   const s = getDaySummary(input.day);
   const cashSales = s.byMode.cash.amount;
-  const expectedCash = input.openingCash + cashSales;
+  const paidOut = getCashPaidOut(input.day);
+  const expectedCash = input.openingCash + cashSales - paidOut;
   const row: DayClosingRow = {
     id: newId(),
     day: input.day,
@@ -868,11 +943,12 @@ export function saveDayClosing(input: { day: string; closedBy: string; openingCa
     card_sales: s.byMode.card.amount,
     delivery_sales: s.byMode.zomato.amount + s.byMode.swiggy.amount,
     note: input.note.trim() || null,
+    paid_out: paidOut,
   };
   db.runSync(
-    `INSERT INTO day_closings (id, day, closed_at, closed_by, opening_cash, cash_sales, expected_cash, counted_cash, difference, bill_count, total_sales, upi_sales, card_sales, delivery_sales, note)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [row.id, row.day, row.closed_at, row.closed_by, row.opening_cash, row.cash_sales, row.expected_cash, row.counted_cash, row.difference, row.bill_count, row.total_sales, row.upi_sales, row.card_sales, row.delivery_sales, row.note],
+    `INSERT INTO day_closings (id, day, closed_at, closed_by, opening_cash, cash_sales, expected_cash, counted_cash, difference, bill_count, total_sales, upi_sales, card_sales, delivery_sales, note, paid_out)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [row.id, row.day, row.closed_at, row.closed_by, row.opening_cash, row.cash_sales, row.expected_cash, row.counted_cash, row.difference, row.bill_count, row.total_sales, row.upi_sales, row.card_sales, row.delivery_sales, row.note, row.paid_out],
   );
   return toClosing(row);
 }
@@ -893,13 +969,14 @@ export type ExportBill = {
   created_at: string; day: string; invoice_no: string | null; token: number; order_type: string;
   table_no: number | null; payment_mode: string; platform_order_id: string | null; gst_rate: number;
   subtotal: number; gst: number; total: number; status: string; cancel_reason: string | null; staff_name: string | null;
+  discount: number; discount_reason: string | null;
 };
 
 // All bills in the range, oldest first, cancelled ones included (marked), as a CA expects.
 export function getBillsForExport(fromDay: string, toDay: string): ExportBill[] {
   return db.getAllSync<ExportBill>(
     `SELECT created_at, day, invoice_no, token, order_type, table_no, payment_mode, platform_order_id, gst_rate,
-            subtotal, gst, total, status, cancel_reason, staff_name
+            subtotal, gst, total, status, cancel_reason, staff_name, discount, discount_reason
      FROM bills WHERE day BETWEEN ? AND ? ORDER BY created_at ASC`,
     [fromDay, toDay],
   );
@@ -914,4 +991,141 @@ export function getItemSalesForExport(fromDay: string, toDay: string): ItemTotal
      ORDER BY amount DESC`,
     [fromDay, toDay],
   );
+}
+
+// ---------- Kitchen order tickets (KOT) ----------
+// A KOT tells the kitchen what to cook. Table orders send only what is new since the
+// last KOT; a negative quantity means "cancel" (item removed after it was sent).
+
+export type KotItem = { itemId: string; name: string; qty: number; note?: string };
+export type Kot = {
+  id: string;
+  kotNo: number; // restarts from 1 every day
+  day: string;
+  createdAt: string;
+  tableNo: number | null;
+  token: number | null;
+  items: KotItem[];
+  staffName: string;
+};
+
+type KotRow = { id: string; kot_no: number; day: string; created_at: string; table_no: number | null; token: number | null; items: string; staff_name: string | null };
+
+function toKot(r: KotRow): Kot {
+  let items: KotItem[] = [];
+  try {
+    items = JSON.parse(r.items) as KotItem[];
+  } catch {
+    items = [];
+  }
+  return { id: r.id, kotNo: r.kot_no, day: r.day, createdAt: r.created_at, tableNo: r.table_no, token: r.token, items, staffName: r.staff_name ?? '' };
+}
+
+export function createKot(input: { tableNo?: number; token?: number; items: KotItem[]; staffName?: string; billId?: string }): Kot {
+  const now = new Date();
+  const day = dayKey(now);
+  let kot: Kot | null = null;
+  db.withTransactionSync(() => {
+    const row = db.getFirstSync<{ n: number | null }>('SELECT MAX(kot_no) AS n FROM kots WHERE day = ?', [day]);
+    const r: KotRow = {
+      id: newId(),
+      kot_no: (row?.n ?? 0) + 1,
+      day,
+      created_at: now.toISOString(),
+      table_no: input.tableNo ?? null,
+      token: input.token ?? null,
+      items: JSON.stringify(input.items),
+      staff_name: input.staffName ?? null,
+    };
+    db.runSync(
+      'INSERT INTO kots (id, kot_no, day, created_at, table_no, token, items, staff_name, bill_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [r.id, r.kot_no, r.day, r.created_at, r.table_no, r.token, r.items, r.staff_name, input.billId ?? null],
+    );
+    kot = toKot(r);
+  });
+  return kot!;
+}
+
+// Quantities already sent to the kitchen for a table's running order.
+export function getSentQty(tableNo: number): Record<string, number> {
+  const rows = db.getAllSync<{ items: string }>('SELECT items FROM kots WHERE table_no = ? AND bill_id IS NULL', [tableNo]);
+  const sent: Record<string, number> = {};
+  for (const r of rows) {
+    try {
+      for (const i of JSON.parse(r.items) as KotItem[]) sent[i.itemId] = (sent[i.itemId] ?? 0) + i.qty;
+    } catch {
+      // skip a damaged row
+    }
+  }
+  return sent;
+}
+
+export function getTableKots(tableNo: number): Kot[] {
+  return db
+    .getAllSync<KotRow>('SELECT * FROM kots WHERE table_no = ? AND bill_id IS NULL ORDER BY created_at', [tableNo])
+    .map(toKot);
+}
+
+export function getKotForBill(billId: string): Kot | null {
+  const r = db.getFirstSync<KotRow>('SELECT * FROM kots WHERE bill_id = ? AND table_no IS NULL ORDER BY created_at LIMIT 1', [billId]);
+  return r ? toKot(r) : null;
+}
+
+// ---------- Expenses (cash paid out) ----------
+// Money spent during the day: vegetables, milk, gas, staff advance...
+// Paid from the cash drawer → lowers the cash expected at day end.
+// Removing keeps the record (marked removed), like cancelled bills.
+
+export const EXPENSE_CATEGORIES = ['Vegetables', 'Milk and dairy', 'Groceries', 'Gas', 'Staff advance', 'Repairs', 'Transport', 'Other'] as const;
+
+export type Expense = {
+  id: string;
+  day: string;
+  createdAt: string;
+  amount: number;
+  category: string;
+  note: string;
+  fromCash: boolean;
+  addedBy: string;
+  removedAt: string | null;
+  removedBy: string | null;
+};
+
+type ExpenseRow = {
+  id: string; day: string; created_at: string; amount: number; category: string; note: string | null;
+  from_cash: number; added_by: string; removed_at: string | null; removed_by: string | null;
+};
+
+function toExpense(r: ExpenseRow): Expense {
+  return {
+    id: r.id, day: r.day, createdAt: r.created_at, amount: r.amount, category: r.category, note: r.note ?? '',
+    fromCash: r.from_cash === 1, addedBy: r.added_by, removedAt: r.removed_at, removedBy: r.removed_by,
+  };
+}
+
+export function addExpense(input: { day?: string; amount: number; category: string; note: string; fromCash: boolean; addedBy: string }): void {
+  const now = new Date();
+  db.runSync(
+    'INSERT INTO expenses (id, day, created_at, amount, category, note, from_cash, added_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+    [newId(), input.day ?? dayKey(now), now.toISOString(), input.amount, input.category, input.note.trim() || null, input.fromCash ? 1 : 0, input.addedBy],
+  );
+}
+
+export function removeExpense(id: string, removedBy: string): void {
+  db.runSync('UPDATE expenses SET removed_at = ?, removed_by = ? WHERE id = ? AND removed_at IS NULL', [new Date().toISOString(), removedBy, id]);
+}
+
+// Includes removed ones (shown struck through).
+export function getExpenses(fromDay: string, toDay: string): Expense[] {
+  return db
+    .getAllSync<ExpenseRow>('SELECT * FROM expenses WHERE day BETWEEN ? AND ? ORDER BY created_at DESC', [fromDay, toDay])
+    .map(toExpense);
+}
+
+export function getCashPaidOut(day: string): number {
+  const r = db.getFirstSync<{ total: number | null }>(
+    'SELECT SUM(amount) AS total FROM expenses WHERE day = ? AND from_cash = 1 AND removed_at IS NULL',
+    [day],
+  );
+  return r?.total ?? 0;
 }

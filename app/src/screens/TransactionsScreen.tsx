@@ -278,6 +278,22 @@ function BillSheet({ bill, onClose, onChanged }: { bill: BillDetail; onClose: ()
 
             <View style={styles.rDivider} />
 
+            {bill.discount > 0 && (
+              <>
+                <View style={styles.rRow}>
+                  <Text style={styles.rLabel}>Items total</Text>
+                  <Text style={styles.rValue}>{formatRupees(bill.items.reduce((sum, i) => sum + i.amount, 0))}</Text>
+                </View>
+                <View style={styles.rRow}>
+                  <Text style={styles.rLabel}>
+                    Discount{bill.discount_reason ? ` · ${bill.discount_reason}` : ''}
+                    {bill.discount_by ? ` (by ${bill.discount_by})` : ''}
+                  </Text>
+                  <Text style={styles.rValue}>− {formatRupees(bill.discount)}</Text>
+                </View>
+              </>
+            )}
+
             {bill.gst > 0 && (
               <>
                 <View style={styles.rRow}>

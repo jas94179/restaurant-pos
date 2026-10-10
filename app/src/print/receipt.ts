@@ -21,8 +21,10 @@ export class Receipt {
     return this;
   }
 
+  // Leading spaces are kept as an indent, also on wrapped lines.
   text(text: string, bold = false) {
-    for (const part of wrap(text, WIDTH)) this.lines.push({ text: part, bold });
+    const indent = text.match(/^ */)?.[0] ?? '';
+    for (const part of wrap(text.slice(indent.length), WIDTH - indent.length)) this.lines.push({ text: indent + part, bold });
     return this;
   }
 

@@ -1,6 +1,6 @@
 // Sales files for the CA, as CSV (opens in Excel and Google Sheets).
 // Amounts are in rupees with 2 decimals. CGST/SGST split matches the printed bill.
-import { getBillsForExport, getItemSalesForExport, modeLabel, type ExportBill } from '../db/database';
+import { getBillsForExport, getExpenses, getItemSalesForExport, modeLabel, type ExportBill } from '../db/database';
 
 const rs = (paise: number) => (paise / 100).toFixed(2);
 
@@ -30,19 +30,42 @@ function time(iso: string): string {
   return new Date(iso).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false });
 }
 
-export type ExportKind = 'bills' | 'gst' | 'daily' | 'items';
+export type ExportKind = 'bills' | 'gst' | 'daily' | 'items' | 'expenses';
 
 export const EXPORTS: { kind: ExportKind; title: string; detail: string }[] = [
   { kind: 'bills', title: 'Bill-wise register', detail: 'Every bill with invoice number, taxable value, CGST, SGST. Cancelled bills marked.' },
   { kind: 'gst', title: 'GST summary', detail: 'Totals by GST rate for filing, with delivery-app sales (Section 9(5)) shown separately.' },
   { kind: 'daily', title: 'Day-wise sales', detail: 'One line per day: bills, sales, GST, cash, UPI, card, delivery apps.' },
   { kind: 'items', title: 'Item-wise sales', detail: 'Quantity and amount sold for each dish.' },
+  { kind: 'expenses', title: 'Expenses', detail: 'Every expense with category, cash or UPI, who added it. Removed ones marked.' },
 ];
 
 export function buildExport(kind: ExportKind, fromDay: string, toDay: string, meta: { restaurant: string; gstin: string }): { csv: string; rows: number } {
   const header: string[][] = [[meta.restaurant]];
   if (meta.gstin) header.push([`GSTIN ${meta.gstin}`]);
   header.push([`Period ${dmy(fromDay)} to ${dmy(toDay)}`], []);
+
+  if (kind === 'expenses') {
+    const list = getExpenses(fromDay, toDay).reverse(); // oldest first
+    const active = list.filter((e) => !e.removedAt);
+    const cash = active.filter((e) => e.fromCash).reduce((sum, e) => sum + e.amount, 0);
+    const other = active.filter((e) => !e.fromCash).reduce((sum, e) => sum + e.amount, 0);
+    return {
+      rows: list.length,
+      csv: toCsv([
+        ...header,
+        ['Date', 'Time', 'Category', 'Note', 'Amount', 'Paid from', 'Added by', 'Status'],
+        ...list.map((e) => [
+          dmy(e.day), time(e.createdAt), e.category, e.note, rs(e.amount), e.fromCash ? 'Cash drawer' : 'UPI / bank',
+          e.addedBy, e.removedAt ? `Removed by ${e.removedBy ?? ''}` : 'OK',
+        ]),
+        [],
+        ['Total from cash drawer', '', '', '', rs(cash)],
+        ['Total by UPI / bank', '', '', '', rs(other)],
+        ['Total', '', '', '', rs(cash + other)],
+      ]),
+    };
+  }
 
   if (kind === 'items') {
     const items = getItemSalesForExport(fromDay, toDay);
@@ -62,12 +85,13 @@ export function buildExport(kind: ExportKind, fromDay: string, toDay: string, me
   const paid = bills.filter((b) => b.status === 'paid');
 
   if (kind === 'bills') {
-    const t = { sub: 0, cgst: 0, sgst: 0, total: 0 };
+    const t = { sub: 0, cgst: 0, sgst: 0, total: 0, disc: 0 };
     const lines = bills.map((b: ExportBill) => {
       const { cgst, sgst } = split(b.gst);
       const cancelled = b.status !== 'paid';
       if (!cancelled) {
         t.sub += b.subtotal;
+        t.disc += b.discount ?? 0;
         t.cgst += cgst;
         t.sgst += sgst;
         t.total += b.total;
@@ -75,7 +99,7 @@ export function buildExport(kind: ExportKind, fromDay: string, toDay: string, me
       return [
         dmy(b.day), time(b.created_at), b.invoice_no ?? '', b.token, ORDER_LABEL[b.order_type] ?? b.order_type,
         b.table_no ?? '', modeLabel(b.payment_mode), b.platform_order_id ?? '', b.gst_rate,
-        rs(b.subtotal), rs(cgst), rs(sgst), rs(b.total), cancelled ? 'Cancelled' : 'Paid', b.cancel_reason ?? '', b.staff_name ?? '',
+        rs(b.discount ?? 0), b.discount_reason ?? '', rs(b.subtotal), rs(cgst), rs(sgst), rs(b.total), cancelled ? 'Cancelled' : 'Paid', b.cancel_reason ?? '', b.staff_name ?? '',
       ];
     });
     return {
@@ -83,10 +107,10 @@ export function buildExport(kind: ExportKind, fromDay: string, toDay: string, me
       csv: toCsv([
         ...header,
         ['Date', 'Time', 'Invoice no', 'Token', 'Order type', 'Table', 'Payment', 'Delivery app order ID', 'GST rate %',
-          'Taxable value', 'CGST', 'SGST', 'Bill total', 'Status', 'Cancel reason', 'Billed by'],
+          'Discount', 'Discount reason', 'Taxable value', 'CGST', 'SGST', 'Bill total', 'Status', 'Cancel reason', 'Billed by'],
         ...lines,
         [],
-        ['Total (paid bills)', '', '', '', '', '', '', '', '', rs(t.sub), rs(t.cgst), rs(t.sgst), rs(t.total)],
+        ['Total (paid bills)', '', '', '', '', '', '', '', '', rs(t.disc), '', rs(t.sub), rs(t.cgst), rs(t.sgst), rs(t.total)],
       ]),
     };
   }

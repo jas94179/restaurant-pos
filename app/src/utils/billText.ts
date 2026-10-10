@@ -27,6 +27,10 @@ export function billText(bill: BillDetail, restaurant: { name: string; gstin: st
     lines.push(`${it.qty} x ${it.name}  ${formatRupees(it.amount)}`);
   }
   lines.push('');
+  if (bill.discount > 0) {
+    lines.push(`Items total  ${formatRupees(bill.items.reduce((sum, i) => sum + i.amount, 0))}`);
+    lines.push(`Discount  − ${formatRupees(bill.discount)}`);
+  }
   if (bill.gst > 0) {
     const half = Math.floor(bill.gst / 2);
     lines.push(`Taxable value  ${formatRupees(bill.subtotal)}`);

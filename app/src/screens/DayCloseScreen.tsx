@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Share, StyleSheet, Text, TextInput, View } from 'react-native';
-import { dayKey, DayClosing, getDayClosing, getDaySummary, getRecentClosings, saveDayClosing } from '../db/database';
+import { dayKey, DayClosing, getCashPaidOut, getDayClosing, getDaySummary, getRecentClosings, saveDayClosing } from '../db/database';
 import { useSettings } from '../data/settingsStore';
 import { can, useCurrentUser } from '../data/staffStore';
 import { formatRupees } from '../utils/money';
@@ -34,6 +34,7 @@ export function closingMessage(restaurant: string, c: DayClosing): string {
     '',
     `Cash at start: ${formatRupees(c.openingCash)}`,
     `Cash bills: ${formatRupees(c.cashSales)}`,
+    c.paidOut ? `Cash paid out: ${formatRupees(c.paidOut)}` : '',
     `Expected in drawer: ${formatRupees(c.expectedCash)}`,
     `Counted: ${formatRupees(c.countedCash)}`,
     `*${diffText(c.difference)}*`,
@@ -58,6 +59,7 @@ export default function DayCloseScreen({ onBack }: { onBack: () => void }) {
   const [version, setVersion] = useState(0); // bump to re-read after saving
   const existing = useMemo(() => getDayClosing(day), [day, version]);
   const summary = useMemo(() => getDaySummary(day), [day, version]);
+  const paidOut = useMemo(() => getCashPaidOut(day), [day, version]);
   const history = useMemo(() => (seesNumbers ? getRecentClosings(14) : []), [seesNumbers, version]);
 
   const lastFloat = useMemo(() => getRecentClosings(1)[0]?.openingCash ?? 0, []);
@@ -74,7 +76,7 @@ export default function DayCloseScreen({ onBack }: { onBack: () => void }) {
     NOTES.reduce((sum, n) => sum + n * 100 * (Number(noteCounts[n]) || 0), 0) + toPaise(coins);
   const countedPaise = byNotes ? notesTotal : toPaise(counted);
   const hasCount = byNotes ? notesTotal > 0 : counted.trim() !== '';
-  const expected = toPaise(opening) + summary.byMode.cash.amount;
+  const expected = toPaise(opening) + summary.byMode.cash.amount - paidOut;
   const diff = countedPaise - expected;
 
   const showForm = !existing || editing;
@@ -140,6 +142,10 @@ export default function DayCloseScreen({ onBack }: { onBack: () => void }) {
               label={`Zomato and Swiggy (${summary.byMode.zomato.count + summary.byMode.swiggy.count})`}
               value={formatRupees(summary.byMode.zomato.amount + summary.byMode.swiggy.amount)}
             />
+            {summary.discountTotal > 0 && (
+              <Line label={`Discounts given (${summary.discountCount})`} value={`− ${formatRupees(summary.discountTotal)}`} />
+            )}
+            {paidOut > 0 && <Line label="Cash paid out (expenses)" value={formatRupees(paidOut)} />}
           </View>
         )}
 
@@ -254,6 +260,7 @@ export default function DayCloseScreen({ onBack }: { onBack: () => void }) {
               <View style={styles.compare}>
                 <Line label="Start of day" value={formatRupees(toPaise(opening))} />
                 <Line label={`+ Cash bills (${summary.byMode.cash.count})`} value={formatRupees(summary.byMode.cash.amount)} />
+                {paidOut > 0 && <Line label="− Cash paid out (expenses)" value={formatRupees(paidOut)} />}
                 <Line label="Should be in drawer" value={formatRupees(expected)} strong />
                 {hasCount && (
                   <View style={[styles.diffBox, diff < 0 ? styles.diffShort : diff > 0 ? styles.diffExtra : styles.diffOk]}>
@@ -327,6 +334,7 @@ export default function DayCloseScreen({ onBack }: { onBack: () => void }) {
 function ClosingDetail({ c }: { c: DayClosing }) {
   return (
     <View style={{ marginTop: 8 }}>
+      {c.paidOut > 0 && <Line label="Cash paid out" value={formatRupees(c.paidOut)} />}
       <Line label="Should be in drawer" value={formatRupees(c.expectedCash)} />
       <Line label="Counted" value={formatRupees(c.countedCash)} />
       <Line label={diffText(c.difference)} value="" strong />

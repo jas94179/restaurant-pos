@@ -4,7 +4,8 @@ import { useSettings } from '../data/settingsStore';
 import { useMenu } from '../data/menuStore';
 import { can, ROLE_INFO, ROLE_LABEL, useCurrentUser, useStaffList } from '../data/staffStore';
 import { PLAN_LABEL } from '../data/plans';
-import { dayKey, getDayClosing } from '../db/database';
+import { formatRupees } from '../utils/money';
+import { dayKey, getCashPaidOut, getDayClosing } from '../db/database';
 import { colors, fonts } from '../theme';
 
 type Props = {
@@ -16,6 +17,7 @@ type Props = {
   onOpenPlan: () => void;
   onOpenDayClose: () => void;
   onOpenExport: () => void;
+  onOpenExpenses: () => void;
   onLock: () => void;
 };
 
@@ -23,7 +25,7 @@ const OUTLET_LABEL = { counter: 'Counter', dine_in: 'Dine-in', both: 'Counter an
 
 // The restaurant's profile, plus everything used less often than billing,
 // so the bottom bar never grows past four tabs.
-export default function ProfileScreen({ onOpenMenu, onOpenStaff, onOpenStock, onOpenBackup, onOpenRestaurant, onOpenPlan, onOpenDayClose, onOpenExport, onLock }: Props) {
+export default function ProfileScreen({ onOpenMenu, onOpenStaff, onOpenStock, onOpenBackup, onOpenRestaurant, onOpenPlan, onOpenDayClose, onOpenExport, onOpenExpenses, onLock }: Props) {
   const settings = useSettings();
   const menu = useMenu();
   const user = useCurrentUser();
@@ -32,6 +34,7 @@ export default function ProfileScreen({ onOpenMenu, onOpenStaff, onOpenStock, on
   const itemCount = menu.items.filter((i) => !i.archived).length;
   const outOfStock = menu.items.filter((i) => !i.archived && !i.available).length;
   const closedToday = getDayClosing(dayKey());
+  const paidOutToday = getCashPaidOut(dayKey());
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
@@ -56,6 +59,11 @@ export default function ProfileScreen({ onOpenMenu, onOpenStaff, onOpenStock, on
       </Group>
 
       <Group title="Today">
+        <Row
+          title="Expenses"
+          detail={paidOutToday ? `${formatRupees(paidOutToday)} paid from cash today` : 'Cash paid to vendors, gas, staff advance'}
+          onPress={onOpenExpenses}
+        />
         <Row
           title="Close the day"
           detail={
@@ -94,7 +102,7 @@ export default function ProfileScreen({ onOpenMenu, onOpenStaff, onOpenStock, on
             />
             <Row
               title="Export sales for CA"
-              detail="Bill register, GST summary, day-wise, item-wise"
+              detail="Bill register, GST summary, day-wise, items, expenses"
               onPress={onOpenExport}
             />
             <Row
