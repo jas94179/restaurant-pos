@@ -1,0 +1,53 @@
+{
+ "runId": "galla-ds-1",
+ "fileKey": "1XJLUboTbfq7h6IlESjVR5",
+ "scope": "full-library",
+ "pages": {
+  "Cover & Guide": "0:1",
+  "Foundations": "1:2",
+  "Components": "1:3"
+ },
+ "collections": {
+  "Color \u00b7 Light": "VariableCollectionId:1:4",
+  "Primitives": "VariableCollectionId:2:2",
+  "Color \u00b7 Dark": "VariableCollectionId:2:3",
+  "Dimension": "VariableCollectionId:2:4"
+ },
+ "limits": "Starter plan: 3 pages, 1 mode per collection",
+ "completedSteps": [
+  "discovery",
+  "variables",
+  "text+effect styles",
+  "group1 actions",
+  "group2 inputs+billing"
+ ],
+ "components": {
+  "Button": "4:66",
+  "Chip": "4:73",
+  "Segment": "4:78",
+  "Segmented": "4:79",
+  "Tab": "4:90",
+  "Tabs": "4:91",
+  "Switch": "4:100",
+  "Checkbox": "4:109",
+  "BackLink": "4:110",
+  "TextField": "7:31",
+  "SearchField": "7:32",
+  "VegMark": "7:41",
+  "Stepper": "7:42",
+  "DishTile": "7:80",
+  "CartBar": "7:81",
+  "BillSummary": "7:84",
+  "UpiQrCard": "7:187",
+  "TableTile": "7:197"
+ },
+ "groups": {
+  "Actions & selection": "4:2",
+  "Inputs & billing": "7:7"
+ },
+ "lessons": [
+  "resize() fixes width: reset primaryAxisSizingMode AUTO",
+  "no SVG arc commands",
+  "textProp only for text shared by all variants"
+ ]
+}

@@ -1,18 +1,24 @@
-// Visual identity for the app ("Galla" is a working name).
-// Curry-leaf green and turmeric come from the Indian kitchen and counter.
+// Visual identity for the app. The source of truth is the galla Design System
+// (design-system/tokens.json → src/design/tokens.ts). This file keeps the older
+// short names working so existing screens don't change, and re-exports the system.
+import { palette, themes } from './design/tokens';
+
+const light = themes.light;
+
+// Legacy names, now pointing at design-system values. Same colours as before.
 export const colors = {
-  brand: '#17382A', // curry leaf green
-  brandDeep: '#0F2A1F',
-  turmeric: '#F2B01E',
-  turmericDeep: '#C98C07',
-  ink: '#102018',
-  muted: '#5E6E66',
-  line: '#DDE3E0',
-  mist: '#F3F6F4',
-  paper: '#FFFFFF',
-  danger: '#B3261E',
-  veg: '#1B8A3A',
-  nonVeg: '#B3261E',
+  brand: light.bgBrand, // curry leaf green
+  brandDeep: palette.green800,
+  turmeric: palette.turmeric500,
+  turmericDeep: palette.turmeric600,
+  ink: light.textPrimary,
+  muted: light.textSecondary,
+  line: light.borderDefault,
+  mist: light.bgApp,
+  paper: light.bgSurface,
+  danger: light.actionDanger,
+  veg: light.foodVeg,
+  nonVeg: light.foodNonVeg,
 };
 
 export const fonts = {
@@ -22,3 +28,5 @@ export const fonts = {
 };
 
 export const APP_NAME = 'galla';
+
+export * from './design';
