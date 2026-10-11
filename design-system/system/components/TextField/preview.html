@@ -1,0 +1,12 @@
+<!-- @dsCard group="Inputs" height=310 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>TextField — preview</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var G = window.Galla, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'gl-stack'},h(G.TextField,{label:'Name on bills',value:'Singh Sweets'}),h(G.TextField,{label:'Amount',prefix:'₹',value:'50',inputMode:'numeric',hint:'Applied before GST.'}),h(G.TextField,{label:'FSSAI licence number',value:'1122334455',error:'FSSAI numbers have 14 digits.'})));
+</script>
+</body>
+</html>

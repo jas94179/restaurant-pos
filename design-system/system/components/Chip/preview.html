@@ -1,0 +1,12 @@
+<!-- @dsCard group="Selection" height=80 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Chip — preview</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var G = window.Galla, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'gl-stage'},h(G.Chip,{selected:true},'All'),h(G.Chip,null,'South Indian'),h(G.Chip,null,'Drinks'),h(G.Chip,{selected:true,tone:'solid'},'This month'),h(G.Chip,null,'Less spicy')));
+</script>
+</body>
+</html>

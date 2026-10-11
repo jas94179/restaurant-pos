@@ -1,0 +1,12 @@
+<!-- @dsCard group="Feedback" height=80 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Badge — preview</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var G = window.Galla, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'gl-stage'},h(G.Badge,{tone:'offline'},'Offline'),h(G.Badge,{tone:'success'},'Paid'),h(G.Badge,{tone:'danger'},'Cancelled'),h(G.Badge,{tone:'warning'},'Unsent items'),h(G.Badge,{tone:'new'},'NEW'),h(G.Badge,{tone:'brand'},'Pro'),h(G.Badge,null,'Cashier')));
+</script>
+</body>
+</html>

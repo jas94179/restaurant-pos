@@ -1,0 +1,12 @@
+<!-- @dsCard group="Billing" height=88 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>CartBar — preview</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var G = window.Galla, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'gl-stage'},h(G.CartBar,{items:3,total:220}),h(G.CartBar,{items:2,total:540,cta:'Settle'})));
+</script>
+</body>
+</html>

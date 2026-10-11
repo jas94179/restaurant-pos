@@ -1,0 +1,12 @@
+<!-- @dsCard group="Billing" height=64 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>VegMark — preview</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var G = window.Galla, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'gl-stage'},h(G.VegMark,null),h(G.VegMark,{type:'nonveg'})));
+</script>
+</body>
+</html>

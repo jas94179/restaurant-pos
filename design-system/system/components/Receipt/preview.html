@@ -1,0 +1,12 @@
+<!-- @dsCard group="Print" height=420 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Receipt — preview</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var G = window.Galla, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'gl-stage',style:{gap:24}},h(G.Receipt,{label:'Tax invoice',lines:['         SINGH SWEETS','         MG Road, Pune','    GSTIN 27ABCDE1234F1Z5','     FSSAI 11223344556677','--------------------------------','          TAX INVOICE','Invoice        INV-2627-000123','Token #42          10 Oct 13:42','--------------------------------','Masala Dosa  x2           180.00','Vada         x1            40.00','--------------------------------','Taxable value             220.00','CGST 2.5%                   5.50','SGST 2.5%                   5.50','TOTAL                  Rs 231.00','--------------------------------','Paid by UPI','     Thank you! Visit again.']}),h(G.Receipt,{label:'Kitchen slip',lines:['            KOT #12','       TABLE 4 - 8:42 PM','--------------------------------','NEW ITEMS','+ Butter Naan            x2','+ Dal Makhani            x1','--------------------------------','Note: less spicy','Waiter: Ravi']})));
+</script>
+</body>
+</html>

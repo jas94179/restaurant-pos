@@ -1,0 +1,12 @@
+<!-- @dsCard group="Surfaces" height=210 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>ListRow — preview</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var G = window.Galla, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'gl-stage',style:{flexDirection:'column',gap:0}},h(G.ListRow,{title:'Ravi',subtitle:'Cashier · PIN set',avatar:true,role:'cashier'}),h(G.ListRow,{title:'Token #42',subtitle:'1:42 PM · UPI',value:'₹231'}),h(G.ListRow,{title:'Export for CA',subtitle:'Bills, GST summary, expenses'})));
+</script>
+</body>
+</html>

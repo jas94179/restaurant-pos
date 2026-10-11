@@ -1,0 +1,12 @@
+<!-- @dsCard group="Feedback" height=200 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Toast — preview</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var G = window.Galla, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'gl-stack'},h(G.Toast,null,'Saved on phone · Token #42'),h(G.Toast,{tone:'info'},'KOT #12 sent to kitchen'),h(G.Toast,{tone:'danger'},'Printer not found')));
+</script>
+</body>
+</html>

@@ -1,0 +1,83 @@
+{
+ "v": 3,
+ "layout": "files",
+ "createdOnFiles": {
+  "v": 1,
+  "at": "2026-10-11T15:27:14Z"
+ },
+ "title": "galla Design System",
+ "namespace": "Galla",
+ "libraries": [
+  {
+   "name": "react",
+   "version": "18.3.1",
+   "global": "React",
+   "file": "components/lib/react.production.min.js"
+  },
+  {
+   "name": "react-dom",
+   "version": "18.3.1",
+   "global": "ReactDOM",
+   "file": "components/lib/react-dom.production.min.js"
+  }
+ ],
+ "sections": {},
+ "groups": [
+  "Logos"
+ ],
+ "assetGroups": {
+  "Logos": {
+   "name": "Logos",
+   "tile": "m",
+   "order": [
+    "icon.png",
+    "android-icon-foreground.png",
+    "android-icon-monochrome.png",
+    "splash-icon.png",
+    "favicon.png"
+   ],
+   "files": {
+    "icon.png": {
+     "name": "icon.png",
+     "blob": "4aa4d40cfa112eb0831422f25e29083f",
+     "size": 40813,
+     "type": "image/png"
+    },
+    "android-icon-foreground.png": {
+     "name": "android-icon-foreground.png",
+     "blob": "f1c7747f2b582fd4352fb09d24c33a7f",
+     "size": 39364,
+     "type": "image/png"
+    },
+    "android-icon-monochrome.png": {
+     "name": "android-icon-monochrome.png",
+     "blob": "bc8314f6e8667c2ec78ccf684467f782",
+     "size": 21278,
+     "type": "image/png"
+    },
+    "splash-icon.png": {
+     "name": "splash-icon.png",
+     "blob": "662af59591e517bc987d3e173806d55d",
+     "size": 57906,
+     "type": "image/png"
+    },
+    "favicon.png": {
+     "name": "favicon.png",
+     "blob": "cb8bfa034ba695383cda00d5604bf9d8",
+     "size": 1846,
+     "type": "image/png"
+    }
+   }
+  }
+ },
+ "blobs": {},
+ "docs": {
+  "sections": []
+ },
+ "lastChange": {
+  "by": "Jasdeep Singh",
+  "at": "2026-10-11T15:27:14Z",
+  "via": "Claude \u00b7 from jas94179/restaurant-pos app audit",
+  "note": "v1.0: tokens (light + dark), 36 components, brand book, patterns, print, marketing, accessibility."
+ }
+}

@@ -1,0 +1,12 @@
+<!-- @dsCard group="Security" height=520 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>PinPad — preview</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var G = window.Galla, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'gl-stage',style:{gap:40}},h(G.PinPad,{title:'Owner or manager PIN',subtitle:'Discount ₹50 on Bill T2',filled:2}),h(G.PinPad,{title:'Enter your PIN',subtitle:'Ravi · Cashier',state:'error'})));
+</script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+<!-- @dsCard group="Web" height=240 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>DataTable — preview</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var G = window.Galla, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'gl-stack',style:{maxWidth:640}},h(G.DataTable,{columns:[{key:'name',label:'Restaurant'},{key:'plan',label:'Plan'},{key:'status',label:'Status',badge:true},{key:'bills',label:'Bills this week',num:true}],rows:[{name:'Singh Sweets',plan:'Pilot',status:'Trial',bills:'412'},{name:'Cafe Leaf',plan:'Starter',status:'Active',bills:'198'},{name:'Dosa Corner',plan:'Free',status:'Paused',bills:'0'}]})));
+</script>
+</body>
+</html>

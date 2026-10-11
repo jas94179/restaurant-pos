@@ -1,0 +1,12 @@
+<!-- @dsCard group="Navigation" height=110 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>AppHeader — preview</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var G = window.Galla, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'gl-stack',style:{padding:0,maxWidth:'none'}},h(G.AppHeader,{title:'Counter',offline:true,user:'Ravi'})));
+</script>
+</body>
+</html>

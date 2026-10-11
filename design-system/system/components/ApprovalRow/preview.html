@@ -1,0 +1,12 @@
+<!-- @dsCard group="Web" height=170 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>ApprovalRow — preview</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var G = window.Galla, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'gl-stack',style:{maxWidth:600}},h(G.ApprovalRow,{restaurant:'Singh Sweets',plan:'Pro',utr:'412345678901',amount:999,when:'2 min ago'}),h(G.ApprovalRow,{restaurant:'Cafe Leaf',plan:'Starter',utr:'398877665544',amount:499,when:'Yesterday',state:'approved'})));
+</script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+<!-- @dsCard group="Feedback" height=250 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Banner — preview</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var G = window.Galla, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'gl-stack'},h(G.Banner,{tone:'info',title:'This is not a tax invoice.'},'Your invoice is given after payment.'),h(G.Banner,{tone:'warning',title:'2 items not sent to the kitchen'},'Send them before settling this table.'),h(G.Banner,{tone:'danger'},'Only GST-registered businesses can charge GST. Add your GSTIN above.')));
+</script>
+</body>
+</html>

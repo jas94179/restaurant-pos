@@ -1,0 +1,12 @@
+<!-- @dsCard group="Actions" height=200 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Button — preview</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var G = window.Galla, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'gl-stack',style:{maxWidth:'none'}},h('div',{className:'gl-stage',style:{padding:0}},h(G.Button,null,'Send to kitchen'),h(G.Button,{variant:'accent'},'Show UPI QR · ₹231'),h(G.Button,{variant:'secondary'},'Print'),h(G.Button,{variant:'danger'},'Cancel this bill')),h('div',{className:'gl-stage',style:{padding:0}},h(G.Button,{size:'md',variant:'secondary'},'Print test page'),h(G.Button,{variant:'text',size:'md'},'Keep bill'),h(G.Button,{size:'sm',variant:'secondary'},'Decline'),h(G.Button,{loading:true},'Saving'),h(G.Button,{disabled:true},'Send to kitchen'))));
+</script>
+</body>
+</html>

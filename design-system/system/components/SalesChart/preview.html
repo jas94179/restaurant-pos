@@ -1,0 +1,12 @@
+<!-- @dsCard group="Web" height=290 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>SalesChart — preview</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var G = window.Galla, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'gl-stage'},h(G.SalesChart,{title:'Sales this week',data:[{label:'Mon',value:14200},{label:'Tue',value:12800},{label:'Wed',value:15100},{label:'Thu',value:13900},{label:'Fri',value:18400},{label:'Sat',value:22300,highlight:true},{label:'Sun',value:20100}]})));
+</script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+<!-- @dsCard group="Web" height=460 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>PlanCard — preview</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var G = window.Galla, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'gl-stage'},h(G.PlanCard,{name:'Starter',price:499,tagline:'For small counters and cafes',features:['Tables and dine-in','Staff PINs and roles','UPI QR and WhatsApp bills']}),h(G.PlanCard,{name:'Pro',price:999,featured:true,tagline:'For busy restaurants',features:['Everything in Starter','Printed bills and kitchen slips','Zomato and Swiggy orders']})));
+</script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+<!-- @dsCard group="Surfaces" height=460 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>BottomSheet — preview</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var G = window.Galla, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(G.BottomSheet,{title:'Cancel this bill',subtitle:'Token #42 · ₹231. The bill stays on record, struck through.',actions:h(React.Fragment,null,h(G.Button,{variant:'danger',block:true},'Cancel this bill'),h(G.Button,{variant:'text',block:true,size:'md'},'Keep bill'))},h(G.TextField,{label:'Reason',placeholder:'Customer left'})));
+</script>
+</body>
+</html>

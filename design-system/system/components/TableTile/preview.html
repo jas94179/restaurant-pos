@@ -1,0 +1,12 @@
+<!-- @dsCard group="Tables and kitchen" height=130 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>TableTile — preview</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var G = window.Galla, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'gl-stage'},h(G.TableTile,{name:'T1',status:'busy',amount:640,minutes:25}),h(G.TableTile,{name:'T2'}),h(G.TableTile,{name:'T6',status:'printed',amount:910})));
+</script>
+</body>
+</html>

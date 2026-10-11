@@ -1,0 +1,53 @@
+<!-- @dsCard height=288 -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>galla Design System</title>
+<style>
+  html, body { margin:0; height:100%; }
+  body { background:var(--bg-app); color:var(--text-primary); font-family:var(--font-app); overflow:hidden; }
+  .cover { position:relative; height:288px; overflow:hidden; }
+  .band { position:absolute; top:0; left:0; width:960px; height:112px; }
+  .band svg { display:block; width:960px; height:112px; }
+  .leaf { fill:var(--green-700); }
+  .deep { fill:var(--green-900); }
+  .tum { fill:var(--turmeric-500); }
+  .rim { fill:var(--turmeric-600); }
+  .tint { fill:var(--green-100); }
+  .slot { fill:var(--green-900); }
+  .words { position:absolute; left:var(--space-24); right:var(--space-24); bottom:var(--space-24); }
+  .name { margin:0; font-size:64px; line-height:.95; font-weight:800; letter-spacing:-.03em; color:var(--text-primary); }
+  .tag { margin:var(--space-8) 0 0 3px; font-size:14px; line-height:20px; color:var(--text-secondary); max-width:440px; }
+</style>
+</head>
+<body>
+<div class="cover">
+<div class="band" aria-hidden="true">
+<svg viewBox="0 0 960 112" width="960" height="112">
+<!--
+  blocks      green-700 448×112 (left slab), turmeric-500 160×112, green-900 128×112, green-100 224×112: a strip of unequal bands across the top
+  arrangement top-band skeleton (the name is too wide for the 440px zone), bands flush, no gaps
+  pattern     literal motif row: the coin dropping into the cash box. Coins are discs (radius-full) in turmeric-500 with a turmeric-600 rim; the slot is a green-900 pill (radius-full, space-16 tall)
+  scales      coin pitch space-64, coin size space-48, rim stroke space-4, slot height space-16, bands sized on space-32 multiples
+-->
+  <rect class="leaf" x="0" y="0" width="448" height="112"/>
+  <rect class="tum" x="448" y="0" width="160" height="112"/>
+  <rect class="deep" x="608" y="0" width="128" height="112"/>
+  <rect class="tint" x="736" y="0" width="224" height="112"/>
+  <circle class="rim" cx="112" cy="44" r="24"/><circle class="tum" cx="112" cy="44" r="20"/>
+  <circle class="rim" cx="176" cy="60" r="24"/><circle class="tum" cx="176" cy="60" r="20"/>
+  <circle class="rim" cx="240" cy="76" r="24"/><circle class="tum" cx="240" cy="76" r="20"/>
+  <rect class="slot" x="200" y="96" width="208" height="16" rx="8"/>
+  <circle class="leaf" cx="528" cy="56" r="24"/>
+  <circle class="tum" cx="672" cy="56" r="24"/>
+  <circle class="leaf" cx="848" cy="56" r="24"/><circle class="tint" cx="848" cy="56" r="12"/>
+</svg>
+</div>
+<div class="words">
+  <p class="name">galla Design System</p>
+  <p class="tag">Billing for small Indian restaurants. Curry-leaf green for trust, turmeric for the money moment.</p>
+</div>
+</div>
+</body>
+</html>

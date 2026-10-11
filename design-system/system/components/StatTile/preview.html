@@ -1,0 +1,12 @@
+<!-- @dsCard group="Web" height=150 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>StatTile — preview</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var G = window.Galla, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'gl-stage'},h(G.StatTile,{label:'Restaurants on trial',value:'4',delta:'+2'}),h(G.StatTile,{label:'Monthly revenue',value:'₹3,996',delta:'+₹999',period:'vs last month'}),h(G.StatTile,{label:'Open requests',value:'1'})));
+</script>
+</body>
+</html>
