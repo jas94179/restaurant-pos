@@ -92,7 +92,7 @@ export default function BottomSheet({ onClose, children, footer, background = co
 }
 
 const styles = StyleSheet.create({
-  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(15,42,31,0.55)' },
+  backdrop: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(15,42,31,0.55)' },
   wrap: { flex: 1, justifyContent: 'flex-end' },
   sheet: { borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: 'hidden' },
   handleArea: { alignItems: 'center', paddingTop: 10, paddingBottom: 8 },

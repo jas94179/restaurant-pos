@@ -73,7 +73,7 @@ export default function KotSheet({ kot, onClose }: { kot: Kot; onClose: () => vo
 }
 
 const styles = StyleSheet.create({
-  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' },
+  backdrop: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' },
   sheet: { maxHeight: '90%', backgroundColor: colors.mist, borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingTop: 16, paddingHorizontal: 16 },
   paper: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 18, borderWidth: 1, borderColor: colors.line },
   kotNo: { fontFamily: fonts.bold, fontSize: 26, color: colors.ink, textAlign: 'center' },
